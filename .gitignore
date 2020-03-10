@@ -1,0 +1,16 @@
+.classpath
+.metadata
+.gradle
+.project
+.settings
+bin/
+build/
+jars/
+run/
+*.iml
+*.launch
+/.nb-gradle/
+
+/*Audio files*/
+*.ogg
+*.WAV
