@@ -7,7 +7,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.EntityRenderer;
@@ -22,9 +21,7 @@ abstract class MixinEntityRenderer {
     
     @Inject(method = "setupCameraTransform", at = @At(value = "FIELD", target = "Lnet/minecraft/client/renderer/EntityRenderer;farPlaneDistance:F", shift = At.Shift.AFTER, args = "log=true", ordinal = 0))
     private void onConstructed(CallbackInfo ci) {
-        //System.out.println("farPlaneDistance before: " + farPlaneDistance);
         farPlaneDistance *= 4;
-        //System.out.println("farPlaneDistance after: " + farPlaneDistance);
     }
     
     @Inject(method = "renderWorld", at = @At(value = "INVOKE", target = "Lorg/lwjgl/opengl/GL11;glAlphaFunc(IF)V", shift = At.Shift.AFTER, ordinal = 1))
