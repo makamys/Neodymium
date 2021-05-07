@@ -74,9 +74,9 @@ abstract class MixinTessellator implements ITessellator {
         
         for(int quadI = 0; quadI < this.vertexCount / 4; quadI++) {
             MeshQuad quad = new MeshQuad(rawBuffer, quadI * 32, new ChunkMesh.Flags(hasTexture, hasBrightness, hasColor, hasNormals));
-            if(quad.bUs[0] == quad.bUs[1] && quad.bUs[1] == quad.bUs[2] && quad.bUs[2] == quad.bUs[3] && quad.bUs[3] == quad.bVs[0] && quad.bVs[0] == quad.bVs[1] && quad.bVs[1] == quad.bVs[2] && quad.bVs[2] == quad.bVs[3] && quad.bVs[3] == 0) {
+            /*if(quad.bUs[0] == quad.bUs[1] && quad.bUs[1] == quad.bUs[2] && quad.bUs[2] == quad.bUs[3] && quad.bUs[3] == quad.bVs[0] && quad.bVs[0] == quad.bVs[1] && quad.bVs[1] == quad.bVs[2] && quad.bVs[2] == quad.bVs[3] && quad.bVs[3] == 0) {
                 quad.deleted = true;
-            }
+            }*/
             if(quad.plane == quad.PLANE_XZ && !quad.isClockwiseXZ()) {
                 // water hack
                 quad.deleted = true;
