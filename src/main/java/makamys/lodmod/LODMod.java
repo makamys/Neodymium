@@ -70,6 +70,13 @@ public class LODMod
     }
     
     @SubscribeEvent
+    public void onWorldSave(WorldEvent.Save event) {
+        if(isActive()) {
+            renderer.onSave(event.world);
+        }
+    }
+    
+    @SubscribeEvent
     public void onRenderOverlay(RenderGameOverlayEvent event) {
         FontRenderer fontRenderer = RenderManager.instance.getFontRenderer();
         if(isActive() && event.type == ElementType.TEXT && fontRenderer != null && Minecraft.getMinecraft().gameSettings.showDebugInfo)

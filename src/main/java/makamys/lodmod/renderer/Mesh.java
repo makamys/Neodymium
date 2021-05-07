@@ -3,6 +3,8 @@ package makamys.lodmod.renderer;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 
+import net.minecraft.nbt.NBTBase;
+
 public abstract class Mesh {
 	
 	public ByteBuffer buffer;
@@ -13,5 +15,4 @@ public abstract class Mesh {
 	public int offset = -1;
 	
 	public abstract int getStride();
-	
 }

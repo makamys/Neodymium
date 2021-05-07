@@ -1,6 +1,17 @@
 package makamys.lodmod.renderer;
 
+import java.io.BufferedOutputStream;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.nio.file.Path;
+
+import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
+import net.minecraft.nbt.CompressedStreamTools;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagList;
 import net.minecraft.world.chunk.Chunk;
 
 public class LODRegion {
@@ -22,6 +33,32 @@ public class LODRegion {
 	
 	public static LODRegion load(int regionX, int regionZ) {
 		return new LODRegion(regionX, regionZ); // TODO
+	}
+	
+	public void save(Path saveDir) {
+	    try {
+	        Path savePath = saveDir.resolve("lod").resolve(regionX + "," + regionZ + ".lod");
+	        File saveFile = savePath.toFile();
+	        saveFile.getParentFile().mkdirs();
+	        
+            NBTTagCompound nbt = new NBTTagCompound();
+            nbt.setByte("V", (byte)0);
+            
+            NBTTagList list = new NBTTagList();
+            
+            for(int i = 0; i < 32; i++) {
+                for(int j = 0; j < 32; j++) {
+                    if(data[i][j] != null) {
+                        list.appendTag(data[i][j].saveToNBT());
+                    }
+                }
+            }
+            nbt.setTag("chunks", list);
+            CompressedStreamTools.writeCompressed(nbt, new FileOutputStream(saveFile));
+        } catch (Exception e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
 	}
 	
 	public LODChunk getChunkAbsolute(int chunkXAbs, int chunkZAbs) {

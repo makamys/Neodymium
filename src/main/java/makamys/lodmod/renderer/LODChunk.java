@@ -4,6 +4,9 @@ import java.util.List;
 
 import makamys.lodmod.LODMod;
 import net.minecraft.entity.Entity;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagEnd;
+import net.minecraft.nbt.NBTTagList;
 import net.minecraft.world.chunk.Chunk;
 
 public class LODChunk {
@@ -65,6 +68,20 @@ public class LODChunk {
 		} else {
 		    renderer.setLOD(this, 0);
 		}
+	}
+	
+	public NBTTagCompound saveToNBT() {
+	    NBTTagCompound nbt = new NBTTagCompound();
+	    nbt.setInteger("x", x);
+	    nbt.setInteger("z", z);
+	    NBTTagCompound chunkMeshesCompound = new NBTTagCompound();
+	    for(int i = 0; i < chunkMeshes.length; i++) {
+	        if(chunkMeshes[i] != null) {
+	            chunkMeshesCompound.setTag(String.valueOf(i), chunkMeshes[i].nbtData);
+	        }
+	    }
+	    nbt.setTag("chunkMeshes", chunkMeshesCompound);
+	    return nbt;
 	}
 	
 }

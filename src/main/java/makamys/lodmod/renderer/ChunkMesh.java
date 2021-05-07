@@ -1,7 +1,9 @@
 package makamys.lodmod.renderer;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.EOFException;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -14,6 +16,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.lwjgl.BufferUtils;
 
@@ -24,6 +27,9 @@ import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.WorldRenderer;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.renderer.texture.TextureMap;
+import net.minecraft.nbt.NBTBase;
+import net.minecraft.nbt.NBTTagByteArray;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 
 public class ChunkMesh extends Mesh {
@@ -32,6 +38,8 @@ public class ChunkMesh extends Mesh {
     int y;
     int z;
     Flags flags;
+    
+    NBTBase nbtData;
     
     public static int usedRAM = 0;
     public static int instances = 0;
@@ -44,6 +52,7 @@ public class ChunkMesh extends Mesh {
         this.quadCount = quadCount;
         
         this.buffer = createBuffer(data, stringTable);
+        this.nbtData = new NBTTagByteArray(data);
         
         usedRAM += buffer.limit();
         instances++;
@@ -56,10 +65,26 @@ public class ChunkMesh extends Mesh {
         this.flags = flags;
         this.quadCount = quadCount;
         
-        this.buffer = createBuffer(quads);
+        this.nbtData = toNBT(quads, quadCount);
+        // TODO move this somewhere else
+        List<String> nameList = (List<String>) ((TextureMap)Minecraft.getMinecraft().getTextureManager().getTexture(TextureMap.locationBlocksTexture)).mapUploadedSprites.keySet().stream().collect(Collectors.toList());
+        this.buffer = createBuffer(((NBTTagByteArray)nbtData).func_150292_c(), nameList);
         
         usedRAM += buffer.limit();
         instances++;
+    }
+    
+    private NBTBase toNBT(List<MeshQuad> quads, int quadCount) {
+        ByteArrayOutputStream byteOut = new ByteArrayOutputStream(quadCount * 6 * 13);
+        DataOutputStream out = new DataOutputStream(byteOut);
+        try {
+            for(int pass = 0; pass <= 9; pass++){
+                for(MeshQuad quad : quads) {
+                    quad.writeToDisk(out, pass);
+                }
+            }
+        } catch(IOException e) {}
+        return new NBTTagByteArray(byteOut.toByteArray());
     }
     
     void destroy() {

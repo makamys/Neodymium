@@ -7,11 +7,13 @@ import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.entity.Entity;
 import net.minecraft.world.ChunkCoordIntPair;
+import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.gen.ChunkProviderServer;
 
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -574,6 +576,13 @@ public class LODRenderer {
 	            "Full meshes: " + ChunkMesh.instances + " (" + ChunkMesh.usedRAM / 1024 / 1024 + "MB)",
 	            "Total RAM used: " + ((SimpleChunkMesh.usedRAM + ChunkMesh.usedRAM) / 1024 / 1024) + " MB"
 	    );
+	}
+	
+	public void onSave(World world) {
+	    String worldName = world.getWorldInfo().getWorldName();
+	    Path saveDir = Minecraft.getMinecraft().mcDataDir.toPath().resolve("lodmod").resolve(worldName);
+	    
+	    loadedRegionsMap.forEach((k, v) -> v.save(saveDir));
 	}
 	
 	public static class LODChunkComparator implements Comparator<LODChunk> {
