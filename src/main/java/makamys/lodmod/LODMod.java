@@ -24,7 +24,6 @@ import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.TickEvent.ClientTickEvent;
-import makamys.lodmod.mixin.IRenderGlobal;
 
 @Mod(modid = LODMod.MODID, version = LODMod.VERSION)
 public class LODMod

@@ -5,8 +5,13 @@
     "refmap": "lodmod.mixin.refmap.json",
     "compatibilityLevel": "JAVA_8",
     "mixins": [
-        "MixinSoundManager",
+        "MixinChunkCache",
         "MixinEntityRenderer",
-        "IRenderGlobal"
+        "MixinMinecraftServer",
+        "MixinRenderGlobal",
+        "MixinSoundManager",
+        "MixinSoundManager",
+        "MixinTessellator",
+        "MixinWorldRenderer"
     ]
 }

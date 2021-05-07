@@ -8,6 +8,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import makamys.lodmod.renderer.MyRenderer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.EntityRenderer;
 import net.minecraft.entity.EntityLivingBase;
@@ -27,7 +28,7 @@ abstract class MixinEntityRenderer {
     @Inject(method = "renderWorld", at = @At(value = "INVOKE", target = "Lorg/lwjgl/opengl/GL11;glAlphaFunc(IF)V", shift = At.Shift.AFTER, ordinal = 1))
     private void afterSortAndRender(float alpha, long something, CallbackInfo ci) {
         Minecraft.getMinecraft().entityRenderer.enableLightmap((double)alpha);
-        //MyRenderer.beforeRenderTerrain();
+        MyRenderer.beforeRenderTerrain();
         Minecraft.getMinecraft().entityRenderer.disableLightmap((double)alpha);
     }
     
