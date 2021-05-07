@@ -10,6 +10,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import makamys.lodmod.LODMod;
 import makamys.lodmod.ducks.ITessellator;
@@ -35,6 +36,13 @@ abstract class MixinWorldRenderer implements IWorldRenderer {
     public int posY;
     @Shadow
     public int posZ;
+    
+    @Shadow
+    private boolean isInFrustum;
+    @Shadow
+    public boolean[] skipRenderPass;
+    @Shadow
+    private int glRenderList;
     
     public List<ChunkMesh> chunkMeshes = new ArrayList<>();
     

@@ -353,7 +353,14 @@ public class LODRenderer {
 	public void onWorldRendererPost(WorldRenderer wr) {
 		LODChunk lodChunk = getLODChunk(Math.floorDiv(wr.posX, 16), Math.floorDiv(wr.posZ, 16));
 		lodChunk.putChunkMeshes(Math.floorDiv(wr.posY, 16), ((IWorldRenderer)wr).getChunkMeshes());
-		setVisible(lodChunk, false);
+		//setVisible(lodChunk, false);
+	}
+	
+	public void onWorldRendererFrustumChange(WorldRenderer wr, boolean inFrustum) {
+	    if(inFrustum) {
+	        LODChunk lodChunk = getLODChunk(Math.floorDiv(wr.posX, 16), Math.floorDiv(wr.posZ, 16));
+	        setVisible(lodChunk, false);
+	    }
 	}
 	
 	public void onDontDraw(WorldRenderer wr) {
