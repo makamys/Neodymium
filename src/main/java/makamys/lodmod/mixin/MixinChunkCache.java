@@ -6,7 +6,7 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 
 import makamys.lodmod.LODMod;
 import makamys.lodmod.renderer.FarChunkCache;
-import makamys.lodmod.renderer.MyRenderer;
+import makamys.lodmod.renderer.LODRenderer;
 import net.minecraft.world.ChunkCache;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;

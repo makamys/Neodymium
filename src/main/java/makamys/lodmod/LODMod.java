@@ -12,7 +12,7 @@ import cpw.mods.fml.common.Mod.EventHandler;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
-import makamys.lodmod.renderer.MyRenderer;
+import makamys.lodmod.renderer.LODRenderer;
 import makamys.lodmod.util.SpriteUtil;
 
 @Mod(modid = LODMod.MODID, version = LODMod.VERSION)
@@ -23,7 +23,7 @@ public class LODMod
     
     public static final Logger LOGGER = LogManager.getLogger("lodmod");
     
-    public static MyRenderer renderer;
+    public static LODRenderer renderer;
     
     @EventHandler
     public void init(FMLInitializationEvent event)
@@ -41,7 +41,7 @@ public class LODMod
             LOGGER.warn("Renderer didn't get destroyed last time");
             renderer.destroy();
         }
-        renderer = new MyRenderer();
+        renderer = new LODRenderer();
     }
     
     @SubscribeEvent

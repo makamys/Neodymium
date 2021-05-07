@@ -36,7 +36,7 @@ import static org.lwjgl.opengl.GL15.*;
 import static org.lwjgl.opengl.GL20.*;
 import static org.lwjgl.opengl.GL30.*;
 
-public class MyRenderer {
+public class LODRenderer {
 
 	private boolean hasInited = false;
 	
@@ -67,7 +67,7 @@ public class MyRenderer {
     private double lastSortY = Double.NaN;
     private double lastSortZ = Double.NaN;
     
-    public MyRenderer(){
+    public LODRenderer(){
         hasInited = init();
     }
     

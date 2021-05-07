@@ -17,7 +17,7 @@ public class LODChunk {
 	SimpleChunkMesh simpleMesh;
 	ChunkMesh[] chunkMeshes = new ChunkMesh[32];
 	
-	MyRenderer renderer = LODMod.renderer;
+	LODRenderer renderer = LODMod.renderer;
 	
 	public LODChunk(int x, int z) {
 		this.x = x;

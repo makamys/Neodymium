@@ -17,7 +17,7 @@ import makamys.lodmod.ducks.IWorldRenderer;
 import makamys.lodmod.renderer.ChunkMesh;
 import makamys.lodmod.renderer.FarChunkCache;
 import makamys.lodmod.renderer.FarWorldRenderer;
-import makamys.lodmod.renderer.MyRenderer;
+import makamys.lodmod.renderer.LODRenderer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.WorldRenderer;
