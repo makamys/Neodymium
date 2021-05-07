@@ -62,7 +62,7 @@ public class LODChunk {
 		} else if(distSq < Math.pow(64 * 16, 2)) {
 		    renderer.setLOD(this, 1);
 		} else {
-		    renderer.setVisible(this, false);
+		    renderer.setLOD(this, 0);
 		}
 	}
 	
