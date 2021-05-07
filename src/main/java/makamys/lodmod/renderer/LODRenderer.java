@@ -492,6 +492,10 @@ public class LODRenderer {
 		return null;
 	}
 	
+	public String getDebugText() {
+	    return "VRAM: " + (nextMeshOffset / 1024 / 1024) + "MB / " + (BUFFER_SIZE / 1024 / 1024) + "MB";
+	}
+	
 	public static class LODChunkComparator implements Comparator<LODChunk> {
 		Entity player;
 		

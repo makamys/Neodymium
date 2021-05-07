@@ -1,5 +1,11 @@
 package makamys.lodmod;
 
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.FontRenderer;
+import net.minecraft.client.gui.ScaledResolution;
+import net.minecraft.client.renderer.entity.RenderManager;
+import net.minecraftforge.client.event.RenderGameOverlayEvent;
+import net.minecraftforge.client.event.RenderGameOverlayEvent.ElementType;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.world.WorldEvent;
 
@@ -60,6 +66,20 @@ public class LODMod
     public void onWorldUnload(TickEvent.ServerTickEvent event) {
         if(isActive()) {
             renderer.serverTick();
+        }
+    }
+    
+    @SubscribeEvent
+    public void onRenderOverlay(RenderGameOverlayEvent event) {
+        FontRenderer fontRenderer = RenderManager.instance.getFontRenderer();
+        if(isActive() && event.type == ElementType.TEXT && fontRenderer != null && Minecraft.getMinecraft().gameSettings.showDebugInfo)
+        {
+            Minecraft mc = Minecraft.getMinecraft();
+            ScaledResolution scaledresolution = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight);
+            int w = scaledresolution.getScaledWidth();
+            int h = scaledresolution.getScaledHeight();
+            String s = renderer.getDebugText();
+            fontRenderer.drawStringWithShadow(s, w - fontRenderer.getStringWidth(s) - 10, 80, 0xFFFFFF);
         }
     }
 }
