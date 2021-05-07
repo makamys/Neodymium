@@ -43,7 +43,6 @@ public class LODChunk {
 		
 		for(int i = 0; i < newChunkMeshes.size(); i++) {
 			chunkMeshes[cy * 2 + i] = newChunkMeshes.get(i);
-			renderer.sendMeshToGPU(newChunkMeshes.get(i));
 		}
 	}
 	

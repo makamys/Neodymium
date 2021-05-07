@@ -16,9 +16,12 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
+import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.apache.commons.lang3.ArrayUtils;
@@ -56,7 +59,8 @@ public class LODRenderer {
     List<LODChunk> pendingLODChunks = new ArrayList<>();
     
     private boolean hasServerInited = false;
-    private HashMap<ChunkCoordIntPair, LODRegion> loadedRegionsMap = new HashMap<>();
+    private Map<ChunkCoordIntPair, LODRegion> loadedRegionsMap = new HashMap<>();
+    private List<Mesh> sentMeshes = new ArrayList<>();
     
     // TODO make these packets to make this work on dedicated servers
     Queue<Chunk> farChunks = new ConcurrentLinkedQueue<>();
@@ -67,6 +71,9 @@ public class LODRenderer {
     private double lastSortY = Double.NaN;
     private double lastSortZ = Double.NaN;
     
+    private long lastGCTime = -1;
+    private long gcInterval = 60 * 1000;
+    
     public LODRenderer(){
         hasInited = init();
     }
@@ -75,6 +82,12 @@ public class LODRenderer {
         if(hasInited) {
             mainLoop();
             handleKeyboard();
+            gcInterval = 10 * 1000;
+            if(lastGCTime == -1 || (System.currentTimeMillis() - lastGCTime) > gcInterval) {
+                runGC();
+                lastGCTime = System.currentTimeMillis();
+            }
+            
             if(renderLOD) {
                 render();
             }
@@ -132,6 +145,52 @@ public class LODRenderer {
 			wasDown[i] = Keyboard.isKeyDown(i);
 		}
 	}
+	
+	private void runGC() {
+	    nextMeshOffset = 0;
+	    nextTri = 0;
+	    nextMesh = 0;
+	    
+	    piFirst.limit(0);
+	    piCount.limit(0);
+	    
+	    glBindVertexArray(VAO);
+        glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	    
+        int deletedNum = 0;
+        int deletedRAM = 0;
+	    for(Iterator<Mesh> it = sentMeshes.iterator(); it.hasNext(); ) {
+	        Mesh mesh = it.next();
+	        if(!mesh.pendingGPUDelete) {
+    	        if(mesh.offset != nextMeshOffset) {
+    	            glBufferSubData(GL_ARRAY_BUFFER, nextMeshOffset, mesh.buffer);
+    	        }
+    	        mesh.iFirst = nextTri;
+    	        mesh.offset = nextMeshOffset;
+    	        
+    	        nextMeshOffset += mesh.buffer.limit();
+    	        nextTri += mesh.quadCount * 6;
+    	        
+    	        piFirst.limit(piFirst.limit() + 1);
+    	        piFirst.put(nextMesh, mesh.iFirst);
+    	        piCount.limit(piCount.limit() + 1);
+    	        piCount.put(nextMesh, mesh.iCount);
+    	        nextMesh++;
+	        } else {
+	            mesh.iFirst = mesh.offset = -1;
+	            mesh.visible = false;
+	            mesh.pendingGPUDelete = false;
+	            it.remove();
+	            deletedNum++;
+	            deletedRAM += mesh.buffer.limit();
+	        }
+	    }
+	    
+	    System.out.println("Deleted " + deletedNum + " meshes, freeing up " + (deletedRAM / 1024 / 1024) + "MB of VRAM");
+	    
+	    glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glBindVertexArray(0);
+    }
 
 	private void render() {
 	    GL11.glPushAttrib(GL11.GL_ENABLE_BIT);
@@ -368,12 +427,6 @@ public class LODRenderer {
 	
 	private void sendChunkToGPU(LODChunk lodChunk) {
 		lodChunk.simpleMesh = new SimpleChunkMesh(lodChunk.chunk);
-		/*for(int cy = 0; cy < 16; cy++) {
-			lodChunk.chunkMeshes[cy] = ChunkMesh.getChunkMesh(lodChunk.x, cy, lodChunk.z);
-			sendMeshToGPU(lodChunk.chunkMeshes[cy]);
-		}*/
-		
-		sendMeshToGPU(lodChunk.simpleMesh);
 		
 		Entity player = (Entity) Minecraft.getMinecraft().getIntegratedServer().getConfigurationManager().playerEntityList.get(0);
 		
@@ -427,29 +480,14 @@ public class LODRenderer {
 	private int nextMeshOffset;
 	private int nextMesh;
 	
-	protected void sendMeshToGPU(Mesh mesh) {
-		if(mesh == null) {
-			return;
-		}
-		glBindVertexArray(VAO);
-		glBindBuffer(GL_ARRAY_BUFFER, VBO);
-		
-		glBufferSubData(GL_ARRAY_BUFFER, nextMeshOffset, mesh.buffer);
-		mesh.iFirst = nextTri;
-		mesh.iCount = mesh.quadCount * 6;
-		
-		nextTri += mesh.quadCount * 6;
-		nextMeshOffset += mesh.buffer.limit();
-		
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-		glBindVertexArray(0);
-	}
-	
 	protected void setMeshVisible(Mesh mesh, boolean visible) {
 		if(mesh == null) return;
 		
 		if(mesh.visible != visible) {
 			if(!visible) {
+			    if(mesh.iFirst == -1) {
+			        System.out.println("uh");
+			    }
 				piFirst.position(0);
 				int[] piFirstArr = new int[piFirst.limit()];
 				piFirst.get(piFirstArr);
@@ -461,6 +499,8 @@ public class LODRenderer {
 				piFirst.limit(piFirst.limit() - 1);
 				
 				piCount.position(0);
+				
+				deleteMeshFromGPU(mesh);
 				int[] piCountArr = new int[piCount.limit()];
 				piCount.get(piCountArr);
 				piCountArr = ArrayUtils.remove(piCountArr, index);
@@ -470,6 +510,7 @@ public class LODRenderer {
 				piCount.limit(piCount.limit() - 1);
 				nextMesh--;
 			} else if(visible) {
+			    sendMeshToGPU(mesh);
 				piFirst.limit(piFirst.limit() + 1);
 				piFirst.put(nextMesh, mesh.iFirst);
 				piCount.limit(piCount.limit() + 1);
@@ -479,6 +520,37 @@ public class LODRenderer {
 			mesh.visible = visible;
 		}
 	}
+	
+	private void sendMeshToGPU(Mesh mesh) {
+        if(mesh == null) {
+            return;
+        }
+        if(mesh.pendingGPUDelete) {
+            mesh.pendingGPUDelete = false;
+            return;
+        }
+        glBindVertexArray(VAO);
+        glBindBuffer(GL_ARRAY_BUFFER, VBO);
+        
+        glBufferSubData(GL_ARRAY_BUFFER, nextMeshOffset, mesh.buffer);
+        mesh.iFirst = nextTri;
+        mesh.iCount = mesh.quadCount * 6;
+        mesh.offset = nextMeshOffset;
+        
+        nextTri += mesh.quadCount * 6;
+        nextMeshOffset += mesh.buffer.limit();
+        sentMeshes.add(mesh);
+        
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glBindVertexArray(0);
+    }
+	
+    private void deleteMeshFromGPU(Mesh mesh) {
+        if(mesh == null) {
+            return;
+        }
+        mesh.pendingGPUDelete = true;
+    }	
 	
 	public Chunk getChunkFromChunkCoords(int x, int z) {
 		for(Chunk chunk : myChunks) {
