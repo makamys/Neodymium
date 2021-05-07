@@ -27,6 +27,22 @@ public class LODChunk {
 		this.z = z;
 	}
 	
+	public LODChunk(NBTTagCompound nbt, List<String> spriteList) {
+	    this.x = nbt.getInteger("x");
+	    this.z = nbt.getInteger("z");
+	    
+	    NBTTagCompound chunkMeshesCompound = nbt.getCompoundTag("chunkMeshes");
+	    for(Object o : chunkMeshesCompound.func_150296_c()) {
+	        String key = (String)o;
+	        int keyInt = Integer.parseInt(key);
+	        
+	        byte[] data = chunkMeshesCompound.getByteArray(key);
+	        
+	        chunkMeshes[keyInt] = new ChunkMesh(x, keyInt / 2, z, new ChunkMesh.Flags(true, true, true, false), data.length / (2 + 4 * (3 + 2 + 2 + 4)), data, spriteList);
+	    }
+	    
+	}
+	
 	@Override
 	public String toString() {
 		return "LODChunk(" + x + ", " + z + ")";

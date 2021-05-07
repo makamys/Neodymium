@@ -3,16 +3,24 @@ package makamys.lodmod.renderer;
 import java.io.BufferedOutputStream;
 import java.io.DataOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
+import makamys.lodmod.LODMod;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.entity.Entity;
 import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.world.chunk.Chunk;
+import net.minecraftforge.common.util.Constants.NBT;
 
 public class LODRegion {
 	
@@ -31,26 +39,55 @@ public class LODRegion {
 		}
 	}
 	
-	public static LODRegion load(int regionX, int regionZ) {
-		return new LODRegion(regionX, regionZ); // TODO
+	public LODRegion(int regionX, int regionZ, NBTTagCompound nbt) {
+        this.regionX = regionX;
+        this.regionZ = regionZ;
+        
+        NBTTagList list = nbt.getTagList("chunks", NBT.TAG_COMPOUND);
+        List<String> stringTable = Arrays.asList(nbt.getString("stringTable").split("\\n"));
+        
+        int idx = 0;
+        for(int i = 0; i < 32; i++) {
+            for(int j = 0; j < 32; j++) {
+                data[i][j] = new LODChunk(list.getCompoundTagAt(idx++), stringTable);
+                if(data[i][j].hasChunkMeshes()) {
+                    LODMod.renderer.setVisible(data[i][j], true);
+                }
+            }
+        }        
+    }
+	
+	public static LODRegion load(Path saveDir, int regionX, int regionZ) {
+	    File saveFile = getSavePath(saveDir, regionX, regionZ).toFile();
+	    if(saveFile.exists()) {
+	        try {
+                NBTTagCompound nbt = CompressedStreamTools.readCompressed(new FileInputStream(saveFile));
+                return new LODRegion(regionX, regionZ, nbt);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+	    }
+	    return new LODRegion(regionX, regionZ);
+	}
+	
+	private static Path getSavePath(Path saveDir, int regionX, int regionZ) {
+	    return saveDir.resolve("lod").resolve(regionX + "," + regionZ + ".lod");
 	}
 	
 	public void save(Path saveDir) {
 	    try {
-	        Path savePath = saveDir.resolve("lod").resolve(regionX + "," + regionZ + ".lod");
-	        File saveFile = savePath.toFile();
+	        File saveFile = getSavePath(saveDir, regionX, regionZ).toFile();
 	        saveFile.getParentFile().mkdirs();
 	        
             NBTTagCompound nbt = new NBTTagCompound();
             nbt.setByte("V", (byte)0);
+            nbt.setString("stringTable", String.join("\n", (List<String>) ((TextureMap)Minecraft.getMinecraft().getTextureManager().getTexture(TextureMap.locationBlocksTexture)).mapUploadedSprites.keySet().stream().collect(Collectors.toList())));
             
             NBTTagList list = new NBTTagList();
             
             for(int i = 0; i < 32; i++) {
                 for(int j = 0; j < 32; j++) {
-                    if(data[i][j] != null) {
-                        list.appendTag(data[i][j].saveToNBT());
-                    }
+                    list.appendTag(data[i][j].saveToNBT());
                 }
             }
             nbt.setTag("chunks", list);

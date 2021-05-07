@@ -18,6 +18,8 @@ import cpw.mods.fml.common.Mod.EventHandler;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import makamys.lodmod.renderer.LODRenderer;
 import makamys.lodmod.util.SpriteUtil;
 
@@ -66,13 +68,6 @@ public class LODMod
     public void onWorldUnload(TickEvent.ServerTickEvent event) {
         if(isActive()) {
             renderer.serverTick();
-        }
-    }
-    
-    @SubscribeEvent
-    public void onWorldSave(WorldEvent.Save event) {
-        if(isActive()) {
-            renderer.onSave(event.world);
         }
     }
     

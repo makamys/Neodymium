@@ -338,6 +338,8 @@ public class LODRenderer {
 	}
 	
 	public void destroy() {
+	    onSave();
+	    
         glDeleteProgram(shaderProgram);
         glDeleteVertexArrays(VAO);
         glDeleteBuffers(VBO);
@@ -404,7 +406,7 @@ public class LODRenderer {
 		ChunkCoordIntPair key = new ChunkCoordIntPair(Math.floorDiv(chunkX , 32), Math.floorDiv(chunkZ, 32));
 		LODRegion region = loadedRegionsMap.get(key);
 		if(region == null) {
-			region = LODRegion.load(Math.floorDiv(chunkX , 32), Math.floorDiv(chunkZ , 32));
+			region = LODRegion.load(getSaveDir(), Math.floorDiv(chunkX , 32), Math.floorDiv(chunkZ , 32));
 			loadedRegionsMap.put(key, region);
 		}
 		return region;
@@ -438,7 +440,7 @@ public class LODRenderer {
 		
 		Entity player = (Entity) Minecraft.getMinecraft().getIntegratedServer().getConfigurationManager().playerEntityList.get(0);
 		
-		setLOD(lodChunk, 1);//lodChunk.distSq(player) < 16 * 16 * 16 * 16 ? 2 : 1);
+		lodChunk.tick(player);
 		setVisible(lodChunk, true);
 	}
 	
@@ -578,11 +580,12 @@ public class LODRenderer {
 	    );
 	}
 	
-	public void onSave(World world) {
-	    String worldName = world.getWorldInfo().getWorldName();
-	    Path saveDir = Minecraft.getMinecraft().mcDataDir.toPath().resolve("lodmod").resolve(worldName);
-	    
-	    loadedRegionsMap.forEach((k, v) -> v.save(saveDir));
+	public void onSave() {
+	    loadedRegionsMap.forEach((k, v) -> v.save(getSaveDir()));
+	}
+	
+	private Path getSaveDir(){
+	    return Minecraft.getMinecraft().mcDataDir.toPath().resolve("lodmod").resolve(Minecraft.getMinecraft().getIntegratedServer().getFolderName());
 	}
 	
 	public static class LODChunkComparator implements Comparator<LODChunk> {

@@ -44,7 +44,7 @@ public class ChunkMesh extends Mesh {
     public static int usedRAM = 0;
     public static int instances = 0;
     
-    private ChunkMesh(int x, int y, int z, Flags flags, int quadCount, byte[] data, List<String> stringTable) {
+    public ChunkMesh(int x, int y, int z, Flags flags, int quadCount, byte[] data, List<String> stringTable) {
         this.x = x;
         this.y = y;
         this.z = z;
@@ -73,9 +73,9 @@ public class ChunkMesh extends Mesh {
         usedRAM += buffer.limit();
         instances++;
     }
-    
+
     private NBTBase toNBT(List<MeshQuad> quads, int quadCount) {
-        ByteArrayOutputStream byteOut = new ByteArrayOutputStream(quadCount * 6 * 13);
+        ByteArrayOutputStream byteOut = new ByteArrayOutputStream(quadCount * (2 + 4 * (3 + 2 + 2 + 4)));
         DataOutputStream out = new DataOutputStream(byteOut);
         try {
             for(int pass = 0; pass <= 9; pass++){
