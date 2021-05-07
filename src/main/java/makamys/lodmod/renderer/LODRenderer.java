@@ -49,7 +49,7 @@ public class LODRenderer {
     private static int BUFFER_SIZE = 1024 * 1024 * 1024;
     private static int MAX_MESHES = 100000;
     
-    private int VAO, VBO, EBO, shaderProgram;
+    private int VAO, VBO, shaderProgram;
     private IntBuffer piFirst, piCount;
     
     List<Chunk> myChunks = new ArrayList<Chunk>();
@@ -119,12 +119,6 @@ public class LODRenderer {
             }
         }
     }
-	
-	public void destroy() {
-		/*glDeleteProgram(shaderProgram);
-		glDeleteVertexArrays(VAO);
-		glDeleteBuffers(VBO);*/
-	}
 	
 	private void handleKeyboard() {
 		if(Keyboard.isKeyDown(Keyboard.KEY_F) && !wasDown[Keyboard.KEY_F]) {
@@ -256,9 +250,6 @@ public class LODRenderer {
 		VBO = glGenBuffers();
 		glBindBuffer(GL_ARRAY_BUFFER, VBO);
 		
-		EBO = glGenBuffers();
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-		
 		glBufferData(GL_ARRAY_BUFFER, BUFFER_SIZE, GL_STATIC_DRAW);
 		
 		int stride = 7 * 4;
@@ -283,6 +274,12 @@ public class LODRenderer {
 		
 		return true;
 	}
+	
+	public void destroy() {
+        glDeleteProgram(shaderProgram);
+        glDeleteVertexArrays(VAO);
+        glDeleteBuffers(VBO);
+    }
 	
 	public void onWorldRendererPost(WorldRenderer wr) {
 		LODChunk lodChunk = getLODChunk(Math.floorDiv(wr.posX, 16), Math.floorDiv(wr.posZ, 16));
