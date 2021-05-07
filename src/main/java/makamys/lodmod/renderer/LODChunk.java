@@ -37,6 +37,7 @@ public class LODChunk {
 		for(int i = 0; i < 2; i++) {
 			if(chunkMeshes[cy * 2 + i] != null) {
 			    renderer.setMeshVisible(chunkMeshes[cy * 2 + i], false);
+			    chunkMeshes[cy * 2 + i].destroy();
 				chunkMeshes[cy * 2 + i] = null;
 			}
 		}

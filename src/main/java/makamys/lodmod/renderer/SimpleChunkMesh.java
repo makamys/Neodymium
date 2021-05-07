@@ -14,6 +14,7 @@ import java.nio.IntBuffer;
 
 import org.lwjgl.BufferUtils;
 
+import makamys.lodmod.LODMod;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.Minecraft;
@@ -25,6 +26,9 @@ import net.minecraft.world.chunk.Chunk;
 public class SimpleChunkMesh extends Mesh {
 	
 	private FloatBuffer vertices;
+	
+	public static int usedRAM;
+	public static int instances;
 	
 	public SimpleChunkMesh(Chunk target) {
 		int divisions = 4;
@@ -74,6 +78,9 @@ public class SimpleChunkMesh extends Mesh {
 			}
 		}
 		vertices.flip();
+		
+		usedRAM += buffer.limit();
+        instances++;
 	}
 	
 	private void addCube(float x, float y, float z, float sizeX, float sizeZ, float sizeY, IIcon icon, int color) {

@@ -13,6 +13,7 @@ import net.minecraft.world.gen.ChunkProviderServer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -338,6 +339,11 @@ public class LODRenderer {
         glDeleteProgram(shaderProgram);
         glDeleteVertexArrays(VAO);
         glDeleteBuffers(VBO);
+        
+        SimpleChunkMesh.instances = 0;
+        SimpleChunkMesh.usedRAM = 0;
+        ChunkMesh.instances = 0;
+        ChunkMesh.usedRAM = 0;
     }
 	
 	public void onWorldRendererPost(WorldRenderer wr) {
@@ -561,8 +567,13 @@ public class LODRenderer {
 		return null;
 	}
 	
-	public String getDebugText() {
-	    return "VRAM: " + (nextMeshOffset / 1024 / 1024) + "MB / " + (BUFFER_SIZE / 1024 / 1024) + "MB";
+	public List<String> getDebugText() {
+	    return Arrays.asList(
+	            "VRAM: " + (nextMeshOffset / 1024 / 1024) + "MB / " + (BUFFER_SIZE / 1024 / 1024) + "MB",
+	            "Simple meshes: " + SimpleChunkMesh.instances + " (" + SimpleChunkMesh.usedRAM / 1024 / 1024 + "MB)",
+	            "Full meshes: " + ChunkMesh.instances + " (" + ChunkMesh.usedRAM / 1024 / 1024 + "MB)",
+	            "Total RAM used: " + ((SimpleChunkMesh.usedRAM + ChunkMesh.usedRAM) / 1024 / 1024) + " MB"
+	    );
 	}
 	
 	public static class LODChunkComparator implements Comparator<LODChunk> {

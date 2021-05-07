@@ -17,6 +17,7 @@ import java.util.List;
 
 import org.lwjgl.BufferUtils;
 
+import makamys.lodmod.LODMod;
 import makamys.lodmod.ducks.IWorldRenderer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.Tessellator;
@@ -32,6 +33,9 @@ public class ChunkMesh extends Mesh {
     int z;
     Flags flags;
     
+    public static int usedRAM = 0;
+    public static int instances = 0;
+    
     private ChunkMesh(int x, int y, int z, Flags flags, int quadCount, byte[] data, List<String> stringTable) {
         this.x = x;
         this.y = y;
@@ -40,6 +44,9 @@ public class ChunkMesh extends Mesh {
         this.quadCount = quadCount;
         
         this.buffer = createBuffer(data, stringTable);
+        
+        usedRAM += buffer.limit();
+        instances++;
     }
     
     public ChunkMesh(int x, int y, int z, Flags flags, int quadCount, List<MeshQuad> quads) {
@@ -50,6 +57,14 @@ public class ChunkMesh extends Mesh {
         this.quadCount = quadCount;
         
         this.buffer = createBuffer(quads);
+        
+        usedRAM += buffer.limit();
+        instances++;
+    }
+    
+    void destroy() {
+        usedRAM -= buffer.limit();
+        instances--;
     }
     
     private ByteBuffer createBuffer(List<MeshQuad> quads) {

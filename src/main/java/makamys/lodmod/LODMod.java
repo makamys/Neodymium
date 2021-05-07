@@ -78,8 +78,12 @@ public class LODMod
             ScaledResolution scaledresolution = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight);
             int w = scaledresolution.getScaledWidth();
             int h = scaledresolution.getScaledHeight();
-            String s = renderer.getDebugText();
-            fontRenderer.drawStringWithShadow(s, w - fontRenderer.getStringWidth(s) - 10, 80, 0xFFFFFF);
+            
+            int yOffset = 0;
+            for(String s : renderer.getDebugText()) {
+                fontRenderer.drawStringWithShadow(s, w - fontRenderer.getStringWidth(s) - 10, 80 + yOffset, 0xFFFFFF);
+                yOffset += 10;
+            }
         }
     }
 }
