@@ -7,7 +7,6 @@
     "mixins": [
         "MixinChunkCache",
         "MixinEntityRenderer",
-        "MixinMinecraftServer",
         "MixinRenderGlobal",
         "MixinSoundManager",
         "MixinSoundManager",

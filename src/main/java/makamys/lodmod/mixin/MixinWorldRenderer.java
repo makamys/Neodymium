@@ -11,6 +11,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import makamys.lodmod.LODMod;
 import makamys.lodmod.ducks.ITessellator;
 import makamys.lodmod.ducks.IWorldRenderer;
 import makamys.lodmod.renderer.ChunkMesh;
@@ -55,18 +56,24 @@ abstract class MixinWorldRenderer implements IWorldRenderer {
     
     @Inject(method = "updateRenderer", at = @At(value = "HEAD"))
     private void preUpdateRenderer(CallbackInfo ci) {
-        chunkMeshes.clear();
+        if(LODMod.isActive()) {
+            chunkMeshes.clear();
+        }
     }
     
     @Inject(method = "updateRenderer", at = @At(value = "TAIL"))
     private void postUpdateRenderer(CallbackInfo ci) {
-        MyRenderer.onWorldRendererPost(WorldRenderer.class.cast(this));
-        chunkMeshes.clear();
+        if(LODMod.isActive()) {
+            LODMod.renderer.onWorldRendererPost(WorldRenderer.class.cast(this));
+            chunkMeshes.clear();
+        }
     }
     
     @Inject(method = "postRenderBlocks", at = @At(value = "HEAD"))
     private void prePostRenderBlocks(CallbackInfo ci) {
-        chunkMeshes.add(((ITessellator)Tessellator.instance).toChunkMesh());
+        if(LODMod.isActive()) {
+            chunkMeshes.add(((ITessellator)Tessellator.instance).toChunkMesh());
+        }
     }
     
     @Redirect(method = "postRenderBlocks", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/Tessellator;draw()I"))
@@ -107,7 +114,9 @@ abstract class MixinWorldRenderer implements IWorldRenderer {
     
     @Inject(method = "setDontDraw", at = @At(value = "HEAD"))
     private void preSetDontDraw(CallbackInfo ci) {
-        MyRenderer.onDontDraw(WorldRenderer.class.cast(this));
+        if(LODMod.isActive()) {
+            LODMod.renderer.onDontDraw(WorldRenderer.class.cast(this));
+        }
     }
     
     @Override

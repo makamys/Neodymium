@@ -7,6 +7,7 @@ import java.util.Locale;
 import java.util.Map;
 
 import makamys.lodmod.renderer.MeshQuad.QuadPlaneComparator;
+import makamys.lodmod.util.SpriteUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.renderer.texture.TextureMap;
@@ -80,8 +81,8 @@ public class MeshQuad {
         TextureAtlasSprite sprite = null;
         Map<String, TextureAtlasSprite> uploadedSprites = ((TextureMap)Minecraft.getMinecraft().getTextureManager().getTexture(TextureMap.locationBlocksTexture)).mapUploadedSprites;
         
-        spriteIndex = MyRenderer.getSpriteIndexForUV(avgU, avgV);
-        sprite = MyRenderer.getSprite(spriteIndex);
+        spriteIndex = SpriteUtil.getSpriteIndexForUV(avgU, avgV);
+        sprite = SpriteUtil.getSprite(spriteIndex);
         
         if(sprite == null) {
             System.out.println("Error: couldn't find sprite");

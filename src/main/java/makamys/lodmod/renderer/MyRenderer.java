@@ -3,149 +3,148 @@ package makamys.lodmod.renderer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.particle.EntityFX;
 import net.minecraft.client.renderer.WorldRenderer;
-import net.minecraft.client.renderer.texture.ITextureObject;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.ChunkCoordinates;
-import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.ChunkCoordIntPair;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.gen.ChunkProviderServer;
 
-import java.io.DataInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.nio.Buffer;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
-import java.util.Set;
-import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.SynchronousQueue;
-import java.util.stream.Collectors;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.tuple.Pair;
 import org.lwjgl.BufferUtils;
-import org.lwjgl.Sys;
 import org.lwjgl.input.Keyboard;
-import org.lwjgl.input.Mouse;
-import org.lwjgl.opengl.ARBDebugOutputCallback;
-import org.lwjgl.opengl.ARBShaderObjects;
-import org.lwjgl.opengl.Display;
-import org.lwjgl.opengl.DisplayMode;
 import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GLContext;
 import org.lwjgl.util.vector.Matrix4f;
 
 import makamys.lodmod.ducks.IWorldRenderer;
 import makamys.lodmod.util.Util;
 
-import static org.lwjgl.opengl.ARBBufferObject.*;
-import static org.lwjgl.opengl.ARBVertexBufferObject.*;
 import static org.lwjgl.opengl.GL11.*;
-import static org.lwjgl.opengl.GL13.*;
 import static org.lwjgl.opengl.GL14.*;
 import static org.lwjgl.opengl.GL15.*;
 import static org.lwjgl.opengl.GL20.*;
 import static org.lwjgl.opengl.GL30.*;
-import static org.lwjgl.util.glu.GLU.*;
 
 public class MyRenderer {
 
-	private static boolean hasInited = false;
+	private boolean hasInited = false;
 	
-	private static boolean[] wasDown = new boolean[256];
-	private static int renderQuads = 0;
+	private boolean[] wasDown = new boolean[256];
+	private int renderQuads = 0;
 	
-	public static boolean renderWorld = true;
-	public static boolean renderLOD = true;
+	public boolean renderWorld = true;
+	public boolean renderLOD = true;
+    
+    private static int BUFFER_SIZE = 1024 * 1024 * 1024;
+    private static int MAX_MESHES = 100000;
+    
+    private int VAO, VBO, EBO, shaderProgram;
+    private IntBuffer piFirst, piCount;
+    
+    List<Chunk> myChunks = new ArrayList<Chunk>();
+    List<LODChunk> pendingLODChunks = new ArrayList<>();
+    
+    private boolean hasServerInited = false;
+    private HashMap<ChunkCoordIntPair, LODRegion> loadedRegionsMap = new HashMap<>();
+    
+    // TODO make these packets to make this work on dedicated servers
+    Queue<Chunk> farChunks = new ConcurrentLinkedQueue<>();
+    
+    List<ChunkCoordIntPair> serverChunkLoadQueue = new ArrayList<>();
+    
+    private double lastSortX = Double.NaN;
+    private double lastSortY = Double.NaN;
+    private double lastSortZ = Double.NaN;
+    
+    public MyRenderer(){
+        hasInited = init();
+    }
+    
+    public void beforeRenderTerrain() {
+        if(hasInited) {
+            mainLoop();
+            handleKeyboard();
+            if(renderLOD) {
+                render();
+            }
+        }
+    }
+    
+    private void mainLoop() {
+        while(!farChunks.isEmpty()) {
+            LODChunk lodChunk = receiveFarChunk(farChunks.remove());
+            sendChunkToGPU(lodChunk);
+        }
+        
+        List<Object> players = Minecraft.getMinecraft().getIntegratedServer().getConfigurationManager().playerEntityList;
+        if(!players.isEmpty()) {
+            Entity player = (Entity)players.get(0);
+            
+            List<ChunkCoordIntPair> newServerChunkLoadQueue = new ArrayList<>();
+            
+            if(Double.isNaN(lastSortX) || getLastSortDistanceSq(player) > 16 * 16) {
+                int centerX = (int)Math.floor(player.posX / 16.0);
+                int centerZ = (int)Math.floor(player.posZ / 16.0);
+                
+                int range = 64;
+                for(int x = -range; x <= range; x++) {
+                    for(int z = -range; z <= range; z++) {
+                        int chunkX = centerX + x;
+                        int chunkZ = centerZ + z;
+                        
+                        if(getLODChunk(chunkX, chunkZ).chunk == null) {
+                            newServerChunkLoadQueue.add(new ChunkCoordIntPair(chunkX, chunkZ));
+                        }
+                    }
+                }
+                Collections.sort(newServerChunkLoadQueue, new ChunkCoordDistanceComparator(player));
+                setServerChunkLoadQueue(newServerChunkLoadQueue);
+                
+                lastSortX = player.posX;
+                lastSortY = player.posY;
+                lastSortZ = player.posZ;
+                
+                loadedRegionsMap.forEach((k, v) -> v.tick(player));
+            }
+        }
+    }
 	
-	//private static int[] spriteIndexMap;
-	public static List<TextureAtlasSprite> sprites;
-	
-	static private Map<Long, Integer> uv2spriteIndex = new HashMap<>();
-	
-	//static ChunkMesh mesh;
-	
-	private static void destroy() {
-		glDeleteProgram(shaderProgram);
+	public void destroy() {
+		/*glDeleteProgram(shaderProgram);
 		glDeleteVertexArrays(VAO);
-		glDeleteBuffers(VBO);
+		glDeleteBuffers(VBO);*/
 	}
 	
-	private static void mainLoop() {
+	private void handleKeyboard() {
 		if(Keyboard.isKeyDown(Keyboard.KEY_F) && !wasDown[Keyboard.KEY_F]) {
 			renderLOD = !renderLOD;
 		}
 		if(Keyboard.isKeyDown(Keyboard.KEY_V) && !wasDown[Keyboard.KEY_V]) {
 			renderWorld = !renderWorld;
 		}
-		if(hasInited) {
-			/*if(Keyboard.isKeyDown(Keyboard.KEY_X) && !wasDown[Keyboard.KEY_X]) {
-				renderQuads--;
-				if(renderQuads < 0) {
-					renderQuads = 0;
-				}
-			}
-			if(Keyboard.isKeyDown(Keyboard.KEY_C) && !wasDown[Keyboard.KEY_C]) {
-				renderQuads++;
-				if(renderQuads > mesh.quadCount) {
-					renderQuads = mesh.quadCount;
-				}
-			}*/
-		}
-		
 		
 		for(int i = 0; i < 256; i++) {
 			wasDown[i] = Keyboard.isKeyDown(i);
 		}
 	}
 
-	private static void render() {
+	private void render() {
 	    GL11.glPushAttrib(GL11.GL_ENABLE_BIT);
-	    //GL11.glDisable(GL11.GL_CULL_FACE);
-	    //GL11.glDisable(GL11.GL_LIGHTING);
 	    GL11.glDisable(GL11.GL_TEXTURE_2D);
 
 	    GL11.glEnable(GL11.GL_BLEND);
 	    GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-	    //GL11.glColor4f(0, 1, 0, 1);   // change this for your colour
-	    //GL11.glLineWidth(9.0F);
-	    //GL11.glDepthMask(false);
-	    float z = 0;
-	    
-	    /*GL11.glBegin(GL11.GL_TRIANGLES);
-	    GL11.glVertex3f(-0.9f,-0.9f,0);
-	    GL11.glVertex3f(0.9f,0.9f,0);
-	    GL11.glVertex3f(-0.9f,0.9f,0);
-	    GL11.glEnd();*/
-	    
-	    //glClear(GL_COLOR_BUFFER_BIT);
 	    
 	    glUseProgram(shaderProgram);
 	    
@@ -166,7 +165,6 @@ public class MyRenderer {
 			
 			FloatBuffer projBuf = BufferUtils.createFloatBuffer(16);
 			glGetFloat(GL_PROJECTION_MATRIX, projBuf);
-			//modelView.flip();
 			
 			IntBuffer viewportBuf = BufferUtils.createIntBuffer(16);
 			glGetInteger(GL_VIEWPORT, viewportBuf);
@@ -192,7 +190,6 @@ public class MyRenderer {
 			glUniformMatrix4(u_modelView, false, modelView);
 			glUniformMatrix4(u_proj, false, projBuf);
 			glUniformMatrix4(u_projInv, false, projInvBuf);
-			//glUniform4(u_viewport, viewportBuf);
 			glUniform4f(u_viewport, viewportBuf.get(0),viewportBuf.get(1),viewportBuf.get(2),viewportBuf.get(3));
 			glUniform4(u_fogColor, fogColorBuf);
 			glUniform2(u_fogStartEnd, fogStartEnd);
@@ -207,15 +204,8 @@ public class MyRenderer {
 		}
 		
 	    glBindVertexArray(VAO);
-	    //glEnableVertexAttribArray(0);
-	    //glDrawArrays(GL_TRIANGLES, 0, 3);
-	    //glActiveTexture(GL_TEXTURE1);
-	    //ITextureObject hmm = Minecraft.getMinecraft().getTextureManager().getTexture(new ResourceLocation("dynamic/lightMap_1"));
-	    //glBindTexture(GL_TEXTURE_2D, hmm.getGlTextureId());
-	    //glDrawArrays(GL_TRIANGLES, 0, 6*renderQuads);
 	    glMultiDrawArrays(GL_TRIANGLES, piFirst, piCount);
 	    
-	    //glDisableVertexAttribArray(0);
 	    glBindVertexArray(0);
 	    glUseProgram(0);
 	    
@@ -225,71 +215,13 @@ public class MyRenderer {
 	    
 	}
 	
-	private static int VAO, VBO, EBO, shaderProgram;
-	private static IntBuffer piFirst, piCount;
-	
-	private static String readFile(String path){
-		try {
-			return new String(Files.readAllBytes(Util.getResourcePath(path)));
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		return "";
-	}
-	
-	private static byte[] byteBufferToArray(ByteBuffer buffer) {
-		byte[] dst = new byte[buffer.remaining()];
-		buffer.get(dst);
-		buffer.flip();
-		return dst;
-	}
-	
-	private static int[] intBufferToArray(IntBuffer buffer) {
-		int[] dst = new int[buffer.remaining()];
-		buffer.get(dst);
-		buffer.flip();
-		return dst;
-	}
-	
-	private static int findSpriteIndexForUV(float u, float v) {
+	public boolean init() {
 		Map<String, TextureAtlasSprite> uploadedSprites = ((TextureMap)Minecraft.getMinecraft().getTextureManager().getTexture(TextureMap.locationBlocksTexture)).mapUploadedSprites;
-		
-		int spriteIndex = 0;
-		for(TextureAtlasSprite tas : uploadedSprites.values()) {
-    		if(tas.getMinU() <= u && u <= tas.getMaxU() && tas.getMinV() <= v && v <= tas.getMaxV()) {
-    			break;
-    		}
-    		spriteIndex++;
-    	}
-		return spriteIndex;
-	}
-	
-	public static int getSpriteIndexForUV(float u, float v){
-		long key = ChunkCoordIntPair.chunkXZ2Int((int)(u * Integer.MAX_VALUE), (int)(v * Integer.MAX_VALUE));
-		int index = uv2spriteIndex.getOrDefault(key, -1);
-		if(index == -1) {
-			index = findSpriteIndexForUV(u, v);
-			uv2spriteIndex.put(key, index);
-		}
-		return index;
-	}
-	
-	public static TextureAtlasSprite getSprite(int i){
-		if(i >= 0 && i < sprites.size()) {
-			return sprites.get(i);
-		} else {
-			return null;
-		}
-	}
-	
-	private static boolean init() {
-		Map<String, TextureAtlasSprite> uploadedSprites = ((TextureMap)Minecraft.getMinecraft().getTextureManager().getTexture(TextureMap.locationBlocksTexture)).mapUploadedSprites;
-		sprites = uploadedSprites.values().stream().collect(Collectors.toList());
 		
 		int vertexShader;
 		vertexShader = glCreateShader(GL_VERTEX_SHADER);
 		
-		glShaderSource(vertexShader, readFile("shaders/chunk.vert"));
+		glShaderSource(vertexShader, Util.readFile("shaders/chunk.vert"));
 		glCompileShader(vertexShader);
 		
 		if(glGetShaderi(vertexShader, GL_COMPILE_STATUS) == 0) {
@@ -299,7 +231,7 @@ public class MyRenderer {
 		int fragmentShader;
 		fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
 		
-		glShaderSource(fragmentShader, readFile("shaders/chunk.frag"));
+		glShaderSource(fragmentShader, Util.readFile("shaders/chunk.frag"));
 		glCompileShader(fragmentShader);
 		
 		if(glGetShaderi(fragmentShader, GL_COMPILE_STATUS) == 0) {
@@ -326,60 +258,6 @@ public class MyRenderer {
 		
 		EBO = glGenBuffers();
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-		boolean rough = false;
-		
-		/*
-		List<Integer> chunkCoords = new ArrayList<>();*/
-		/*chunkCoords.add(-19);
-		chunkCoords.add(4);
-		chunkCoords.add(15);*/
-		/*List<Mesh> meshes = new ArrayList<Mesh>();
-		for(Chunk chunk : myChunks) {
-			Entity player = Minecraft.getMinecraft().thePlayer;
-			int minRadius = 0;
-			int radius = 10;
-			if(minRadius <= Math.abs(chunk.xPosition - player.chunkCoordX) && Math.abs(chunk.xPosition - player.chunkCoordX) < radius && minRadius <= Math.abs(chunk.zPosition - player.chunkCoordZ) && Math.abs(chunk.zPosition - player.chunkCoordZ) < radius) {
-				if(!rough) {
-					for(int y = 0; y < 16; y++) {
-						chunkCoords.add(chunk.xPosition);
-						chunkCoords.add(y);
-						chunkCoords.add(chunk.zPosition);
-					}
-				} else {
-					meshes.add(new SimpleChunkMesh(chunk));
-				}
-			}
-			
-		}
-		long t0 = System.nanoTime();
-		if(!rough) {
-			ChunkMesh.saveChunks(chunkCoords);
-			
-			meshes.addAll(ChunkMesh.loadAll());
-		}
-		System.out.println("loaded " + meshes.size() + " cchunks in " + ((System.nanoTime() - t0) / 1000000000f) + "s");
-		//meshes = meshes.subList(2, 3);
-		int bufferSize = 0;
-		int quadCount = 0;
-		Mesh firstMesh = meshes.get(0);
-		int stride = -1;
-		for(Mesh mesh : meshes) {
-			bufferSize += mesh.buffer.limit();
-			quadCount += mesh.quadCount;
-		}
-		
-		if(Runtime.getRuntime().freeMemory() < BUFFER_SIZE) {
-			System.out.println("not enough memory");
-			// TODO optimize memory usage
-			return false;
-		}
-		ByteBuffer buffer = BufferUtils.createByteBuffer(BUFFER_SIZE);
-		
-		for(Mesh mesh : meshes) {
-			int verticesSoFar = buffer.position() / firstMesh.getStride();
-			buffer.put(mesh.buffer);
-		}
-		buffer.flip();*/
 		
 		glBufferData(GL_ARRAY_BUFFER, BUFFER_SIZE, GL_STATIC_DRAW);
 		
@@ -395,52 +273,24 @@ public class MyRenderer {
 		glEnableVertexAttribArray(2);
 		glEnableVertexAttribArray(3);
 		
-		//renderQuads = quadCount;
-		
-		int nextTri = 0;
 		piFirst = BufferUtils.createIntBuffer(MAX_MESHES);
 		piFirst.flip();
 		piCount = BufferUtils.createIntBuffer(MAX_MESHES);
 		piCount.flip();
-		/*for(int i = 0; i < meshes.size(); i++) {
-			Mesh mesh = meshes.get(i);
-			
-			piFirst.put(nextTri);
-			piCount.put(mesh.quadCount * 6);
-			nextTri += mesh.quadCount * 6;
-		}*/
 		
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		glBindVertexArray(0);
-		//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 		
 		return true;
 	}
 	
-	public static boolean doRender = true;
-	private static boolean hasInited2 = false;
-	
-	private static int BUFFER_SIZE = 1024 * 1024 * 1024;
-	private static int MAX_MESHES = 100000;
-	
-	public static void beforeRenderTerrain() {
-		init2();
-		
-		if(doRender) {
-			mainLoop();
-			if(hasInited && renderLOD) {
-				render();
-			}
-		}
-	}
-	
-	public static void onWorldRendererPost(WorldRenderer wr) {
+	public void onWorldRendererPost(WorldRenderer wr) {
 		LODChunk lodChunk = getLODChunk(Math.floorDiv(wr.posX, 16), Math.floorDiv(wr.posZ, 16));
 		lodChunk.putChunkMeshes(Math.floorDiv(wr.posY, 16), ((IWorldRenderer)wr).getChunkMeshes());
 		setVisible(lodChunk, false);
 	}
 	
-	public static void onDontDraw(WorldRenderer wr) {
+	public void onDontDraw(WorldRenderer wr) {
 		int chunkX = Math.floorDiv(wr.posX, 16);
 		int chunkY = Math.floorDiv(wr.posY, 16);
 		int chunkZ = Math.floorDiv(wr.posZ, 16);
@@ -454,89 +304,29 @@ public class MyRenderer {
 		setVisible(lodChunk, true);
 	}
 	
-	private static void init2() {
-		if(!hasInited2) {
-			hasInited = init();
-			hasInited2 = true;
-		} else {
-			while(!farChunks.isEmpty()) {
-				LODChunk lodChunk = receiveFarChunk(farChunks.remove());
-				sendChunkToGPU(lodChunk);
-			}
-			
-			List<Object> players = Minecraft.getMinecraft().getIntegratedServer().getConfigurationManager().playerEntityList;
-			if(!players.isEmpty()) {
-				Entity player = (Entity)players.get(0);
-				
-				List<ChunkCoordIntPair> newServerChunkLoadQueue = new ArrayList<>();
-				
-				if(Double.isNaN(lastSortX) || getLastSortDistanceSq(player) > 16 * 16) {
-					int centerX = (int)Math.floor(player.posX / 16.0);
-					int centerZ = (int)Math.floor(player.posZ / 16.0);
-					
-					int range = 64;
-					for(int x = -range; x <= range; x++) {
-						for(int z = -range; z <= range; z++) {
-							int chunkX = centerX + x;
-							int chunkZ = centerZ + z;
-							
-							if(getLODChunk(chunkX, chunkZ).chunk == null) {
-								newServerChunkLoadQueue.add(new ChunkCoordIntPair(chunkX, chunkZ));
-							}
-						}
-					}
-					Collections.sort(newServerChunkLoadQueue, new ChunkCoordDistanceComparator(player));
-					setServerChunkLoadQueue(newServerChunkLoadQueue);
-					hasInited2 = true;
-					
-					lastSortX = player.posX;
-					lastSortY = player.posY;
-					lastSortZ = player.posZ;
-					
-					loadedRegionsMap.forEach((k, v) -> v.tick(player));
-				}
-			}
-		}
-	}
-	
-	private static double getLastSortDistanceSq(Entity player) {
+	private double getLastSortDistanceSq(Entity player) {
 		return Math.pow(lastSortX - player.posX, 2) + Math.pow(lastSortZ - player.posZ, 2);
 	}
 	
-	private static synchronized void setServerChunkLoadQueue(List<ChunkCoordIntPair> coords) {
+	private synchronized void setServerChunkLoadQueue(List<ChunkCoordIntPair> coords) {
 		serverChunkLoadQueue = coords;
 	}
 	
-	private static LODChunk receiveFarChunk(Chunk chunk) {
+	private LODChunk receiveFarChunk(Chunk chunk) {
 		LODRegion region = getRegionContaining(chunk.xPosition, chunk.zPosition);
 		myChunks.add(chunk);
 		return region.putChunk(chunk);
 	}
 	
-	private static LODChunk getLODChunk(int chunkX, int chunkZ) {
+	private LODChunk getLODChunk(int chunkX, int chunkZ) {
 		return getRegionContaining(chunkX, chunkZ).getChunkAbsolute(chunkX, chunkZ);
 	}
 	
-	static List<Chunk> myChunks = new ArrayList<Chunk>();
-	static List<LODChunk> pendingLODChunks = new ArrayList<>();
-	
-	private static boolean hasServerInited = false;
-	private static HashMap<ChunkCoordIntPair, LODRegion> loadedRegionsMap = new HashMap<>();
-	
-	// TODO make these packets to make this work on dedicated servers
-	static Queue<Chunk> farChunks = new ConcurrentLinkedQueue<>();
-	
-	static List<ChunkCoordIntPair> serverChunkLoadQueue = new ArrayList<>();
-	
-	private static double lastSortX = Double.NaN;
-	private static double lastSortY = Double.NaN;
-	private static double lastSortZ = Double.NaN;
-	
-	public static void onStopServer() {
+	public void onStopServer() {
 	    
 	}
 	
-	public static synchronized void serverTick() {
+	public synchronized void serverTick() {
 		int chunkLoadsRemaining = 64;
 		while(!serverChunkLoadQueue.isEmpty() && chunkLoadsRemaining-- > 0) {
 			ChunkCoordIntPair coords = serverChunkLoadQueue.remove(0);
@@ -546,7 +336,7 @@ public class MyRenderer {
 		}
 	}
 	
-	private static LODRegion getRegionContaining(int chunkX, int chunkZ) {
+	private LODRegion getRegionContaining(int chunkX, int chunkZ) {
 		ChunkCoordIntPair key = new ChunkCoordIntPair(Math.floorDiv(chunkX , 32), Math.floorDiv(chunkZ, 32));
 		LODRegion region = loadedRegionsMap.get(key);
 		if(region == null) {
@@ -556,7 +346,7 @@ public class MyRenderer {
 		return region;
 	}
 	
-	private static void loadChunk(int chunkX, int chunkZ) {
+	private void loadChunk(int chunkX, int chunkZ) {
 		LODRegion region = getRegionContaining(chunkX, chunkZ);
 		LODChunk lodChunk = region.getChunkAbsolute(chunkX, chunkZ);
 		if(lodChunk == null) {
@@ -579,7 +369,7 @@ public class MyRenderer {
 		sendChunkToGPU(lodChunk);
 	}
 	
-	private static void sendChunkToGPU(LODChunk lodChunk) {
+	private void sendChunkToGPU(LODChunk lodChunk) {
 		lodChunk.simpleMesh = new SimpleChunkMesh(lodChunk.chunk);
 		/*for(int cy = 0; cy < 16; cy++) {
 			lodChunk.chunkMeshes[cy] = ChunkMesh.getChunkMesh(lodChunk.x, cy, lodChunk.z);
@@ -594,21 +384,21 @@ public class MyRenderer {
 		setVisible(lodChunk, true);
 	}
 	
-	public static void setLOD(LODChunk lodChunk, int lod) {
+	public void setLOD(LODChunk lodChunk, int lod) {
 		if(lod == lodChunk.lod) return;
 		
 		lodChunk.lod = lod;
 		lodChunkChanged(lodChunk);
 	}
 	
-	public static void setVisible(LODChunk lodChunk, boolean visible) {
+	public void setVisible(LODChunk lodChunk, boolean visible) {
 		if(visible == lodChunk.visible) return;
 		
 		lodChunk.visible = visible;
 		lodChunkChanged(lodChunk);
 	}
 	
-	public static void lodChunkChanged(LODChunk lodChunk) {
+	public void lodChunkChanged(LODChunk lodChunk) {
 		int newLOD = (!lodChunk.hasChunkMeshes() && lodChunk.lod == 2) ? 1 : lodChunk.lod;
 		if(lodChunk.simpleMesh != null) {
 			if(lodChunk.visible && newLOD == 1) {
@@ -636,11 +426,11 @@ public class MyRenderer {
 		}
 	}
 	
-	private static int nextTri;
-	private static int nextMeshOffset;
-	private static int nextMesh;
+	private int nextTri;
+	private int nextMeshOffset;
+	private int nextMesh;
 	
-	protected static void sendMeshToGPU(Mesh mesh) {
+	protected void sendMeshToGPU(Mesh mesh) {
 		if(mesh == null) {
 			return;
 		}
@@ -658,7 +448,7 @@ public class MyRenderer {
 		glBindVertexArray(0);
 	}
 	
-	protected static void setMeshVisible(Mesh mesh, boolean visible) {
+	protected void setMeshVisible(Mesh mesh, boolean visible) {
 		if(mesh == null) return;
 		
 		if(mesh.visible != visible) {
@@ -693,7 +483,7 @@ public class MyRenderer {
 		}
 	}
 	
-	public static Chunk getChunkFromChunkCoords(int x, int z) {
+	public Chunk getChunkFromChunkCoords(int x, int z) {
 		for(Chunk chunk : myChunks) {
 			if(chunk.xPosition == x && chunk.zPosition == z) {
 				return chunk;

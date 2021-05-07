@@ -2,6 +2,7 @@ package makamys.lodmod.renderer;
 
 import java.util.List;
 
+import makamys.lodmod.LODMod;
 import net.minecraft.entity.Entity;
 import net.minecraft.world.chunk.Chunk;
 
@@ -15,6 +16,8 @@ public class LODChunk {
 	
 	SimpleChunkMesh simpleMesh;
 	ChunkMesh[] chunkMeshes = new ChunkMesh[32];
+	
+	MyRenderer renderer = LODMod.renderer;
 	
 	public LODChunk(int x, int z) {
 		this.x = x;
@@ -33,14 +36,14 @@ public class LODChunk {
 	public void putChunkMeshes(int cy, List<ChunkMesh> newChunkMeshes) {
 		for(int i = 0; i < 2; i++) {
 			if(chunkMeshes[cy * 2 + i] != null) {
-				MyRenderer.setMeshVisible(chunkMeshes[cy * 2 + i], false);
+			    renderer.setMeshVisible(chunkMeshes[cy * 2 + i], false);
 				chunkMeshes[cy * 2 + i] = null;
 			}
 		}
 		
 		for(int i = 0; i < newChunkMeshes.size(); i++) {
 			chunkMeshes[cy * 2 + i] = newChunkMeshes.get(i);
-			MyRenderer.sendMeshToGPU(newChunkMeshes.get(i));
+			renderer.sendMeshToGPU(newChunkMeshes.get(i));
 		}
 	}
 	
@@ -56,11 +59,11 @@ public class LODChunk {
 	public void tick(Entity player) {
 		double distSq = distSq(player);
 		if(distSq < Math.pow(32 * 16, 2)) {
-			MyRenderer.setLOD(this, 2);
+		    renderer.setLOD(this, 2);
 		} else if(distSq < Math.pow(64 * 16, 2)) {
-			MyRenderer.setLOD(this, 1);
+		    renderer.setLOD(this, 1);
 		} else {
-			MyRenderer.setVisible(this, false);
+		    renderer.setVisible(this, false);
 		}
 	}
 	

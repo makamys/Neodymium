@@ -4,7 +4,10 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
+import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
 import java.nio.file.FileSystems;
+import java.nio.file.Files;
 import java.nio.file.Path;
 
 public class Util {
@@ -26,5 +29,28 @@ public class Util {
         } catch(IOException e) {
             return null;
         }
+    }
+    
+    public static String readFile(String path){
+        try {
+            return new String(Files.readAllBytes(Util.getResourcePath(path)));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return "";
+    }
+    
+    public static byte[] byteBufferToArray(ByteBuffer buffer) {
+        byte[] dst = new byte[buffer.remaining()];
+        buffer.get(dst);
+        buffer.flip();
+        return dst;
+    }
+    
+    public static int[] intBufferToArray(IntBuffer buffer) {
+        int[] dst = new int[buffer.remaining()];
+        buffer.get(dst);
+        buffer.flip();
+        return dst;
     }
 }
