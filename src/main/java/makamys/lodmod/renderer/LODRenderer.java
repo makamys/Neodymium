@@ -443,7 +443,7 @@ public class LODRenderer {
 	}
 	
 	private void sendChunkToGPU(LODChunk lodChunk) {
-		lodChunk.simpleMesh = new SimpleChunkMesh(lodChunk.chunk);
+		lodChunk.putSimpleMesh(new SimpleChunkMesh(lodChunk.chunk));
 		
 		Entity player = (Entity) Minecraft.getMinecraft().getIntegratedServer().getConfigurationManager().playerEntityList.get(0);
 		

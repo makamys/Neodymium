@@ -66,6 +66,13 @@ public class LODChunk {
 		}
 	}
 	
+	public void putSimpleMesh(SimpleChunkMesh mesh) {
+	    if(simpleMesh != null) {
+	        renderer.setMeshVisible(simpleMesh, false);
+	    }
+	    simpleMesh = mesh;
+	}
+	
 	public boolean hasChunkMeshes() {
 		for(ChunkMesh cm : chunkMeshes) {
 			if(cm != null) {
