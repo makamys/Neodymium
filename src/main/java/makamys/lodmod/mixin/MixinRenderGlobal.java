@@ -21,8 +21,10 @@ abstract class MixinRenderGlobal {
     @Redirect(method = "renderSortedRenderers", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/WorldRenderer;getGLCallListForPass(I)I"))
     public int redirectCallList(WorldRenderer thiz, int arg) {
         int numba = thiz.getGLCallListForPass(arg);
-        if(numba != -1) {
-            LODMod.renderer.onWorldRendererFrustumChange(thiz, true);
+        if(LODMod.isActive()) {
+            if(numba != -1) {
+                LODMod.renderer.onWorldRendererFrustumChange(thiz, true);
+            }
         }
         return numba;
     }
