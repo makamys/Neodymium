@@ -372,6 +372,7 @@ public class LODRenderer {
         int y = Math.floorDiv(wr.posY, 16);
         setMeshVisible(lodChunk.chunkMeshes[y * 2 + 0], false);
         setMeshVisible(lodChunk.chunkMeshes[y * 2 + 1], false);
+        setMeshVisible(lodChunk.simpleMesh, false);
 	}
 	
 	public void onDontDraw(WorldRenderer wr) {
@@ -458,7 +459,7 @@ public class LODRenderer {
 		Entity player = (Entity) Minecraft.getMinecraft().getIntegratedServer().getConfigurationManager().playerEntityList.get(0);
 		
 		lodChunk.tick(player);
-		setVisible(lodChunk, true);
+		setVisible(lodChunk, true, true);
 	}
 	
 	public void setLOD(LODChunk lodChunk, int lod) {
@@ -468,8 +469,12 @@ public class LODRenderer {
 		lodChunkChanged(lodChunk);
 	}
 	
-	public void setVisible(LODChunk lodChunk, boolean visible) {
-		if(visible == lodChunk.visible) return;
+	public void setVisible(LODChunk chunk, boolean visible) {
+	    setVisible(chunk, visible, false);
+	}
+	
+	public void setVisible(LODChunk lodChunk, boolean visible, boolean forceCheck) {
+		if(!forceCheck && visible == lodChunk.visible) return;
 		
 		lodChunk.visible = visible;
 		lodChunkChanged(lodChunk);
