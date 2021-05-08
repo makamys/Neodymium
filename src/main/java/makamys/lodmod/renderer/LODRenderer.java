@@ -143,6 +143,10 @@ public class LODRenderer {
             }
         }
     }
+    
+    public int getFarPlaneDistanceMultiplier() {
+        return 4;
+    }
 	
 	private void handleKeyboard() {
 		if(Keyboard.isKeyDown(Keyboard.KEY_F) && !wasDown[Keyboard.KEY_F]) {
