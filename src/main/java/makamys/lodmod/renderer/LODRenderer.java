@@ -77,6 +77,8 @@ public class LODRenderer {
     private long lastGCTime = -1;
     private long gcInterval = 60 * 1000;
     
+    public int renderRange = 48;
+    
     public LODRenderer(){
         hasInited = init();
     }
@@ -113,9 +115,8 @@ public class LODRenderer {
                 int centerX = (int)Math.floor(player.posX / 16.0);
                 int centerZ = (int)Math.floor(player.posZ / 16.0);
                 
-                int range = 64;
-                for(int x = -range; x <= range; x++) {
-                    for(int z = -range; z <= range; z++) {
+                for(int x = -renderRange; x <= renderRange; x++) {
+                    for(int z = -renderRange; z <= renderRange; z++) {
                         int chunkX = centerX + x;
                         int chunkZ = centerZ + z;
                         
@@ -145,7 +146,7 @@ public class LODRenderer {
     }
     
     public int getFarPlaneDistanceMultiplier() {
-        return 4;
+        return renderRange / 12;
     }
 	
 	private void handleKeyboard() {

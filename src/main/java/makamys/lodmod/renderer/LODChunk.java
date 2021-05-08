@@ -84,9 +84,9 @@ public class LODChunk {
 	
 	public void tick(Entity player) {
 		double distSq = distSq(player);
-		if(distSq < Math.pow(32 * 16, 2)) {
+		if(distSq < Math.pow((LODMod.renderer.renderRange / 2) * 16, 2)) {
 		    renderer.setLOD(this, 2);
-		} else if(distSq < Math.pow(64 * 16, 2)) {
+		} else if(distSq < Math.pow((LODMod.renderer.renderRange) * 16, 2)) {
 		    renderer.setLOD(this, 1);
 		} else {
 		    renderer.setLOD(this, 0);
