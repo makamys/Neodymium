@@ -122,15 +122,32 @@ public class LODRegion {
 		return null;
 	}
 	
-	public void tick(Entity player) {
+	public boolean tick(Entity player) {
+	    int visibleChunks = 0;
 		for(int i = 0; i < 32; i++) {
 			for(int j = 0; j < 32; j++) {
 				LODChunk chunk = data[i][j];
 				if(chunk != null) {
 					chunk.tick(player);
+					if(chunk.visible) {
+					    visibleChunks++;
+					}
 				}
 			}
 		}
+		return visibleChunks > 0;
+	}
+	
+	public void destroy(Path saveDir) {
+	    save(saveDir);
+	    for(int i = 0; i < 32; i++) {
+            for(int j = 0; j < 32; j++) {
+                LODChunk chunk = data[i][j];
+                if(chunk != null) {
+                    LODMod.renderer.setVisible(chunk, false);
+                }
+            }
+        }
 	}
 	
 }

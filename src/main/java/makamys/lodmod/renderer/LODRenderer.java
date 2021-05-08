@@ -130,8 +130,16 @@ public class LODRenderer {
                 lastSortX = player.posX;
                 lastSortY = player.posY;
                 lastSortZ = player.posZ;
-                
-                loadedRegionsMap.forEach((k, v) -> v.tick(player));
+                for(Iterator<ChunkCoordIntPair> it = loadedRegionsMap.keySet().iterator(); it.hasNext();) {
+                    ChunkCoordIntPair k = it.next();
+                    LODRegion v = loadedRegionsMap.get(k);
+                    
+                    if(!v.tick(player)) {
+                        System.out.println("unloading " + v);
+                        v.destroy(getSaveDir());
+                        it.remove();
+                    }
+                }
             }
         }
     }
