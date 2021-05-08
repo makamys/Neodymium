@@ -369,7 +369,9 @@ public class LODRenderer {
 	
 	public void onWorldRendererRender(WorldRenderer wr) {
         LODChunk lodChunk = getLODChunk(Math.floorDiv(wr.posX, 16), Math.floorDiv(wr.posZ, 16));
-        setVisible(lodChunk, false);
+        int y = Math.floorDiv(wr.posY, 16);
+        setMeshVisible(lodChunk.chunkMeshes[y * 2 + 0], false);
+        setMeshVisible(lodChunk.chunkMeshes[y * 2 + 1], false);
 	}
 	
 	public void onDontDraw(WorldRenderer wr) {
@@ -380,7 +382,9 @@ public class LODRenderer {
 		Entity player = (Entity)Minecraft.getMinecraft().getIntegratedServer().getConfigurationManager().playerEntityList.get(0);
 		LODChunk lodChunk = getLODChunk(chunkX, chunkZ);
 	
-		setVisible(lodChunk, true);
+		int y = Math.floorDiv(wr.posY, 16);
+        setMeshVisible(lodChunk.chunkMeshes[y * 2 + 0], true);
+        setMeshVisible(lodChunk.chunkMeshes[y * 2 + 1], true);
 	}
 	
 	private double getLastSortDistanceSq(Entity player) {
