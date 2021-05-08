@@ -23,7 +23,7 @@ abstract class MixinRenderGlobal {
         int numba = thiz.getGLCallListForPass(arg);
         if(LODMod.isActive()) {
             if(numba != -1) {
-                LODMod.renderer.onWorldRendererFrustumChange(thiz, true);
+                LODMod.renderer.onWorldRendererRender(thiz);
             }
         }
         return numba;

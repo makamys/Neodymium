@@ -365,14 +365,11 @@ public class LODRenderer {
 	public void onWorldRendererPost(WorldRenderer wr) {
 		LODChunk lodChunk = getLODChunk(Math.floorDiv(wr.posX, 16), Math.floorDiv(wr.posZ, 16));
 		lodChunk.putChunkMeshes(Math.floorDiv(wr.posY, 16), ((IWorldRenderer)wr).getChunkMeshes());
-		//setVisible(lodChunk, false);
 	}
 	
-	public void onWorldRendererFrustumChange(WorldRenderer wr, boolean inFrustum) {
-	    if(inFrustum) {
-	        LODChunk lodChunk = getLODChunk(Math.floorDiv(wr.posX, 16), Math.floorDiv(wr.posZ, 16));
-	        setVisible(lodChunk, false);
-	    }
+	public void onWorldRendererRender(WorldRenderer wr) {
+        LODChunk lodChunk = getLODChunk(Math.floorDiv(wr.posX, 16), Math.floorDiv(wr.posZ, 16));
+        setVisible(lodChunk, false);
 	}
 	
 	public void onDontDraw(WorldRenderer wr) {
@@ -382,10 +379,7 @@ public class LODRenderer {
 		
 		Entity player = (Entity)Minecraft.getMinecraft().getIntegratedServer().getConfigurationManager().playerEntityList.get(0);
 		LODChunk lodChunk = getLODChunk(chunkX, chunkZ);
-		
-		if(lodChunk.hasChunkMeshes()) {
-			setLOD(lodChunk, 2);//(lodChunk.distSq(player) < (16 * 16 * 16 * 16)) ? 1 : 2);
-		}
+	
 		setVisible(lodChunk, true);
 	}
 	
