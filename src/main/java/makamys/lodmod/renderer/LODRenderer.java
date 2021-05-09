@@ -409,23 +409,8 @@ public class LODRenderer {
     }
 	
 	public void onWorldRendererPost(WorldRenderer wr) {
-	    int x = Math.floorDiv(wr.posX, 16);
-	    int z = Math.floorDiv(wr.posZ, 16);
-		LODChunk lodChunk = getLODChunk(x, z);
-		if(areSurroundingChunksLoaded(x, z, wr.worldObj)) {
-		    lodChunk.putChunkMeshes(Math.floorDiv(wr.posY, 16), ((IWorldRenderer)wr).getChunkMeshes());
-		}
-	}
-	
-	public boolean areSurroundingChunksLoaded(int x, int z, World world) {
-	    for(int dx = -1; dx <= 1; dx++) {
-            for(int dz = -1; dz <= 1; dz++) {
-                if(!world.getChunkFromChunkCoords(x + dx, z + dz).isChunkLoaded) {
-                    return false;
-                }
-            }
-        }
-	    return true;
+		LODChunk lodChunk = getLODChunk(Math.floorDiv(wr.posX, 16), Math.floorDiv(wr.posZ, 16));
+		lodChunk.putChunkMeshes(Math.floorDiv(wr.posY, 16), ((IWorldRenderer)wr).getChunkMeshes());
 	}
 	
 	public void onWorldRendererRender(WorldRenderer wr) {
