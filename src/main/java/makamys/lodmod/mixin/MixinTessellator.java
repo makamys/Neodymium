@@ -54,7 +54,7 @@ abstract class MixinTessellator implements ITessellator {
         }
     }*/
     
-    public ChunkMesh toChunkMesh() {
+    public ChunkMesh toChunkMesh(int pass) {
         if(this.vertexCount % 4 != 0) {
             System.out.println("Error: Vertex count is not a multiple of 4");
             return null;
@@ -122,7 +122,7 @@ abstract class MixinTessellator implements ITessellator {
             return new ChunkMesh(
                     (int)(-xOffset / 16), (int)(-yOffset / 16), (int)(-zOffset / 16),
                     new ChunkMesh.Flags(hasTexture, hasBrightness, hasColor, hasNormals),
-                    quadCount, quads);
+                    quadCount, quads, pass);
         } else {
             return null;
         }

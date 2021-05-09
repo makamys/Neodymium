@@ -38,8 +38,7 @@ public class LODChunk {
 	        
 	        byte[] data = chunkMeshesCompound.getByteArray(key);
 	        
-	        chunkMeshes[keyInt] = new ChunkMesh(x, keyInt / 2, z, new ChunkMesh.Flags(true, true, true, false), data.length / (2 + 4 * (3 + 2 + 2 + 4)), data, spriteList);
-	        chunkMeshes[keyInt].pass = keyInt % 2;
+	        chunkMeshes[keyInt] = new ChunkMesh(x, keyInt / 2, z, new ChunkMesh.Flags(true, true, true, false), data.length / (2 + 4 * (3 + 2 + 2 + 4)), data, spriteList, keyInt % 2);
 	    }
 	    
 	}

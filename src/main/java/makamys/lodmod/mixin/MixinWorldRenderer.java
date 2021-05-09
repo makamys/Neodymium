@@ -23,6 +23,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.WorldRenderer;
 import net.minecraft.client.renderer.entity.RenderItem;
+import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.world.ChunkCache;
 import net.minecraft.world.World;
@@ -78,9 +79,9 @@ abstract class MixinWorldRenderer implements IWorldRenderer {
     }
     
     @Inject(method = "postRenderBlocks", at = @At(value = "HEAD"))
-    private void prePostRenderBlocks(CallbackInfo ci) {
+    private void prePostRenderBlocks(int pass, EntityLivingBase entity, CallbackInfo ci) {
         if(LODMod.isActive()) {
-            chunkMeshes.add(((ITessellator)Tessellator.instance).toChunkMesh());
+            chunkMeshes.add(((ITessellator)Tessellator.instance).toChunkMesh(pass));
         }
     }
     

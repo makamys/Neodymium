@@ -63,7 +63,8 @@ public class LODRenderer {
     
     private boolean hasServerInited = false;
     private Map<ChunkCoordIntPair, LODRegion> loadedRegionsMap = new HashMap<>();
-    private List<Mesh> sentMeshes = new ArrayList<>();
+    private List<Mesh> sentMeshes1 = new ArrayList<>();
+    private List<Mesh> sentMeshes2 = new ArrayList<>();
     
     // TODO make these packets to make this work on dedicated servers
     Queue<Chunk> farChunks = new ConcurrentLinkedQueue<>();
@@ -96,9 +97,25 @@ public class LODRenderer {
             }
             
             if(renderLOD) {
+                initIndexBuffers();
                 render();
             }
         }
+    }
+    
+    private void initIndexBuffers() {
+        piFirst.limit(sentMeshes1.size() + sentMeshes2.size());
+        piCount.limit(sentMeshes1.size() + sentMeshes2.size());
+        for(List<Mesh> sentMeshes : Arrays.asList(sentMeshes1, sentMeshes2)) {
+            for(Mesh mesh : sentMeshes) {
+                if(mesh.visible) {
+                    piFirst.put(mesh.iFirst);
+                    piCount.put(mesh.iCount);
+                }
+            }
+        }
+        piFirst.flip();
+        piCount.flip();
     }
     
     private void mainLoop() {
@@ -162,7 +179,6 @@ public class LODRenderer {
             //LODChunk chunk = getLODChunk(9, -18);
             //setMeshVisible(chunk.chunkMeshes[7], false, true);
 		    //freezeMeshes = false;
-		    resort();
             //chunk.chunkMeshes[7].quadCount = 256;
             //setMeshVisible(chunk.chunkMeshes[7], true, true);
         }
@@ -170,22 +186,6 @@ public class LODRenderer {
 		for(int i = 0; i < 256; i++) {
 			wasDown[i] = Keyboard.isKeyDown(i);
 		}
-	}
-	
-	private void resort() {
-	    List<Mesh> visibleMeshes = new ArrayList<>();
-	    for(Mesh mesh : sentMeshes) {
-	        if(mesh.visible) {
-	            setMeshVisible(mesh, false);
-	            visibleMeshes.add(mesh);
-	        }
-	    }
-	    
-	    Entity player = (Entity)Minecraft.getMinecraft().getIntegratedServer().getConfigurationManager().playerEntityList.get(0);
-	    visibleMeshes.sort(new MeshDistanceComparator(player));
-	    for(Mesh mesh : visibleMeshes) {
-	        setMeshVisible(mesh, true);
-	    }
 	}
 	
 	private void runGC() {
@@ -201,32 +201,34 @@ public class LODRenderer {
 	    
         int deletedNum = 0;
         int deletedRAM = 0;
-	    for(Iterator<Mesh> it = sentMeshes.iterator(); it.hasNext(); ) {
-	        Mesh mesh = it.next();
-	        if(!mesh.pendingGPUDelete) {
-    	        if(mesh.offset != nextMeshOffset) {
-    	            glBufferSubData(GL_ARRAY_BUFFER, nextMeshOffset, mesh.buffer);
+        for(List<Mesh> sentMeshes : Arrays.asList(sentMeshes1, sentMeshes2)) {
+    	    for(Iterator<Mesh> it = sentMeshes.iterator(); it.hasNext(); ) {
+    	        Mesh mesh = it.next();
+    	        if(!mesh.pendingGPUDelete) {
+        	        if(mesh.offset != nextMeshOffset) {
+        	            glBufferSubData(GL_ARRAY_BUFFER, nextMeshOffset, mesh.buffer);
+        	        }
+        	        mesh.iFirst = nextTri;
+        	        mesh.offset = nextMeshOffset;
+        	        
+        	        nextMeshOffset += mesh.buffer.limit();
+        	        nextTri += mesh.quadCount * 6;
+        	        
+        	        piFirst.limit(piFirst.limit() + 1);
+        	        piFirst.put(nextMesh, mesh.iFirst);
+        	        piCount.limit(piCount.limit() + 1);
+        	        piCount.put(nextMesh, mesh.iCount);
+        	        nextMesh++;
+    	        } else {
+    	            mesh.iFirst = mesh.offset = -1;
+    	            mesh.visible = false;
+    	            mesh.pendingGPUDelete = false;
+    	            it.remove();
+    	            deletedNum++;
+    	            deletedRAM += mesh.buffer.limit();
     	        }
-    	        mesh.iFirst = nextTri;
-    	        mesh.offset = nextMeshOffset;
-    	        
-    	        nextMeshOffset += mesh.buffer.limit();
-    	        nextTri += mesh.quadCount * 6;
-    	        
-    	        piFirst.limit(piFirst.limit() + 1);
-    	        piFirst.put(nextMesh, mesh.iFirst);
-    	        piCount.limit(piCount.limit() + 1);
-    	        piCount.put(nextMesh, mesh.iCount);
-    	        nextMesh++;
-	        } else {
-	            mesh.iFirst = mesh.offset = -1;
-	            mesh.visible = false;
-	            mesh.pendingGPUDelete = false;
-	            it.remove();
-	            deletedNum++;
-	            deletedRAM += mesh.buffer.limit();
-	        }
-	    }
+    	    }
+        }
 	    
 	    System.out.println("Deleted " + deletedNum + " meshes, freeing up " + (deletedRAM / 1024 / 1024) + "MB of VRAM");
 	    
@@ -566,37 +568,9 @@ public class LODRenderer {
 		
 		if(mesh.visible != visible) {
 			if(!visible) {
-			    if(mesh.iFirst == -1) {
-			        System.out.println("uh");
-			    }
-				piFirst.position(0);
-				int[] piFirstArr = new int[piFirst.limit()];
-				piFirst.get(piFirstArr);
-				int index = ArrayUtils.indexOf(piFirstArr, mesh.iFirst);
-				piFirstArr = ArrayUtils.remove(piFirstArr, index);
-				piFirst.position(0);
-				piFirst.put(piFirstArr);
-				piFirst.position(0);
-				piFirst.limit(piFirst.limit() - 1);
-				
-				piCount.position(0);
-				
 				deleteMeshFromGPU(mesh);
-				int[] piCountArr = new int[piCount.limit()];
-				piCount.get(piCountArr);
-				piCountArr = ArrayUtils.remove(piCountArr, index);
-				piCount.position(0);
-				piCount.put(piCountArr);
-				piCount.position(0);
-				piCount.limit(piCount.limit() - 1);
-				nextMesh--;
 			} else if(visible) {
 			    sendMeshToGPU(mesh);
-				piFirst.limit(piFirst.limit() + 1);
-				piFirst.put(nextMesh, mesh.iFirst);
-				piCount.limit(piCount.limit() + 1);
-				piCount.put(nextMesh, mesh.iCount);
-				nextMesh++;
 			}
 			mesh.visible = visible;
 		}
@@ -620,7 +594,7 @@ public class LODRenderer {
         
         nextTri += mesh.quadCount * 6;
         nextMeshOffset += mesh.buffer.limit();
-        sentMeshes.add(mesh);
+        (mesh.pass == 0 ? sentMeshes1 : sentMeshes2).add(mesh);
         
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         glBindVertexArray(0);

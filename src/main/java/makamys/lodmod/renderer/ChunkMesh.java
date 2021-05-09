@@ -35,9 +35,6 @@ import net.minecraft.tileentity.TileEntity;
 
 public class ChunkMesh extends Mesh {
     
-    int x;
-    int y;
-    int z;
     Flags flags;
     
     NBTBase nbtData;
@@ -45,12 +42,13 @@ public class ChunkMesh extends Mesh {
     public static int usedRAM = 0;
     public static int instances = 0;
     
-    public ChunkMesh(int x, int y, int z, Flags flags, int quadCount, byte[] data, List<String> stringTable) {
+    public ChunkMesh(int x, int y, int z, Flags flags, int quadCount, byte[] data, List<String> stringTable, int pass) {
         this.x = x;
         this.y = y;
         this.z = z;
         this.flags = flags;
         this.quadCount = quadCount;
+        this.pass = pass;
         
         this.buffer = createBuffer(data, stringTable);
         this.nbtData = new NBTTagByteArray(data);
@@ -59,12 +57,13 @@ public class ChunkMesh extends Mesh {
         instances++;
     }
     
-    public ChunkMesh(int x, int y, int z, Flags flags, int quadCount, List<MeshQuad> quads) {
+    public ChunkMesh(int x, int y, int z, Flags flags, int quadCount, List<MeshQuad> quads, int pass) {
         this.x = x;
         this.y = y;
         this.z = z;
         this.flags = flags;
         this.quadCount = quadCount;
+        this.pass = pass;
         
         this.nbtData = toNBT(quads, quadCount);
         // TODO move this somewhere else
