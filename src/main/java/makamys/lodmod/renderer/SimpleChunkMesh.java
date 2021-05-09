@@ -11,6 +11,7 @@ import static org.lwjgl.opengl.GL20.glVertexAttribPointer;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
+import java.util.List;
 
 import org.lwjgl.BufferUtils;
 
@@ -23,6 +24,7 @@ import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.nbt.NBTTagString;
 import net.minecraft.util.IIcon;
 import net.minecraft.world.chunk.Chunk;
+import scala.actors.threadpool.Arrays;
 
 public class SimpleChunkMesh extends Mesh {
 	
@@ -31,12 +33,11 @@ public class SimpleChunkMesh extends Mesh {
 	public static int usedRAM;
 	public static int instances;
 	
-	public SimpleChunkMesh(Chunk target) {
+	public static List<SimpleChunkMesh> generateSimpleMeshes(Chunk target){
 		int divisions = 4;
-		quadCount = divisions * divisions * 5;
 		
-		buffer = BufferUtils.createByteBuffer(4 * 6 * 7 * quadCount);
-		vertices = buffer.asFloatBuffer();
+		SimpleChunkMesh pass1 = new SimpleChunkMesh(divisions * divisions * 25);
+		SimpleChunkMesh pass2 = new SimpleChunkMesh(divisions * divisions * 25);
 		
 		for(int divX = 0; divX < divisions; divX++) {
 			for(int divZ = 0; divZ < divisions; divZ++) {
@@ -55,15 +56,12 @@ public class SimpleChunkMesh extends Mesh {
 					float offZ = target.zPosition * 16 + divZ * size;
 					
 					if(!foundWater && block.getMaterial() == Material.water) {
-						// TODO just add a face here, and keep the seabed
 						foundWater = true;
 						int meta = target.getBlockMetadata(xOff, y, zOff);
 						IIcon waterIcon = block.getIcon(1, meta);
 						int waterColor = block.colorMultiplier(Minecraft.getMinecraft().theWorld, target.xPosition * 16 + xOff, y, target.zPosition * 16 + zOff);
 						waterColor |= 0xFF000000;
-						
-						addCube(offX, offY, offZ, size, size, size*4, waterIcon, waterColor);
-						break;
+						pass2.addFaceYPos(offX, offY, offZ, size, size, waterIcon, waterColor);
 					}
 					
 					if(block.isBlockNormalCube() && block.isOpaqueCube() && block.renderAsNormalBlock()) {
@@ -72,26 +70,36 @@ public class SimpleChunkMesh extends Mesh {
 						color = block.colorMultiplier(Minecraft.getMinecraft().theWorld, target.xPosition * 16 + xOff, y, target.zPosition * 16 + zOff);
 						color = (0xFF << 24) | ((color >> 16 & 0xFF) << 0) | ((color >> 8 & 0xFF) << 8) | ((color >> 0 & 0xFF) << 16);
 						
-						addCube(offX, offY, offZ, size, size, offY, icon, color);
+						pass1.addCube(offX, offY, offZ, size, size, offY, icon, color);
 						break;
 					}
 				}
 			}
 		}
-		vertices.flip();
 		
-		usedRAM += buffer.limit();
+		pass1.finish();
+		pass2.finish();
+		
+		return Arrays.asList(new SimpleChunkMesh[] {pass1.quadCount != 0 ? pass1 : null, pass2.quadCount != 0 ? pass2 : null});
+	}
+	
+	public SimpleChunkMesh(int maxQuads) {
+	    buffer = BufferUtils.createByteBuffer(4 * 6 * 7 * maxQuads);
+        vertices = buffer.asFloatBuffer();
+	}
+	
+	public void finish() {
+	    vertices.flip();
+	    buffer.limit(vertices.limit() * 4);
+	    
+	    // may want to shrink the buffers to actual size to not waste memory
+	    
+	    usedRAM += buffer.limit();
         instances++;
 	}
 	
 	private void addCube(float x, float y, float z, float sizeX, float sizeZ, float sizeY, IIcon icon, int color) {
-		addFace(
-				x + 0, y + 0, z + 0,
-				x + 0, y + 0, z + sizeZ,
-				x + sizeX, y + 0, z + sizeZ,
-				x + sizeX, y + 0, z + 0,
-				icon, color, 240
-				);
+		addFaceYPos(x, y, z, sizeX, sizeZ, icon, color);
 		addFace(
 			x + 0, y - sizeY, z + 0,
 			x + 0, y + 0, z + 0,
@@ -122,6 +130,16 @@ public class SimpleChunkMesh extends Mesh {
 			);
 	}
 	
+	private void addFaceYPos(float x, float y, float z, float sizeX, float sizeZ, IIcon icon, int color) {
+	    addFace(
+                x + 0, y + 0, z + 0,
+                x + 0, y + 0, z + sizeZ,
+                x + sizeX, y + 0, z + sizeZ,
+                x + sizeX, y + 0, z + 0,
+                icon, color, 240
+                );
+	}
+	
 	private void addFace(float p1x, float p1y, float p1z,
 			float p2x, float p2y, float p2z,
 			float p3x, float p3y, float p3z,
@@ -149,6 +167,7 @@ public class SimpleChunkMesh extends Mesh {
 		buffer.putInt(off + 5 * getStride() + 6 * 4, color);
 		buffer.putShort(off + 5 * getStride() + 5 * 4 + 2, (short)brightness);
 		
+		quadCount++;
 	}
 	
 	public int getStride() {

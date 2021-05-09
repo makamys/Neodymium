@@ -17,7 +17,7 @@ public class LODChunk {
 	int lod = 0;
 	boolean visible;
 	
-	SimpleChunkMesh simpleMesh;
+	SimpleChunkMesh[] simpleMeshes = new SimpleChunkMesh[2];
 	ChunkMesh[] chunkMeshes = new ChunkMesh[32];
 	
 	LODRenderer renderer = LODMod.renderer;
@@ -66,11 +66,14 @@ public class LODChunk {
 		}
 	}
 	
-	public void putSimpleMesh(SimpleChunkMesh mesh) {
-	    if(simpleMesh != null) {
-	        renderer.setMeshVisible(simpleMesh, false);
+	public void putSimpleMeshes(List<SimpleChunkMesh> meshes) {
+	    for(SimpleChunkMesh sm : simpleMeshes) {
+	        if(sm!= null) {
+	            renderer.setMeshVisible(sm, false);
+	        }
 	    }
-	    simpleMesh = mesh;
+	    
+	    simpleMeshes = meshes.toArray(new SimpleChunkMesh[0]);
 	}
 	
 	public boolean hasChunkMeshes() {

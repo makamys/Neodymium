@@ -387,7 +387,8 @@ public class LODRenderer {
         int y = Math.floorDiv(wr.posY, 16);
         setMeshVisible(lodChunk.chunkMeshes[y * 2 + 0], false);
         setMeshVisible(lodChunk.chunkMeshes[y * 2 + 1], false);
-        setMeshVisible(lodChunk.simpleMesh, false);
+        setMeshVisible(lodChunk.simpleMeshes[0], false);
+        setMeshVisible(lodChunk.simpleMeshes[1], false);
 	}
 	
 	public void onDontDraw(WorldRenderer wr) {
@@ -469,7 +470,7 @@ public class LODRenderer {
 	}
 	
 	private void sendChunkToGPU(LODChunk lodChunk) {
-		lodChunk.putSimpleMesh(new SimpleChunkMesh(lodChunk.chunk));
+		lodChunk.putSimpleMeshes(SimpleChunkMesh.generateSimpleMeshes(lodChunk.chunk));
 		
 		Entity player = (Entity) Minecraft.getMinecraft().getIntegratedServer().getConfigurationManager().playerEntityList.get(0);
 		
@@ -497,16 +498,18 @@ public class LODRenderer {
 	
 	public void lodChunkChanged(LODChunk lodChunk) {
 		int newLOD = (!lodChunk.hasChunkMeshes() && lodChunk.lod == 2) ? 1 : lodChunk.lod;
-		if(lodChunk.simpleMesh != null) {
-			if(lodChunk.visible && newLOD == 1) {
-				if(!lodChunk.simpleMesh.visible) {
-					setMeshVisible(lodChunk.simpleMesh, true);
-				}
-			} else {
-				if(lodChunk.simpleMesh.visible) {
-					setMeshVisible(lodChunk.simpleMesh, false);
-				}
-			}
+		for(SimpleChunkMesh sm : lodChunk.simpleMeshes) {
+		    if(sm != null) {
+		        if(lodChunk.visible && newLOD == 1) {
+	                if(!sm.visible) {
+	                    setMeshVisible(sm, true);
+	                }
+	            } else {
+	                if(sm.visible) {
+	                    setMeshVisible(sm, false);
+	                }
+	            }
+		    }
 		}
 		for(ChunkMesh cm : lodChunk.chunkMeshes) {
 			if(cm != null) {
