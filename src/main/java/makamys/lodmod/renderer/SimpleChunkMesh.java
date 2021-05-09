@@ -11,6 +11,7 @@ import static org.lwjgl.opengl.GL20.glVertexAttribPointer;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
+import java.util.Arrays;
 import java.util.List;
 
 import org.lwjgl.BufferUtils;
@@ -29,7 +30,6 @@ import net.minecraft.nbt.NBTTagString;
 import net.minecraft.util.IIcon;
 import net.minecraft.world.biome.BiomeGenBase;
 import net.minecraft.world.chunk.Chunk;
-import scala.actors.threadpool.Arrays;
 
 public class SimpleChunkMesh extends Mesh {
 	
