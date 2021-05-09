@@ -11,6 +11,7 @@
         "MixinSoundManager",
         "MixinSoundManager",
         "MixinTessellator",
-        "MixinWorldRenderer"
+        "MixinWorldRenderer",
+        "MixinRenderBlocks"
     ]
 }

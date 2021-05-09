@@ -1,12 +1,16 @@
 package makamys.lodmod.renderer;
 
+import net.minecraft.block.Block;
+import net.minecraft.block.material.Material;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.particle.EntityFX;
 import net.minecraft.client.renderer.WorldRenderer;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.entity.Entity;
+import net.minecraft.util.EnumFacing;
 import net.minecraft.world.ChunkCoordIntPair;
+import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.gen.ChunkProviderServer;
@@ -627,6 +631,15 @@ public class LODRenderer {
 			}
 		}
 		return null;
+	}
+	
+	public boolean shouldSideBeRendered(Block block, IBlockAccess ba, int x, int y, int z, int w) {
+	    EnumFacing facing = EnumFacing.values()[w];
+	    if(block.getMaterial() == Material.water && facing != EnumFacing.UP && facing != EnumFacing.DOWN && !Minecraft.getMinecraft().theWorld.getChunkFromBlockCoords(x, z).isChunkLoaded) {
+	        return false;
+	    } else {
+	        return block.shouldSideBeRendered(ba, x, y, z, w);
+	    }
 	}
 	
 	public List<String> getDebugText() {
