@@ -17,6 +17,8 @@ import org.lwjgl.BufferUtils;
 
 import makamys.lodmod.LODMod;
 import net.minecraft.block.Block;
+import net.minecraft.block.BlockGrass;
+import net.minecraft.block.BlockLeaves;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
@@ -24,6 +26,7 @@ import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.entity.Entity;
 import net.minecraft.nbt.NBTTagString;
 import net.minecraft.util.IIcon;
+import net.minecraft.world.biome.BiomeGenBase;
 import net.minecraft.world.chunk.Chunk;
 import scala.actors.threadpool.Arrays;
 
@@ -47,31 +50,43 @@ public class SimpleChunkMesh extends Mesh {
 				int size = 16 / divisions;
 				int y = 255;
 				boolean foundWater = false;
+				
+				int xOff = divX * size;
+                int zOff = divZ * size;
+				
+				BiomeGenBase biome = target.getBiomeGenForWorldCoords(xOff, zOff, target.worldObj.getWorldChunkManager());
+				
 				for(y = 255; y > 0; y--) {
-					int xOff = divX * size;
-					int zOff = divZ * size;
 					Block block = target.getBlock(xOff, y, zOff);
 					
-					float offX = target.xPosition * 16 + divX * size;
-					float offY = y;
-					float offZ = target.zPosition * 16 + divZ * size;
+					int worldX = target.xPosition * 16 + divX * size;
+					int worldY = y;
+					int worldZ = target.zPosition * 16 + divZ * size;
 					
 					if(!foundWater && block.getMaterial() == Material.water) {
 						foundWater = true;
 						int meta = target.getBlockMetadata(xOff, y, zOff);
 						IIcon waterIcon = block.getIcon(1, meta);
-						int waterColor = block.colorMultiplier(Minecraft.getMinecraft().theWorld, target.xPosition * 16 + xOff, y, target.zPosition * 16 + zOff);
+						
+						int waterColor = biome.getWaterColorMultiplier();
 						waterColor |= 0xFF000000;
-						pass2.addFaceYPos(offX, offY, offZ, size, size, waterIcon, waterColor);
+						pass2.addFaceYPos(worldX, worldY, worldZ, size, size, waterIcon, waterColor);
 					}
 					
 					if(block.isBlockNormalCube() && block.isOpaqueCube() && block.renderAsNormalBlock()) {
 						int meta = target.getBlockMetadata(xOff, y, zOff);
 						icon = block.getIcon(1, meta);
-						color = block.colorMultiplier(Minecraft.getMinecraft().theWorld, target.xPosition * 16 + xOff, y, target.zPosition * 16 + zOff);
+						
+						if(block instanceof BlockGrass) {
+						    color = biome.getBiomeGrassColor(worldX, y, worldZ);
+						} else if(block instanceof BlockLeaves) {
+						    color = biome.getBiomeFoliageColor(worldX, y, worldZ);
+						} else {
+						    color = block.colorMultiplier(target.worldObj, worldX, y, worldZ);
+						}
 						color = (0xFF << 24) | ((color >> 16 & 0xFF) << 0) | ((color >> 8 & 0xFF) << 8) | ((color >> 0 & 0xFF) << 16);
 						
-						pass1.addCube(offX, offY, offZ, size, size, offY, icon, color);
+						pass1.addCube(worldX, worldY, worldZ, size, size, worldY, icon, color);
 						break;
 					}
 				}
