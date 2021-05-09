@@ -79,6 +79,8 @@ public class LODRenderer {
     
     public int renderRange = 48;
     
+    private boolean freezeMeshes;
+    
     public LODRenderer(){
         hasInited = init();
     }
@@ -156,10 +158,34 @@ public class LODRenderer {
 		if(Keyboard.isKeyDown(Keyboard.KEY_V) && !wasDown[Keyboard.KEY_V]) {
 			renderWorld = !renderWorld;
 		}
+		if(Keyboard.isKeyDown(Keyboard.KEY_G) && !wasDown[Keyboard.KEY_G]) {
+            //LODChunk chunk = getLODChunk(9, -18);
+            //setMeshVisible(chunk.chunkMeshes[7], false, true);
+		    //freezeMeshes = false;
+		    resort();
+            //chunk.chunkMeshes[7].quadCount = 256;
+            //setMeshVisible(chunk.chunkMeshes[7], true, true);
+        }
 		
 		for(int i = 0; i < 256; i++) {
 			wasDown[i] = Keyboard.isKeyDown(i);
 		}
+	}
+	
+	private void resort() {
+	    List<Mesh> visibleMeshes = new ArrayList<>();
+	    for(Mesh mesh : sentMeshes) {
+	        if(mesh.visible) {
+	            setMeshVisible(mesh, false);
+	            visibleMeshes.add(mesh);
+	        }
+	    }
+	    
+	    Entity player = (Entity)Minecraft.getMinecraft().getIntegratedServer().getConfigurationManager().playerEntityList.get(0);
+	    visibleMeshes.sort(new MeshDistanceComparator(player));
+	    for(Mesh mesh : visibleMeshes) {
+	        setMeshVisible(mesh, true);
+	    }
 	}
 	
 	private void runGC() {
@@ -212,7 +238,8 @@ public class LODRenderer {
 	    GL11.glPushAttrib(GL11.GL_ENABLE_BIT);
 	    GL11.glDisable(GL11.GL_TEXTURE_2D);
 
-	    GL11.glDisable(GL11.GL_BLEND);
+	    GL11.glEnable(GL11.GL_BLEND);
+	    GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
 	    
 	    glUseProgram(shaderProgram);
 	    
@@ -531,7 +558,11 @@ public class LODRenderer {
 	private int nextMesh;
 	
 	protected void setMeshVisible(Mesh mesh, boolean visible) {
-		if(mesh == null) return;
+	    setMeshVisible(mesh, visible, false);
+	}
+	
+	protected void setMeshVisible(Mesh mesh, boolean visible, boolean force) {
+		if((!force && freezeMeshes) || mesh == null) return;
 		
 		if(mesh.visible != visible) {
 			if(!visible) {
@@ -670,5 +701,34 @@ public class LODRenderer {
 					Math.pow(((p.chunkZPos * 16) - player.posZ), 2)
 					);
 		}
+	}
+	
+	public static class MeshDistanceComparator implements Comparator<Mesh> {
+
+	    Entity player;
+	    
+	    MeshDistanceComparator(Entity player){
+	        this.player = player;
+	    }
+	    
+        @Override
+        public int compare(Mesh a, Mesh b) {
+            if(a.pass < b.pass) {
+                return -1;
+            } else if(a.pass > b.pass) {
+                return 1;
+            } else {
+                double distSqA = a.distSq(player);
+                double distSqB = b.distSq(player);
+                if(distSqA > distSqB) {
+                    return 1;
+                } else if(distSqA < distSqB) {
+                    return -1;
+                } else {
+                    return 0;
+                }
+            }
+        }
+	    
 	}
 }

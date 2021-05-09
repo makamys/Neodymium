@@ -27,6 +27,7 @@ import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.WorldRenderer;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.renderer.texture.TextureMap;
+import net.minecraft.entity.Entity;
 import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagByteArray;
 import net.minecraft.nbt.NBTTagCompound;
@@ -348,6 +349,14 @@ public class ChunkMesh extends Mesh {
         wr.markDirty();
         wr.updateRenderer(Minecraft.getMinecraft().thePlayer);
         return ((IWorldRenderer)wr).getChunkMeshes();
+    }
+    
+    public double distSq(Entity player) {
+        int centerX = x * 16 + 8;
+        int centerY = y * 16 + 8;
+        int centerZ = z * 16 + 8;
+        
+        return player.getDistanceSq(centerX, centerY, centerZ); 
     }
     
     public static class Flags {

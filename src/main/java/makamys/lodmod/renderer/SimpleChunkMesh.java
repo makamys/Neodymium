@@ -21,6 +21,7 @@ import net.minecraft.block.material.Material;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.renderer.texture.TextureMap;
+import net.minecraft.entity.Entity;
 import net.minecraft.nbt.NBTTagString;
 import net.minecraft.util.IIcon;
 import net.minecraft.world.chunk.Chunk;
@@ -33,11 +34,13 @@ public class SimpleChunkMesh extends Mesh {
 	public static int usedRAM;
 	public static int instances;
 	
+	int x, z;
+	
 	public static List<SimpleChunkMesh> generateSimpleMeshes(Chunk target){
 		int divisions = 4;
 		
-		SimpleChunkMesh pass1 = new SimpleChunkMesh(divisions * divisions * 25);
-		SimpleChunkMesh pass2 = new SimpleChunkMesh(divisions * divisions * 25);
+		SimpleChunkMesh pass1 = new SimpleChunkMesh(target.xPosition, target.zPosition, divisions * divisions * 25, 0);
+		SimpleChunkMesh pass2 = new SimpleChunkMesh(target.xPosition, target.zPosition, divisions * divisions * 25, 1);
 		
 		for(int divX = 0; divX < divisions; divX++) {
 			for(int divZ = 0; divZ < divisions; divZ++) {
@@ -83,7 +86,11 @@ public class SimpleChunkMesh extends Mesh {
 		return Arrays.asList(new SimpleChunkMesh[] {pass1.quadCount != 0 ? pass1 : null, pass2.quadCount != 0 ? pass2 : null});
 	}
 	
-	public SimpleChunkMesh(int maxQuads) {
+	public SimpleChunkMesh(int x, int z, int maxQuads, int pass) {
+	    this.x = x;
+	    this.z = z;
+	    this.pass = pass;
+	    
 	    buffer = BufferUtils.createByteBuffer(4 * 6 * 7 * maxQuads);
         vertices = buffer.asFloatBuffer();
 	}
@@ -173,5 +180,13 @@ public class SimpleChunkMesh extends Mesh {
 	public int getStride() {
 		return (3 * 4 + 8 + 4 + 4);
 	}
+	
+    public double distSq(Entity player) {
+        int centerX = x * 16 + 8;
+        int centerY = 64;
+        int centerZ = z * 16 + 8;
+        
+        return player.getDistanceSq(centerX, centerY, centerZ); 
+    }
 	
 }
