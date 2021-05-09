@@ -56,15 +56,15 @@ public class LODRenderer {
     private static int MAX_MESHES = 100000;
     
     private int VAO, VBO, shaderProgram;
-    private IntBuffer piFirst, piCount;
+    private IntBuffer[] piFirst = new IntBuffer[2];
+    private IntBuffer[] piCount = new IntBuffer[2];
+    private List<Mesh>[] sentMeshes = (List<Mesh>[])new ArrayList[] {new ArrayList<Mesh>(), new ArrayList<Mesh>()};
     
     List<Chunk> myChunks = new ArrayList<Chunk>();
     List<LODChunk> pendingLODChunks = new ArrayList<>();
     
     private boolean hasServerInited = false;
     private Map<ChunkCoordIntPair, LODRegion> loadedRegionsMap = new HashMap<>();
-    private List<Mesh> sentMeshes1 = new ArrayList<>();
-    private List<Mesh> sentMeshes2 = new ArrayList<>();
     
     // TODO make these packets to make this work on dedicated servers
     Queue<Chunk> farChunks = new ConcurrentLinkedQueue<>();
@@ -106,22 +106,22 @@ public class LODRenderer {
     
     private void sort() {
         Entity player = (Entity)Minecraft.getMinecraft().getIntegratedServer().getConfigurationManager().playerEntityList.get(0);
-        sentMeshes2.sort(new MeshDistanceComparator(player.posX, player.posY, player.posZ));
+        sentMeshes[1].sort(new MeshDistanceComparator(player.posX, player.posY, player.posZ));
     }
     
     private void initIndexBuffers() {
-        piFirst.limit(sentMeshes1.size() + sentMeshes2.size());
-        piCount.limit(sentMeshes1.size() + sentMeshes2.size());
-        for(List<Mesh> sentMeshes : Arrays.asList(sentMeshes1, sentMeshes2)) {
-            for(Mesh mesh : sentMeshes) {
+        for(int i = 0; i < 2; i++) {
+            piFirst[i].limit(sentMeshes[i].size() + sentMeshes[i].size());
+            piCount[i].limit(sentMeshes[i].size() + sentMeshes[i].size());
+            for(Mesh mesh : sentMeshes[i]) {
                 if(mesh.visible) {
-                    piFirst.put(mesh.iFirst);
-                    piCount.put(mesh.iCount);
+                    piFirst[i].put(mesh.iFirst);
+                    piCount[i].put(mesh.iCount);
                 }
             }
+            piFirst[i].flip();
+            piCount[i].flip();
         }
-        piFirst.flip();
-        piCount.flip();
     }
     
     private void mainLoop() {
@@ -197,43 +197,42 @@ public class LODRenderer {
 	private void runGC() {
 	    nextMeshOffset = 0;
 	    nextTri = 0;
-	    nextMesh = 0;
-	    
-	    piFirst.limit(0);
-	    piCount.limit(0);
 	    
 	    glBindVertexArray(VAO);
         glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	    
         int deletedNum = 0;
         int deletedRAM = 0;
-        for(List<Mesh> sentMeshes : Arrays.asList(sentMeshes1, sentMeshes2)) {
-    	    for(Iterator<Mesh> it = sentMeshes.iterator(); it.hasNext(); ) {
-    	        Mesh mesh = it.next();
-    	        if(!mesh.pendingGPUDelete) {
-        	        if(mesh.offset != nextMeshOffset) {
-        	            glBufferSubData(GL_ARRAY_BUFFER, nextMeshOffset, mesh.buffer);
-        	        }
-        	        mesh.iFirst = nextTri;
-        	        mesh.offset = nextMeshOffset;
-        	        
-        	        nextMeshOffset += mesh.buffer.limit();
-        	        nextTri += mesh.quadCount * 6;
-        	        
-        	        piFirst.limit(piFirst.limit() + 1);
-        	        piFirst.put(nextMesh, mesh.iFirst);
-        	        piCount.limit(piCount.limit() + 1);
-        	        piCount.put(nextMesh, mesh.iCount);
-        	        nextMesh++;
-    	        } else {
-    	            mesh.iFirst = mesh.offset = -1;
-    	            mesh.visible = false;
-    	            mesh.pendingGPUDelete = false;
-    	            it.remove();
-    	            deletedNum++;
-    	            deletedRAM += mesh.buffer.limit();
-    	        }
-    	    }
+        
+        for(int i = 0; i < 2; i++) {
+            piFirst[i].limit(0);
+            piCount[i].limit(0);
+            
+            for(Iterator<Mesh> it = sentMeshes[i].iterator(); it.hasNext(); ) {
+                Mesh mesh = it.next();
+                if(!mesh.pendingGPUDelete) {
+                    if(mesh.offset != nextMeshOffset) {
+                        glBufferSubData(GL_ARRAY_BUFFER, nextMeshOffset, mesh.buffer);
+                    }
+                    mesh.iFirst = nextTri;
+                    mesh.offset = nextMeshOffset;
+                    
+                    nextMeshOffset += mesh.buffer.limit();
+                    nextTri += mesh.quadCount * 6;
+                    
+                    piFirst[i].limit(piFirst[i].limit() + 1);
+                    piFirst[i].put(mesh.iFirst);
+                    piCount[i].limit(piCount[i].limit() + 1);
+                    piCount[i].put(mesh.iCount);
+                } else {
+                    mesh.iFirst = mesh.offset = -1;
+                    mesh.visible = false;
+                    mesh.pendingGPUDelete = false;
+                    it.remove();
+                    deletedNum++;
+                    deletedRAM += mesh.buffer.limit();
+                }
+            }
         }
 	    
 	    System.out.println("Deleted " + deletedNum + " meshes, freeing up " + (deletedRAM / 1024 / 1024) + "MB of VRAM");
@@ -245,9 +244,6 @@ public class LODRenderer {
 	private void render(float alpha) {
 	    GL11.glPushAttrib(GL11.GL_ENABLE_BIT);
 	    GL11.glDisable(GL11.GL_TEXTURE_2D);
-
-	    GL11.glEnable(GL11.GL_BLEND);
-	    GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
 	    
 	    glUseProgram(shaderProgram);
 	    
@@ -312,7 +308,11 @@ public class LODRenderer {
 		}
 		
 	    glBindVertexArray(VAO);
-	    glMultiDrawArrays(GL_TRIANGLES, piFirst, piCount);
+	    GL11.glDisable(GL11.GL_BLEND);
+	    glMultiDrawArrays(GL_TRIANGLES, piFirst[0], piCount[0]);
+	    GL11.glEnable(GL11.GL_BLEND);
+	    GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+	    glMultiDrawArrays(GL_TRIANGLES, piFirst[1], piCount[1]);
 	    
 	    glBindVertexArray(0);
 	    glUseProgram(0);
@@ -378,10 +378,12 @@ public class LODRenderer {
 		glEnableVertexAttribArray(2);
 		glEnableVertexAttribArray(3);
 		
-		piFirst = BufferUtils.createIntBuffer(MAX_MESHES);
-		piFirst.flip();
-		piCount = BufferUtils.createIntBuffer(MAX_MESHES);
-		piCount.flip();
+		for(int i = 0; i < 2; i++) {
+		    piFirst[i] = BufferUtils.createIntBuffer(MAX_MESHES);
+	        piFirst[i].flip();
+	        piCount[i] = BufferUtils.createIntBuffer(MAX_MESHES);
+	        piCount[i].flip();
+		}
 		
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		glBindVertexArray(0);
@@ -605,7 +607,7 @@ public class LODRenderer {
         
         nextTri += mesh.quadCount * 6;
         nextMeshOffset += mesh.buffer.limit();
-        (mesh.pass == 0 ? sentMeshes1 : sentMeshes2).add(mesh);
+        sentMeshes[mesh.pass].add(mesh);
         
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         glBindVertexArray(0);
