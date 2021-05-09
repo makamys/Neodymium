@@ -86,7 +86,14 @@ public class SimpleChunkMesh extends Mesh {
 						}
 						color = (0xFF << 24) | ((color >> 16 & 0xFF) << 0) | ((color >> 8 & 0xFF) << 8) | ((color >> 0 & 0xFF) << 16);
 						
-						pass1.addCube(worldX, worldY, worldZ, size, size, worldY, icon, color);
+						if(biome.getFloatTemperature(worldX, y, worldZ) < 0.15f) {
+						    pass1.addCube(worldX, worldY + 0.2f, worldZ, size, size, 1f, Blocks.snow_layer.getIcon(1, 0), Blocks.snow_layer.colorMultiplier(target.worldObj, worldX, y, worldZ));
+						    pass1.addCube(worldX, worldY - 0.8f, worldZ, size, size, worldY - 0.8f, icon, color);
+						} else {
+						    pass1.addCube(worldX, worldY, worldZ, size, size, worldY, icon, color);
+						}
+						
+						
 						break;
 					}
 				}
