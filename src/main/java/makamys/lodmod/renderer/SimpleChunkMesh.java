@@ -24,6 +24,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.entity.Entity;
+import net.minecraft.init.Blocks;
 import net.minecraft.nbt.NBTTagString;
 import net.minecraft.util.IIcon;
 import net.minecraft.world.biome.BiomeGenBase;
@@ -133,28 +134,28 @@ public class SimpleChunkMesh extends Mesh {
 			x + 0, y + 0, z + 0,
 			x + sizeX, y + 0, z + 0,
 			x + sizeX, y - sizeY, z + 0,
-			icon, color, 180
+			icon, color, 200
 		);
 		addFace(
 			x + sizeX, y - sizeY, z + sizeZ,
 			x + sizeX, y + 0, z + sizeZ,
 			x + 0, y + 0, z + sizeZ,
 			x + 0, y - sizeY, z + sizeZ,
-			icon, color, 180
+			icon, color, 200
 		);
 		addFace(
 				x + sizeX, y - sizeY, z + 0,
 				x + sizeX, y + 0, z + 0,
 				x + sizeX, y + 0, z + sizeZ,
 				x + sizeX, y - sizeY, z + sizeZ,
-				icon, color, 120
+				icon, color, 160
 			);
 		addFace(
 				x + 0, y - sizeY, z + sizeZ,
 				x + 0, y + 0, z + sizeZ,
 				x + 0, y + 0, z + 0,
 				x + 0, y - sizeY, z + 0,
-				icon, color, 120
+				icon, color, 160
 			);
 	}
 	
