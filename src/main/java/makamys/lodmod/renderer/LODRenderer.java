@@ -86,7 +86,7 @@ public class LODRenderer {
         hasInited = init();
     }
     
-    public void beforeRenderTerrain() {
+    public void beforeRenderTerrain(float alpha) {
         if(hasInited) {
             mainLoop();
             handleKeyboard();
@@ -99,7 +99,7 @@ public class LODRenderer {
             if(renderLOD) {
                 sort();
                 initIndexBuffers();
-                render();
+                render(alpha);
             }
         }
     }
@@ -242,7 +242,7 @@ public class LODRenderer {
         glBindVertexArray(0);
     }
 
-	private void render() {
+	private void render(float alpha) {
 	    GL11.glPushAttrib(GL11.GL_ENABLE_BIT);
 	    GL11.glDisable(GL11.GL_TEXTURE_2D);
 
@@ -301,7 +301,12 @@ public class LODRenderer {
 			float originY = 0;
 			float originZ = 0;
 			
-			glUniform3f(u_playerPos, (float)EntityFX.interpPosX - originX, (float)EntityFX.interpPosY - originY, (float)EntityFX.interpPosZ - originZ);
+			Entity rve = Minecraft.getMinecraft().renderViewEntity;
+	        double interpX = rve.lastTickPosX + (rve.posX - rve.lastTickPosX) * (double)alpha;
+	        double interpY = rve.lastTickPosY + (rve.posY - rve.lastTickPosY) * (double)alpha + rve.getEyeHeight();
+	        double interpZ = rve.lastTickPosZ + (rve.posZ - rve.lastTickPosZ) * (double)alpha;
+	        
+			glUniform3f(u_playerPos, (float)interpX - originX, (float)interpY - originY, (float)interpZ - originZ);
 			
 			glUniform1i(u_light, 1);
 		}

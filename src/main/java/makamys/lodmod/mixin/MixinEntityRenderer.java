@@ -32,7 +32,7 @@ abstract class MixinEntityRenderer {
     private void afterSortAndRender(float alpha, long something, CallbackInfo ci) {
         if(LODMod.isActive()) {
             Minecraft.getMinecraft().entityRenderer.enableLightmap((double)alpha);
-            LODMod.renderer.beforeRenderTerrain();
+            LODMod.renderer.beforeRenderTerrain(alpha);
             Minecraft.getMinecraft().entityRenderer.disableLightmap((double)alpha);
         }
     }
