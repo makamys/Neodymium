@@ -34,8 +34,6 @@ public class SimpleChunkMesh extends Mesh {
 	public static int usedRAM;
 	public static int instances;
 	
-	int x, z;
-	
 	public static List<SimpleChunkMesh> generateSimpleMeshes(Chunk target){
 		int divisions = 4;
 		
@@ -88,6 +86,7 @@ public class SimpleChunkMesh extends Mesh {
 	
 	public SimpleChunkMesh(int x, int z, int maxQuads, int pass) {
 	    this.x = x;
+	    this.y = 64;
 	    this.z = z;
 	    this.pass = pass;
 	    
@@ -180,13 +179,5 @@ public class SimpleChunkMesh extends Mesh {
 	public int getStride() {
 		return (3 * 4 + 8 + 4 + 4);
 	}
-	
-    public double distSq(Entity player) {
-        int centerX = x * 16 + 8;
-        int centerY = 64;
-        int centerZ = z * 16 + 8;
-        
-        return player.getDistanceSq(centerX, centerY, centerZ); 
-    }
 	
 }

@@ -3,6 +3,7 @@ package makamys.lodmod.renderer;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 
+import makamys.lodmod.util.Util;
 import net.minecraft.entity.Entity;
 import net.minecraft.nbt.NBTBase;
 
@@ -15,7 +16,11 @@ public abstract class Mesh {
 	public int iFirst = -1, iCount = -1;
 	public int offset = -1;
 	public int pass;
+	int x, y, z;
 	
 	public abstract int getStride();
-	public abstract double distSq(Entity player);
+	
+	public double distSq(double x2, double y2, double z2) {
+	    return Util.distSq(x, y, z, x2, y2, z2);
+	}
 }

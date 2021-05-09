@@ -97,10 +97,16 @@ public class LODRenderer {
             }
             
             if(renderLOD) {
+                sort();
                 initIndexBuffers();
                 render();
             }
         }
+    }
+    
+    private void sort() {
+        Entity player = (Entity)Minecraft.getMinecraft().getIntegratedServer().getConfigurationManager().playerEntityList.get(0);
+        sentMeshes2.sort(new MeshDistanceComparator(player.posX, player.posY, player.posZ));
     }
     
     private void initIndexBuffers() {
@@ -144,7 +150,7 @@ public class LODRenderer {
                         }
                     }
                 }
-                Collections.sort(newServerChunkLoadQueue, new ChunkCoordDistanceComparator(player));
+                Collections.sort(newServerChunkLoadQueue, new ChunkCoordDistanceComparator(player.posX, player.posY, player.posZ));
                 setServerChunkLoadQueue(newServerChunkLoadQueue);
                 
                 lastSortX = player.posX;
@@ -656,10 +662,12 @@ public class LODRenderer {
 	}
 	
 	public static class ChunkCoordDistanceComparator implements Comparator<ChunkCoordIntPair> {
-		Entity player;
+		double x, y, z;
 		
-		public ChunkCoordDistanceComparator(Entity player) {
-			this.player = player;
+		public ChunkCoordDistanceComparator(double x, double y, double z) {
+		    this.x = x;
+            this.y = y;
+            this.z = z;
 		}
 		
 		@Override
@@ -671,18 +679,19 @@ public class LODRenderer {
 		
 		int distSq(ChunkCoordIntPair p) {
 			return (int)(
-					Math.pow(((p.chunkXPos * 16) - player.posX), 2) +
-					Math.pow(((p.chunkZPos * 16) - player.posZ), 2)
+					Math.pow(((p.chunkXPos * 16) - x), 2) +
+					Math.pow(((p.chunkZPos * 16) - z), 2)
 					);
 		}
 	}
 	
 	public static class MeshDistanceComparator implements Comparator<Mesh> {
-
-	    Entity player;
+	    double x, y, z;
 	    
-	    MeshDistanceComparator(Entity player){
-	        this.player = player;
+	    MeshDistanceComparator(double x, double y, double z){
+	        this.x = x;
+	        this.y = y;
+	        this.z = z;
 	    }
 	    
         @Override
@@ -692,8 +701,8 @@ public class LODRenderer {
             } else if(a.pass > b.pass) {
                 return 1;
             } else {
-                double distSqA = a.distSq(player);
-                double distSqB = b.distSq(player);
+                double distSqA = a.distSq(x, y, z);
+                double distSqB = b.distSq(x, y, z);
                 if(distSqA > distSqB) {
                     return 1;
                 } else if(distSqA < distSqB) {
