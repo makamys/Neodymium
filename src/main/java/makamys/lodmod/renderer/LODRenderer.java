@@ -638,7 +638,9 @@ public class LODRenderer {
 	}
 	
 	public void onSave() {
+	    System.out.println("Saving LOD regions...");
 	    loadedRegionsMap.forEach((k, v) -> v.save(getSaveDir()));
+	    System.out.println("Finished saving LOD regions");
 	}
 	
 	private Path getSaveDir(){
