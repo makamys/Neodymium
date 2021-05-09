@@ -63,7 +63,7 @@ public class LODRegion {
 	        try {
                 NBTTagCompound nbt = CompressedStreamTools.readCompressed(new FileInputStream(saveFile));
                 return new LODRegion(regionX, regionZ, nbt);
-            } catch (IOException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
 	    }
