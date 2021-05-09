@@ -221,7 +221,7 @@ public class LODRenderer {
                     mesh.iFirst = nextTri;
                     mesh.offset = nextMeshOffset;
                     
-                    nextMeshOffset += mesh.buffer.limit();
+                    nextMeshOffset += mesh.bufferSize();
                     nextTri += mesh.quadCount * 6;
                     
                     piFirst[i].limit(piFirst[i].limit() + 1);
@@ -234,7 +234,7 @@ public class LODRenderer {
                     mesh.pendingGPUDelete = false;
                     it.remove();
                     deletedNum++;
-                    deletedRAM += mesh.buffer.limit();
+                    deletedRAM += mesh.bufferSize();
                 }
             }
         }
@@ -569,12 +569,13 @@ public class LODRenderer {
 		if((!force && freezeMeshes) || mesh == null) return;
 		
 		if(mesh.visible != visible) {
+		    mesh.visible = visible;
+		    mesh.onVisibilityChanged();
 			if(!visible) {
 				deleteMeshFromGPU(mesh);
 			} else if(visible) {
 			    sendMeshToGPU(mesh);
 			}
-			mesh.visible = visible;
 		}
 	}
 	

@@ -19,8 +19,17 @@ public abstract class Mesh {
 	int x, y, z;
 	
 	public abstract int getStride();
+	public void onVisibilityChanged() {}
 	
 	public double distSq(double x2, double y2, double z2) {
 	    return Util.distSq(x, y, z, x2, y2, z2);
+	}
+	
+	public int bufferSize() {
+	    int bufferSize = quadCount * 6 * getStride();
+	    if(buffer != null) {
+	        assert buffer.limit() == bufferSize;
+	    }
+	    return bufferSize;
 	}
 }

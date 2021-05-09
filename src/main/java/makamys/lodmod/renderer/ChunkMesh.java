@@ -39,6 +39,9 @@ public class ChunkMesh extends Mesh {
     
     NBTBase nbtData;
     
+ // TODO move this somewhere else
+    List<String> nameList = (List<String>) ((TextureMap)Minecraft.getMinecraft().getTextureManager().getTexture(TextureMap.locationBlocksTexture)).mapUploadedSprites.keySet().stream().collect(Collectors.toList());
+    
     public static int usedRAM = 0;
     public static int instances = 0;
     
@@ -50,10 +53,7 @@ public class ChunkMesh extends Mesh {
         this.quadCount = quadCount;
         this.pass = pass;
         
-        this.buffer = createBuffer(data, stringTable);
         this.nbtData = new NBTTagByteArray(data);
-        
-        usedRAM += buffer.limit();
         instances++;
     }
     
@@ -66,11 +66,6 @@ public class ChunkMesh extends Mesh {
         this.pass = pass;
         
         this.nbtData = toNBT(quads, quadCount);
-        // TODO move this somewhere else
-        List<String> nameList = (List<String>) ((TextureMap)Minecraft.getMinecraft().getTextureManager().getTexture(TextureMap.locationBlocksTexture)).mapUploadedSprites.keySet().stream().collect(Collectors.toList());
-        this.buffer = createBuffer(((NBTTagByteArray)nbtData).func_150292_c(), nameList);
-        
-        usedRAM += buffer.limit();
         instances++;
     }
 
@@ -88,69 +83,20 @@ public class ChunkMesh extends Mesh {
     }
     
     void destroy() {
-        usedRAM -= buffer.limit();
-        instances--;
+        if(buffer != null) {
+            usedRAM -= buffer.limit();
+            instances--;
+        }
     }
     
-    private ByteBuffer createBuffer(List<MeshQuad> quads) {
-        if(!(flags.hasTexture && flags.hasColor && flags.hasBrightness && !flags.hasNormals)) {
-            // for simplicity's sake we just assume this setup
-            System.out.println("invalid mesh properties, expected a chunk");
-            return null;
+    @Override
+    public void onVisibilityChanged() {
+        if(visible) {
+            this.buffer = createBuffer(((NBTTagByteArray)nbtData).func_150292_c(), nameList);
+        } else {
+            usedRAM -= buffer.limit();
+            this.buffer = null;
         }
-        
-        ByteBuffer buffer = BufferUtils.createByteBuffer(quadCount * 6 * getStride());
-        FloatBuffer floatBuffer = buffer.asFloatBuffer();
-        ShortBuffer shortBuffer = buffer.asShortBuffer();
-        IntBuffer intBuffer = buffer.asIntBuffer();
-        
-        try {
-            for(MeshQuad quad : quads) {
-                if(quad.deleted) {
-                    continue;
-                }
-                String spriteName = quad.spriteName;
-                
-                TextureAtlasSprite tas = ((TextureMap)Minecraft.getMinecraft().getTextureManager().getTexture(TextureMap.locationBlocksTexture)).getAtlasSprite(spriteName);
-                
-                for (int vertexNum = 0; vertexNum < 6; vertexNum++) {
-                    int vi = new int[]{0, 1, 3, 1, 2, 3}[vertexNum];
-                    int simpleX = quad.xs[vi];
-                    if(simpleX == 255) simpleX = 256;
-                    int simpleY = quad.ys[vi];
-                    if(simpleY == 255) simpleY = 256;
-                    int simpleZ = quad.zs[vi];
-                    if(simpleZ == 255) simpleZ = 256;
-                    floatBuffer.put(x * 16 + simpleX / 16f); // x
-                    floatBuffer.put(y * 16 + simpleY / 16f); // y
-                    floatBuffer.put(z * 16 + simpleZ / 16f); // z
-                    
-                    int relU = quad.relUs[vi];
-                    int relV = quad.relVs[vi];
-                    
-                    floatBuffer.put(tas.getMinU() + (tas.getMaxU() - tas.getMinU()) * (relU / 16f)); // u
-                    floatBuffer.put(tas.getMinV() + (tas.getMaxV() - tas.getMinV()) * (relV / 16f)); // v
-                    
-                    shortBuffer.position(floatBuffer.position() * 2);
-                    
-                    shortBuffer.put((short)quad.bUs[vi]); // bU
-                    shortBuffer.put((short)quad.bVs[vi]); // bV
-                    
-                    intBuffer.position(shortBuffer.position() / 2);
-                    
-                    intBuffer.put(quad.cs[vi]); // c
-                    
-                    floatBuffer.position(intBuffer.position());
-                }
-            }
-        } catch(Exception e) {
-            e.printStackTrace();
-        }
-        
-        buffer.position(floatBuffer.position() * 4);
-        buffer.flip();
-        
-        return buffer;
     }
 
     private ByteBuffer createBuffer(byte[] data, List<String> stringTable) {
@@ -216,6 +162,8 @@ public class ChunkMesh extends Mesh {
         
         buffer.position(floatBuffer.position() * 4);
         buffer.flip();
+        
+        usedRAM += buffer.limit();
         
         return buffer;
     }
