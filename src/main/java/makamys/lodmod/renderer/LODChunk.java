@@ -113,4 +113,18 @@ public class LODChunk {
 	    return nbt;
 	}
 	
+	public void destroy() {
+	    for(SimpleChunkMesh scm: simpleMeshes) {
+	        if(scm != null) {
+	            scm.destroy();
+	        }
+        }
+	    for(ChunkMesh cm: chunkMeshes) {
+	        if(cm != null) {
+	            cm.destroy();
+	        }
+	    }
+	    LODMod.renderer.setVisible(this, false);
+	}
+	
 }

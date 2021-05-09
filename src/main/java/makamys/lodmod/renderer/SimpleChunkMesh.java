@@ -180,4 +180,9 @@ public class SimpleChunkMesh extends Mesh {
 		return (3 * 4 + 8 + 4 + 4);
 	}
 	
+	public void destroy() {
+        usedRAM -= buffer.limit();
+        instances--;
+	}
+	
 }

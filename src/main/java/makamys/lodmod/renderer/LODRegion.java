@@ -144,7 +144,7 @@ public class LODRegion {
             for(int j = 0; j < 32; j++) {
                 LODChunk chunk = data[i][j];
                 if(chunk != null) {
-                    LODMod.renderer.setVisible(chunk, false);
+                    chunk.destroy();
                 }
             }
         }
