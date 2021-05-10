@@ -149,4 +149,17 @@ public class LODRegion {
         }
 	}
 	
+	public double distanceTaxicab(Entity entity) {
+	    double centerX = ((regionX * 32) + 16) * 16;
+	    double centerZ = ((regionZ * 32) + 16) * 16;
+	    
+	    return Math.max(Math.abs(centerX - entity.posX), Math.abs(centerZ - entity.posZ));
+	    
+	}
+	
+	@Override
+	public String toString() {
+	    return "LODRegion(" + regionX + ", " + regionZ + ")";
+	}
+	
 }

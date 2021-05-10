@@ -159,12 +159,14 @@ public class LODRenderer {
                 
                 for(int x = -renderRange; x <= renderRange; x++) {
                     for(int z = -renderRange; z <= renderRange; z++) {
-                        int chunkX = centerX + x;
-                        int chunkZ = centerZ + z;
-                        
-                        if(getLODChunk(chunkX, chunkZ).needsChunk) {
-                            newServerChunkLoadQueue.add(new ChunkCoordIntPair(chunkX, chunkZ));
-                            getLODChunk(chunkX, chunkZ).needsChunk = false;
+                        if(x * x + z * z < renderRange * renderRange) {
+                            int chunkX = centerX + x;
+                            int chunkZ = centerZ + z;
+                            
+                            if(getLODChunk(chunkX, chunkZ).needsChunk) {
+                                newServerChunkLoadQueue.add(new ChunkCoordIntPair(chunkX, chunkZ));
+                                getLODChunk(chunkX, chunkZ).needsChunk = false;
+                            }
                         }
                     }
                 }
@@ -178,7 +180,7 @@ public class LODRenderer {
                     ChunkCoordIntPair k = it.next();
                     LODRegion v = loadedRegionsMap.get(k);
                     
-                    if(!v.tick(player)) {
+                    if(v.distanceTaxicab(player) > renderRange * 16 + 16 * 16) {
                         System.out.println("unloading " + v);
                         v.destroy(getSaveDir());
                         it.remove();
