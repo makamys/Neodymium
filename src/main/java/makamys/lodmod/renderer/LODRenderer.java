@@ -81,7 +81,9 @@ public class LODRenderer {
     private double lastSortZ = Double.NaN;
     
     private long lastGCTime = -1;
-    private long gcInterval = 60 * 1000;
+    private long lastSaveTime = -1;
+    private long gcInterval = 10 * 1000;
+    private long saveInterval = 60 * 1000;
     
     public int renderRange = 48;
     
@@ -105,11 +107,13 @@ public class LODRenderer {
             
             mainLoop();
             handleKeyboard();
-            gcInterval = 10 * 1000;
             if(lastGCTime == -1 || (System.currentTimeMillis() - lastGCTime) > gcInterval) {
                 runGC();
-                onSave();
                 lastGCTime = System.currentTimeMillis();
+            }
+            if(lastSaveTime == -1 || (System.currentTimeMillis() - lastSaveTime) > saveInterval) {
+                onSave();
+                lastSaveTime = System.currentTimeMillis();
             }
             
             if(renderLOD) {
