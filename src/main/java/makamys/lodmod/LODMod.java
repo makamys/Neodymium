@@ -61,7 +61,7 @@ public class LODMod
     }
     
     public static boolean isActive() {
-        return renderer != null;
+        return renderer != null && renderer.hasInited;
     }
     
     @SubscribeEvent

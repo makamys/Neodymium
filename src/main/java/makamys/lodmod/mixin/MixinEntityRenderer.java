@@ -46,6 +46,8 @@ abstract class MixinEntityRenderer {
             } else {
                 GL11.glFogf(pname, param);
             }
+        } else {
+            GL11.glFogf(pname, param);
         }
     }
 }

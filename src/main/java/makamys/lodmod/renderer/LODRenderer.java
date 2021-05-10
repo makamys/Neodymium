@@ -48,7 +48,7 @@ import static org.lwjgl.opengl.GL30.*;
 
 public class LODRenderer {
 
-	private boolean hasInited = false;
+	public boolean hasInited = false;
 	
 	private boolean[] wasDown = new boolean[256];
 	private int renderQuads = 0;
