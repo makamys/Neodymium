@@ -45,6 +45,11 @@ abstract class MixinWorldRenderer implements IWorldRenderer {
     @Shadow
     private int glRenderList;
     
+    boolean lastDrawn;
+    
+    @Shadow
+    public boolean needsUpdate;
+    
     public List<ChunkMesh> chunkMeshes = new ArrayList<>();
     
     @Redirect(method = "setPosition", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/entity/Render;renderAABB(Lnet/minecraft/util/AxisAlignedBB;)V"))
@@ -66,15 +71,21 @@ abstract class MixinWorldRenderer implements IWorldRenderer {
     @Inject(method = "updateRenderer", at = @At(value = "HEAD"))
     private void preUpdateRenderer(CallbackInfo ci) {
         if(LODMod.isActive()) {
-            chunkMeshes.clear();
+            if(needsUpdate) {
+                chunkMeshes.clear();
+            } else {
+                chunkMeshes = null;
+            }
         }
     }
     
     @Inject(method = "updateRenderer", at = @At(value = "TAIL"))
     private void postUpdateRenderer(CallbackInfo ci) {
         if(LODMod.isActive()) {
-            LODMod.renderer.onWorldRendererPost(WorldRenderer.class.cast(this));
-            chunkMeshes.clear();
+            if(chunkMeshes != null) {
+                LODMod.renderer.onWorldRendererPost(WorldRenderer.class.cast(this));
+                chunkMeshes.clear();
+            }
         }
     }
     
@@ -124,12 +135,20 @@ abstract class MixinWorldRenderer implements IWorldRenderer {
     @Inject(method = "setDontDraw", at = @At(value = "HEAD"))
     private void preSetDontDraw(CallbackInfo ci) {
         if(LODMod.isActive()) {
-            LODMod.renderer.onDontDraw(WorldRenderer.class.cast(this));
+            LODMod.renderer.onWorldRendererChanged(WorldRenderer.class.cast(this), false);
         }
     }
     
     @Override
     public List<ChunkMesh> getChunkMeshes() {
         return chunkMeshes;
+    }
+    
+    public void myTick() {
+        boolean drawn = isInFrustum && (!skipRenderPass[0] || !skipRenderPass[1]);
+        if(drawn != lastDrawn) {
+            LODMod.renderer.onWorldRendererChanged(WorldRenderer.class.cast(this), drawn);
+        }
+        lastDrawn = drawn;
     }
 }

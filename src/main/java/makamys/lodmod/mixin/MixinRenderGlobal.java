@@ -1,6 +1,7 @@
 package makamys.lodmod.mixin;
 
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
@@ -14,6 +15,9 @@ import net.minecraft.client.renderer.WorldRenderer;
 @Mixin(RenderGlobal.class)
 abstract class MixinRenderGlobal { 
     
+    @Shadow
+    private WorldRenderer[] sortedWorldRenderers;
+    
     @Redirect(method = "renderSortedRenderers", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/RenderGlobal;renderAllRenderLists(ID)V"))
     private void redirectRenderAllRenderLists(RenderGlobal thiz, int p1, double p2) {
         if(!LODMod.isActive() || (LODMod.isActive() && LODMod.renderer.renderWorld)) {
@@ -21,21 +25,10 @@ abstract class MixinRenderGlobal {
         }
     }
     
-    @Redirect(method = "renderSortedRenderers", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/WorldRenderer;getGLCallListForPass(I)I"))
-    public int redirectCallList(WorldRenderer thiz, int arg) {
-        int numba = thiz.getGLCallListForPass(arg);
-        if(LODMod.isActive()) {
-            if(numba != -1) {
-                LODMod.renderer.onWorldRendererRender(thiz);
-            }
-        }
-        return numba;
-    }
-    
     @Inject(method = "renderSortedRenderers", at = @At(value = "HEAD"))
     public void preRenderSortedRenderers(int startRenderer, int numRenderers, int renderPass, double partialTickTime, CallbackInfoReturnable cir) {
         if(LODMod.isActive()) {
-            LODMod.renderer.preRenderSortedRenderers(renderPass, partialTickTime);
+            LODMod.renderer.preRenderSortedRenderers(renderPass, partialTickTime, sortedWorldRenderers);
         }
     }
 }

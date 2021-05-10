@@ -91,12 +91,18 @@ public class LODRenderer {
         hasInited = init();
     }
     
-    public void preRenderSortedRenderers(int renderPass, double alpha) {
+    public void preRenderSortedRenderers(int renderPass, double alpha, WorldRenderer[] sortedWorldRenderers) {
         if(renderPass != 0) return;
         
         Minecraft.getMinecraft().entityRenderer.enableLightmap((double)alpha);
         
         if(hasInited) {
+            for(WorldRenderer wr : sortedWorldRenderers) {
+                if(wr != null) {
+                    ((IWorldRenderer)wr).myTick();
+                }
+            }
+            
             mainLoop();
             handleKeyboard();
             gcInterval = 10 * 1000;
@@ -416,35 +422,28 @@ public class LODRenderer {
         ChunkMesh.usedRAM = 0;
     }
 	
-	public void onWorldRendererPost(WorldRenderer wr) {
-		LODChunk lodChunk = getLODChunk(Math.floorDiv(wr.posX, 16), Math.floorDiv(wr.posZ, 16));
-		lodChunk.putChunkMeshes(Math.floorDiv(wr.posY, 16), ((IWorldRenderer)wr).getChunkMeshes());
-	}
-	
-	public void onWorldRendererRender(WorldRenderer wr) {
+	public void onWorldRendererChanged(WorldRenderer wr, boolean visible) {
 	    int x = Math.floorDiv(wr.posX, 16);
         int y = Math.floorDiv(wr.posY, 16);
         int z = Math.floorDiv(wr.posZ, 16);
-        
         LODChunk lodChunk = getLODChunk(x, z);
         
-        setMeshVisible(lodChunk.chunkMeshes[y * 2 + 0], false);
-        setMeshVisible(lodChunk.chunkMeshes[y * 2 + 1], false);
-        setMeshVisible(lodChunk.simpleMeshes[0], false);
-        setMeshVisible(lodChunk.simpleMeshes[1], false);
+        if(visible) {
+            setMeshVisible(lodChunk.chunkMeshes[y * 2 + 0], false);
+            setMeshVisible(lodChunk.chunkMeshes[y * 2 + 1], false);
+            setMeshVisible(lodChunk.simpleMeshes[0], false);
+            setMeshVisible(lodChunk.simpleMeshes[1], false);
+        } else {
+            setMeshVisible(lodChunk.chunkMeshes[y * 2 + 0], true);
+            setMeshVisible(lodChunk.chunkMeshes[y * 2 + 1], true);
+        }
 	}
 	
-	public void onDontDraw(WorldRenderer wr) {
-		int chunkX = Math.floorDiv(wr.posX, 16);
-		int chunkY = Math.floorDiv(wr.posY, 16);
-		int chunkZ = Math.floorDiv(wr.posZ, 16);
-		
-		Entity player = (Entity)Minecraft.getMinecraft().getIntegratedServer().getConfigurationManager().playerEntityList.get(0);
-		LODChunk lodChunk = getLODChunk(chunkX, chunkZ);
-	
-		int y = Math.floorDiv(wr.posY, 16);
-        setMeshVisible(lodChunk.chunkMeshes[y * 2 + 0], true);
-        setMeshVisible(lodChunk.chunkMeshes[y * 2 + 1], true);
+	public void onWorldRendererPost(WorldRenderer wr) {
+	    if(Minecraft.getMinecraft().theWorld.getChunkFromChunkCoords(Math.floorDiv(wr.posX, 16), Math.floorDiv(wr.posZ, 16)).isChunkLoaded) {
+    		LODChunk lodChunk = getLODChunk(Math.floorDiv(wr.posX, 16), Math.floorDiv(wr.posZ, 16));
+    		lodChunk.putChunkMeshes(Math.floorDiv(wr.posY, 16), ((IWorldRenderer)wr).getChunkMeshes());
+	    }
 	}
 	
 	private double getLastSortDistanceSq(Entity player) {
