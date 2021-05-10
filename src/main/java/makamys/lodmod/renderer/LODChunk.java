@@ -19,6 +19,8 @@ public class LODChunk {
 	SimpleChunkMesh[] simpleMeshes = new SimpleChunkMesh[2];
 	ChunkMesh[] chunkMeshes = new ChunkMesh[32];
 	
+	public boolean[] hidden = new boolean[16];
+	
 	LODRenderer renderer = LODMod.renderer;
 	
 	public LODChunk(int x, int z) {
@@ -56,7 +58,6 @@ public class LODChunk {
 		    ChunkMesh newChunkMesh = newChunkMeshes.size() > i ? newChunkMeshes.get(i) : null;
 		    if(chunkMeshes[cy * 2 + i] != null) {
 			    if(newChunkMesh != null) {
-			        renderer.setMeshVisible(newChunkMesh, chunkMeshes[cy * 2 + i].visible);
 			        newChunkMesh.pass = i;
 			    }
 			    
@@ -65,6 +66,7 @@ public class LODChunk {
 			}
 		    chunkMeshes[cy * 2 + i] = newChunkMesh;
 		}
+		LODMod.renderer.lodChunkChanged(this);
 	}
 	
 	// nice copypasta
@@ -73,7 +75,6 @@ public class LODChunk {
             SimpleChunkMesh newSimpleMesh = newSimpleMeshes.size() > i ? newSimpleMeshes.get(i) : null;
             if(simpleMeshes[i] != null) {
                 if(newSimpleMesh != null) {
-                    renderer.setMeshVisible(newSimpleMesh, simpleMeshes[i].visible);
                     newSimpleMesh.pass = i;
                 }
                 
@@ -82,6 +83,7 @@ public class LODChunk {
             }
             simpleMeshes[i] = newSimpleMesh;
         }
+	    LODMod.renderer.lodChunkChanged(this);
 	}
 	
 	public boolean hasChunkMeshes() {
@@ -134,6 +136,20 @@ public class LODChunk {
 	
 	public void receiveChunk(Chunk chunk) {
 	    putSimpleMeshes(SimpleChunkMesh.generateSimpleMeshes(chunk));
+	}
+	
+	public boolean isFullyVisible() {
+	    if(!visible) return false;
+	    for(boolean b : hidden) {
+	        if(b) {
+	            return false;
+	        }
+	    }
+	    return true;
+	}
+	
+	public boolean isSubchunkVisible(int y) {
+	    return !hidden[y];
 	}
 	
 }

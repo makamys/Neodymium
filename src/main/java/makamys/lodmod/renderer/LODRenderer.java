@@ -431,13 +431,11 @@ public class LODRenderer {
         LODChunk lodChunk = getLODChunk(x, z);
         
         if(visible) {
-            setMeshVisible(lodChunk.chunkMeshes[y * 2 + 0], false);
-            setMeshVisible(lodChunk.chunkMeshes[y * 2 + 1], false);
-            setMeshVisible(lodChunk.simpleMeshes[0], false);
-            setMeshVisible(lodChunk.simpleMeshes[1], false);
+            lodChunk.hidden[y] = true;
+            lodChunkChanged(lodChunk);
         } else {
-            setMeshVisible(lodChunk.chunkMeshes[y * 2 + 0], true);
-            setMeshVisible(lodChunk.chunkMeshes[y * 2 + 1], true);
+            lodChunk.hidden[y] = false;
+            lodChunkChanged(lodChunk);
         }
 	}
 	
@@ -518,7 +516,7 @@ public class LODRenderer {
 		int newLOD = (!lodChunk.hasChunkMeshes() && lodChunk.lod == 2) ? 1 : lodChunk.lod;
 		for(SimpleChunkMesh sm : lodChunk.simpleMeshes) {
 		    if(sm != null) {
-		        if(lodChunk.visible && newLOD == 1) {
+		        if(lodChunk.isFullyVisible() && newLOD == 1) {
 	                if(!sm.visible) {
 	                    setMeshVisible(sm, true);
 	                }
@@ -529,18 +527,21 @@ public class LODRenderer {
 	            }
 		    }
 		}
-		for(ChunkMesh cm : lodChunk.chunkMeshes) {
-			if(cm != null) {
-				if(lodChunk.visible && newLOD == 2) {
-					if(!cm.visible) {
-						setMeshVisible(cm, true);
-					}
-				} else {
-					if(cm.visible) {
-						setMeshVisible(cm, false);
-					}
-				}
-			}
+		for(int y = 0; y < 16; y++) {
+		    for(int pass = 0; pass < 2; pass++) {
+		        ChunkMesh cm = lodChunk.chunkMeshes[y * 2 + pass];
+		        if(cm != null) {
+	                if(lodChunk.isSubchunkVisible(y) && newLOD == 2) {
+	                    if(!cm.visible) {
+	                        setMeshVisible(cm, true);
+	                    }
+	                } else {
+	                    if(cm.visible) {
+	                        setMeshVisible(cm, false);
+	                    }
+	                }
+	            }
+		    }
 		}
 	}
 	
