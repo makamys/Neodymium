@@ -169,7 +169,7 @@ public class LODRenderer {
                     }
                 }
                 Collections.sort(newServerChunkLoadQueue, new ChunkCoordDistanceComparator(player.posX, player.posY, player.posZ));
-                setServerChunkLoadQueue(newServerChunkLoadQueue);
+                addToServerChunkLoadQueue(newServerChunkLoadQueue);
                 
                 lastSortX = player.posX;
                 lastSortY = player.posY;
@@ -450,8 +450,8 @@ public class LODRenderer {
 		return Math.pow(lastSortX - player.posX, 2) + Math.pow(lastSortZ - player.posZ, 2);
 	}
 	
-	private synchronized void setServerChunkLoadQueue(List<ChunkCoordIntPair> coords) {
-		serverChunkLoadQueue = coords;
+	private synchronized void addToServerChunkLoadQueue(List<ChunkCoordIntPair> coords) {
+		serverChunkLoadQueue.addAll(coords);
 	}
 	
 	private LODChunk receiveFarChunk(Chunk chunk) {
