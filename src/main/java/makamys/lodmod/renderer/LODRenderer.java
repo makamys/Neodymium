@@ -184,6 +184,8 @@ public class LODRenderer {
                         System.out.println("unloading " + v);
                         v.destroy(getSaveDir());
                         it.remove();
+                    } else {
+                        v.tick(player);
                     }
                 }
             }
