@@ -4,6 +4,8 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.entity.RenderManager;
+import net.minecraft.potion.Potion;
+import net.minecraftforge.client.event.EntityViewRenderEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent.ElementType;
 import net.minecraftforge.common.MinecraftForge;
@@ -11,6 +13,7 @@ import net.minecraftforge.event.world.WorldEvent;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.lwjgl.opengl.GL11;
 
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.Mod;
@@ -85,6 +88,15 @@ public class LODMod
             for(String s : renderer.getDebugText()) {
                 fontRenderer.drawStringWithShadow(s, w - fontRenderer.getStringWidth(s) - 10, 80 + yOffset, 0xFFFFFF);
                 yOffset += 10;
+            }
+        }
+    }
+    
+    @SubscribeEvent
+    public void onRenderFog(EntityViewRenderEvent.RenderFogEvent event) {
+        if(isActive()) {
+            if(event.fogMode >= 0 && !Minecraft.getMinecraft().theWorld.provider.doesXZShowFog((int)event.entity.posX, (int)event.entity.posZ)) {
+                GL11.glFogf(GL11.GL_FOG_START, event.farPlaneDistance * 0.2f);
             }
         }
     }
