@@ -627,8 +627,9 @@ public class LODRenderer {
 	
 	public void onSave() {
 	    System.out.println("Saving LOD regions...");
+	    long t0 = System.currentTimeMillis();
 	    loadedRegionsMap.forEach((k, v) -> v.save(getSaveDir()));
-	    System.out.println("Finished saving LOD regions");
+	    System.out.println("Finished saving LOD regions in " + ((System.currentTimeMillis() - t0) / 1000.0) + "s");
 	}
 	
 	private Path getSaveDir(){

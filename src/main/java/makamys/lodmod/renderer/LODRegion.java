@@ -102,7 +102,22 @@ public class LODRegion {
                 }
             }
             nbt.setTag("chunks", list);
-            CompressedStreamTools.writeCompressed(nbt, new FileOutputStream(saveFile));
+            
+            new Thread(
+                new Runnable() {
+                    
+                    @Override
+                    public void run() {
+                        try {
+                            CompressedStreamTools.writeCompressed(nbt, new FileOutputStream(saveFile));
+                        } catch (FileNotFoundException e) {
+                            e.printStackTrace();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+            }).start();
+            
         } catch (Exception e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
