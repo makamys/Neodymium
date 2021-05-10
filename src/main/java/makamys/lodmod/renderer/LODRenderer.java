@@ -149,8 +149,9 @@ public class LODRenderer {
                         int chunkX = centerX + x;
                         int chunkZ = centerZ + z;
                         
-                        if(getLODChunk(chunkX, chunkZ).chunk == null) {
+                        if(getLODChunk(chunkX, chunkZ).needsChunk) {
                             newServerChunkLoadQueue.add(new ChunkCoordIntPair(chunkX, chunkZ));
+                            getLODChunk(chunkX, chunkZ).needsChunk = false;
                         }
                     }
                 }
@@ -445,7 +446,6 @@ public class LODRenderer {
 	
 	private LODChunk receiveFarChunk(Chunk chunk) {
 		LODRegion region = getRegionContaining(chunk.xPosition, chunk.zPosition);
-		myChunks.add(chunk);
 		return region.putChunk(chunk);
 	}
 	
@@ -477,32 +477,7 @@ public class LODRenderer {
 		return region;
 	}
 	
-	private void loadChunk(int chunkX, int chunkZ) {
-		LODRegion region = getRegionContaining(chunkX, chunkZ);
-		LODChunk lodChunk = region.getChunkAbsolute(chunkX, chunkZ);
-		if(lodChunk == null) {
-			ChunkProviderServer chunkProviderServer = Minecraft.getMinecraft().getIntegratedServer().worldServers[0].theChunkProviderServer;
-			//Chunk chunk = chunkProviderServer.loadChunk(chunkX, chunkZ);
-			Chunk chunk = chunkProviderServer.currentChunkProvider.provideChunk(chunkX, chunkZ);
-			/*Chunk chunk = chunkProviderServer.safeLoadChunk(chunkX, chunkZ);
-			if(chunk == null) {
-				chunk = chunkProviderServer.currentChunkProvider.provideChunk(chunkX, chunkZ);
-			}
-			if(chunk != null) {
-				chunk.populateChunk(chunkProviderServer, chunkProviderServer, chunkX, chunkZ);
-				myChunks.add(chunk);
-			}*/
-			if(chunk != null) {
-				myChunks.add(chunk);
-			}
-			//lodChunk = region.putChunk(new LODChunk(chunk));
-		}
-		sendChunkToGPU(lodChunk);
-	}
-	
 	private void sendChunkToGPU(LODChunk lodChunk) {
-		lodChunk.putSimpleMeshes(SimpleChunkMesh.generateSimpleMeshes(lodChunk.chunk));
-		
 		Entity player = (Entity) Minecraft.getMinecraft().getIntegratedServer().getConfigurationManager().playerEntityList.get(0);
 		
 		lodChunk.tick(player);

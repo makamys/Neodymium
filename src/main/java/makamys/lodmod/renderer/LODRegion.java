@@ -115,8 +115,7 @@ public class LODRegion {
 		int relZ = chunk.zPosition - regionZ * 32;
 		
 		if(relX >= 0 && relX < 32 && relZ >= 0 && relZ < 32) {
-			data[relX][relZ].chunk = chunk;
-			data[relX][relZ].waitingForData = false;
+			data[relX][relZ].receiveChunk(chunk);
 			return data[relX][relZ];
 		}
 		return null;

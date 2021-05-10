@@ -12,8 +12,7 @@ import net.minecraft.world.chunk.Chunk;
 public class LODChunk {
 	
 	int x, z;
-	Chunk chunk;
-	public boolean waitingForData = false;
+	public boolean needsChunk = true;
 	int lod = 0;
 	boolean visible;
 	
@@ -125,6 +124,10 @@ public class LODChunk {
 	        }
 	    }
 	    LODMod.renderer.setVisible(this, false);
+	}
+	
+	public void receiveChunk(Chunk chunk) {
+	    putSimpleMeshes(SimpleChunkMesh.generateSimpleMeshes(chunk));
 	}
 	
 }
