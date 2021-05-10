@@ -116,8 +116,6 @@ public class ChunkMesh extends Mesh {
         int brightnessOffset = quadCount * (2 + 4 + 4 + 4 + 4 + 4);
         int colorOffset = quadCount * (2 + 4 + 4 + 4 + 4 + 4 + 4 + 4);
         
-        DataInputStream in = new DataInputStream(new ByteArrayInputStream(data));
-        
         ByteBuffer buffer = BufferUtils.createByteBuffer(quadCount * 6 * getStride());
         FloatBuffer floatBuffer = buffer.asFloatBuffer();
         ShortBuffer shortBuffer = buffer.asShortBuffer();
@@ -125,7 +123,7 @@ public class ChunkMesh extends Mesh {
         
         try {
             for(int quadI = 0; quadI < quadCount; quadI++) {
-                short spriteIndex = readShortAt(in, quadI * 2);
+                short spriteIndex = readShortAt(data, quadI * 2);
                 String spriteName = stringTable.get(spriteIndex);
                 
                 TextureAtlasSprite tas = ((TextureMap)Minecraft.getMinecraft().getTextureManager().getTexture(TextureMap.locationBlocksTexture)).getAtlasSprite(spriteName);
@@ -157,7 +155,8 @@ public class ChunkMesh extends Mesh {
                     
                     intBuffer.position(shortBuffer.position() / 2);
                     
-                    intBuffer.put(readIntAt(in, colorOffset + 4 * 4 * quadI + 4 * vi)); // c
+                    int integet = readIntAt(data, colorOffset + 4 * 4 * quadI + 4 * vi);
+                    intBuffer.put(integet); // c
                     
                     floatBuffer.position(intBuffer.position());
                 }
@@ -185,6 +184,10 @@ public class ChunkMesh extends Mesh {
         }
     }
     
+    public static short readShortAt(byte[] data, int offset) {
+        return (short)(Byte.toUnsignedInt(data[offset]) << 8 | Byte.toUnsignedInt(data[offset + 1]));
+    }
+    
     public static int readIntAt(DataInputStream in, int offset) {
         try {
             in.reset();
@@ -193,6 +196,10 @@ public class ChunkMesh extends Mesh {
         } catch(IOException e) {
             return -1;
         }
+    }
+    
+    public static int readIntAt(byte[] data, int offset) {
+        return (int)(Byte.toUnsignedLong(data[offset]) << 24 | Byte.toUnsignedLong(data[offset + 1]) << 16 | Byte.toUnsignedLong(data[offset + 2]) << 8 | Byte.toUnsignedLong(data[offset + 3]));
     }
     
     public int getStride() {
