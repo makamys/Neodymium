@@ -415,8 +415,12 @@ public class LODRenderer {
 	}
 	
 	public void onWorldRendererRender(WorldRenderer wr) {
-        LODChunk lodChunk = getLODChunk(Math.floorDiv(wr.posX, 16), Math.floorDiv(wr.posZ, 16));
+	    int x = Math.floorDiv(wr.posX, 16);
         int y = Math.floorDiv(wr.posY, 16);
+        int z = Math.floorDiv(wr.posZ, 16);
+        
+        LODChunk lodChunk = getLODChunk(x, z);
+        
         setMeshVisible(lodChunk.chunkMeshes[y * 2 + 0], false);
         setMeshVisible(lodChunk.chunkMeshes[y * 2 + 1], false);
         setMeshVisible(lodChunk.simpleMeshes[0], false);
