@@ -53,29 +53,35 @@ public class LODChunk {
 	
 	public void putChunkMeshes(int cy, List<ChunkMesh> newChunkMeshes) {
 		for(int i = 0; i < 2; i++) {
-			if(chunkMeshes[cy * 2 + i] != null) {
+		    ChunkMesh newChunkMesh = newChunkMeshes.size() > i ? newChunkMeshes.get(i) : null;
+		    if(chunkMeshes[cy * 2 + i] != null) {
+			    if(newChunkMesh != null) {
+			        renderer.setMeshVisible(newChunkMesh, chunkMeshes[cy * 2 + i].visible);
+			        newChunkMesh.pass = i;
+			    }
+			    
 			    renderer.setMeshVisible(chunkMeshes[cy * 2 + i], false);
 			    chunkMeshes[cy * 2 + i].destroy();
-				chunkMeshes[cy * 2 + i] = null;
 			}
-		}
-		
-		for(int i = 0; i < newChunkMeshes.size(); i++) {
-			chunkMeshes[cy * 2 + i] = newChunkMeshes.get(i);
-			if(newChunkMeshes.get(i) != null) {
-			    chunkMeshes[cy * 2 + i].pass = i;
-			}
+		    chunkMeshes[cy * 2 + i] = newChunkMesh;
 		}
 	}
 	
-	public void putSimpleMeshes(List<SimpleChunkMesh> meshes) {
-	    for(SimpleChunkMesh sm : simpleMeshes) {
-	        if(sm!= null) {
-	            renderer.setMeshVisible(sm, false);
-	        }
-	    }
-	    
-	    simpleMeshes = meshes.toArray(new SimpleChunkMesh[0]);
+	// nice copypasta
+	public void putSimpleMeshes(List<SimpleChunkMesh> newSimpleMeshes) {
+	    for(int i = 0; i < 2; i++) {
+            SimpleChunkMesh newSimpleMesh = newSimpleMeshes.size() > i ? newSimpleMeshes.get(i) : null;
+            if(simpleMeshes[i] != null) {
+                if(newSimpleMesh != null) {
+                    renderer.setMeshVisible(newSimpleMesh, simpleMeshes[i].visible);
+                    newSimpleMesh.pass = i;
+                }
+                
+                renderer.setMeshVisible(simpleMeshes[i], false);
+                simpleMeshes[i].destroy();
+            }
+            simpleMeshes[i] = newSimpleMesh;
+        }
 	}
 	
 	public boolean hasChunkMeshes() {
