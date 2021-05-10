@@ -79,14 +79,20 @@ public class ChunkMesh extends Mesh {
                 }
             }
         } catch(IOException e) {}
-        return new NBTTagByteArray(byteOut.toByteArray());
+        
+        NBTTagByteArray arr = new NBTTagByteArray(byteOut.toByteArray());
+        usedRAM += arr.func_150292_c().length;
+        return arr;
     }
     
     void destroy() {
         if(buffer != null) {
             usedRAM -= buffer.limit();
-            instances--;
         }
+        if(nbtData != null) {
+            usedRAM += ((NBTTagByteArray)nbtData).func_150292_c().length;
+        }
+        instances--;
     }
     
     @Override
