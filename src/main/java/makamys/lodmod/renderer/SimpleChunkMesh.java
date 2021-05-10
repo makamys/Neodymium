@@ -71,10 +71,11 @@ public class SimpleChunkMesh extends Mesh {
 						
 						int waterColor = biome.getWaterColorMultiplier();
 						waterColor |= 0xFF000000;
-						pass2.addFaceYPos(worldX, worldY, worldZ, size, size, waterIcon, waterColor);
+						pass2.addFaceYPos(worldX, worldY, worldZ, size, size, waterIcon, waterColor, 1);
 					}
 					
 					if(block.isBlockNormalCube() && block.isOpaqueCube() && block.renderAsNormalBlock()) {
+					    float brightnessMult = foundWater ? 0.2f : 1f;
 						int meta = target.getBlockMetadata(xOff, y, zOff);
 						icon = block.getIcon(1, meta);
 						
@@ -88,10 +89,10 @@ public class SimpleChunkMesh extends Mesh {
 						color = (0xFF << 24) | ((color >> 16 & 0xFF) << 0) | ((color >> 8 & 0xFF) << 8) | ((color >> 0 & 0xFF) << 16);
 						
 						if(biome.getFloatTemperature(worldX, y, worldZ) < 0.15f) {
-						    pass1.addCube(worldX, worldY + 0.2f, worldZ, size, size, 1f, Blocks.snow_layer.getIcon(1, 0), Blocks.snow_layer.colorMultiplier(target.worldObj, worldX, y, worldZ));
-						    pass1.addCube(worldX, worldY - 0.8f, worldZ, size, size, worldY - 0.8f, icon, color);
+						    pass1.addCube(worldX, worldY + 0.2f, worldZ, size, size, 1f, Blocks.snow_layer.getIcon(1, 0), Blocks.snow_layer.colorMultiplier(target.worldObj, worldX, y, worldZ), brightnessMult);
+						    pass1.addCube(worldX, worldY - 0.8f, worldZ, size, size, worldY - 0.8f, icon, color, brightnessMult);
 						} else {
-						    pass1.addCube(worldX, worldY, worldZ, size, size, worldY, icon, color);
+						    pass1.addCube(worldX, worldY, worldZ, size, size, worldY, icon, color, brightnessMult);
 						}
 						
 						
@@ -127,45 +128,45 @@ public class SimpleChunkMesh extends Mesh {
         instances++;
 	}
 	
-	private void addCube(float x, float y, float z, float sizeX, float sizeZ, float sizeY, IIcon icon, int color) {
-		addFaceYPos(x, y, z, sizeX, sizeZ, icon, color);
+	private void addCube(float x, float y, float z, float sizeX, float sizeZ, float sizeY, IIcon icon, int color, float brightnessMult) {
+		addFaceYPos(x, y, z, sizeX, sizeZ, icon, color, brightnessMult);
 		addFace(
 			x + 0, y - sizeY, z + 0,
 			x + 0, y + 0, z + 0,
 			x + sizeX, y + 0, z + 0,
 			x + sizeX, y - sizeY, z + 0,
-			icon, color, 200
+			icon, color, (int)(200 * brightnessMult) 
 		);
 		addFace(
 			x + sizeX, y - sizeY, z + sizeZ,
 			x + sizeX, y + 0, z + sizeZ,
 			x + 0, y + 0, z + sizeZ,
 			x + 0, y - sizeY, z + sizeZ,
-			icon, color, 200
+			icon, color, (int)(200 * brightnessMult)
 		);
 		addFace(
 				x + sizeX, y - sizeY, z + 0,
 				x + sizeX, y + 0, z + 0,
 				x + sizeX, y + 0, z + sizeZ,
 				x + sizeX, y - sizeY, z + sizeZ,
-				icon, color, 160
+				icon, color, (int)(160 * brightnessMult)
 			);
 		addFace(
 				x + 0, y - sizeY, z + sizeZ,
 				x + 0, y + 0, z + sizeZ,
 				x + 0, y + 0, z + 0,
 				x + 0, y - sizeY, z + 0,
-				icon, color, 160
+				icon, color, (int)(160 * brightnessMult)
 			);
 	}
 	
-	private void addFaceYPos(float x, float y, float z, float sizeX, float sizeZ, IIcon icon, int color) {
+	private void addFaceYPos(float x, float y, float z, float sizeX, float sizeZ, IIcon icon, int color, float brightnessMult) {
 	    addFace(
                 x + 0, y + 0, z + 0,
                 x + 0, y + 0, z + sizeZ,
                 x + sizeX, y + 0, z + sizeZ,
                 x + sizeX, y + 0, z + 0,
-                icon, color, 240
+                icon, color, (int)(240 * brightnessMult)
                 );
 	}
 	
