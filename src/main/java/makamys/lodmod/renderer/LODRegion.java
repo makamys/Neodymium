@@ -79,15 +79,26 @@ public class LODRegion {
 	        File saveFile = getSavePath(saveDir, regionX, regionZ).toFile();
 	        saveFile.getParentFile().mkdirs();
 	        
+	        NBTTagCompound oldNbt = null;
+	        NBTTagList oldList = null;
+	        List<String> oldStringTable = null;
+	        if(saveFile.exists()) {
+	           oldNbt = CompressedStreamTools.readCompressed(new FileInputStream(saveFile));
+	           oldList = oldNbt.getTagList("chunks", NBT.TAG_COMPOUND);;
+	           oldStringTable = Arrays.asList(oldNbt.getString("stringTable").split("\\n"));
+	        }
+	        
             NBTTagCompound nbt = new NBTTagCompound();
             nbt.setByte("V", (byte)0);
             nbt.setString("stringTable", String.join("\n", (List<String>) ((TextureMap)Minecraft.getMinecraft().getTextureManager().getTexture(TextureMap.locationBlocksTexture)).mapUploadedSprites.keySet().stream().collect(Collectors.toList())));
             
             NBTTagList list = new NBTTagList();
             
+            int idx = 0;
             for(int i = 0; i < 32; i++) {
                 for(int j = 0; j < 32; j++) {
-                    list.appendTag(data[i][j].saveToNBT());
+                    list.appendTag(data[i][j].saveToNBT(oldNbt == null ? null : oldList.getCompoundTagAt(idx++),
+                            oldNbt == null? null : oldStringTable));
                 }
             }
             nbt.setTag("chunks", list);

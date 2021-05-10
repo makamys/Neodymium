@@ -15,6 +15,8 @@ public class LODChunk {
 	public boolean needsChunk = true;
 	int lod = 0;
 	boolean visible;
+	boolean dirty;
+	boolean discardedMesh;
 	
 	SimpleChunkMesh[] simpleMeshes = new SimpleChunkMesh[2];
 	ChunkMesh[] chunkMeshes = new ChunkMesh[32];
@@ -32,16 +34,18 @@ public class LODChunk {
 	    this.x = nbt.getInteger("x");
 	    this.z = nbt.getInteger("z");
 	    
-	    NBTTagCompound chunkMeshesCompound = nbt.getCompoundTag("chunkMeshes");
+	    loadChunkMeshesNBT(nbt.getCompoundTag("chunkMeshes"), spriteList);
+	}
+	
+	private void loadChunkMeshesNBT(NBTTagCompound chunkMeshesCompound, List<String> spriteList) {
 	    for(Object o : chunkMeshesCompound.func_150296_c()) {
-	        String key = (String)o;
-	        int keyInt = Integer.parseInt(key);
-	        
-	        byte[] data = chunkMeshesCompound.getByteArray(key);
-	        
-	        chunkMeshes[keyInt] = new ChunkMesh(x, keyInt / 2, z, new ChunkMesh.Flags(true, true, true, false), data.length / (2 + 4 * (3 + 2 + 2 + 4)), data, spriteList, keyInt % 2);
-	    }
-	    
+            String key = (String)o;
+            int keyInt = Integer.parseInt(key);
+            
+            byte[] data = chunkMeshesCompound.getByteArray(key);
+            
+            chunkMeshes[keyInt] = new ChunkMesh(x, keyInt / 2, z, new ChunkMesh.Flags(true, true, true, false), data.length / (2 + 4 * (3 + 2 + 2 + 4)), data, spriteList, keyInt % 2);
+        }
 	}
 	
 	@Override
@@ -67,6 +71,8 @@ public class LODChunk {
 		    chunkMeshes[cy * 2 + i] = newChunkMesh;
 		}
 		LODMod.renderer.lodChunkChanged(this);
+		dirty = true;
+		discardedMesh = false;
 	}
 	
 	// nice copypasta
@@ -98,25 +104,50 @@ public class LODChunk {
 	public void tick(Entity player) {
 		double distSq = distSq(player);
 		if(distSq < Math.pow((LODMod.renderer.renderRange / 2) * 16, 2)) {
-		    renderer.setLOD(this, 2);
+		    setLOD(2);
 		} else if(distSq < Math.pow((LODMod.renderer.renderRange) * 16, 2)) {
-		    renderer.setLOD(this, 1);
+		    setLOD(1);
 		} else {
-		    renderer.setLOD(this, 0);
+		    setLOD(0);
 		}
 	}
 	
-	public NBTTagCompound saveToNBT() {
+   public void setLOD(int lod) {
+        if(lod == this.lod) return;
+        
+        this.lod = lod;
+        LODMod.renderer.lodChunkChanged(this);
+        if(!dirty) {
+            if(lod < 2) {
+                for(int i = 0; i < chunkMeshes.length; i++) {
+                    if(chunkMeshes[i] != null) {
+                        chunkMeshes[i].destroy();
+                        chunkMeshes[i] = null;
+                        discardedMesh = true;
+                    }
+                }
+            }
+        }
+    }
+	
+	public NBTTagCompound saveToNBT(NBTTagCompound oldNbt, List<String> oldStringTable) {
 	    NBTTagCompound nbt = new NBTTagCompound();
 	    nbt.setInteger("x", x);
 	    nbt.setInteger("z", z);
-	    NBTTagCompound chunkMeshesCompound = new NBTTagCompound();
-	    for(int i = 0; i < chunkMeshes.length; i++) {
-	        if(chunkMeshes[i] != null) {
-	            chunkMeshesCompound.setTag(String.valueOf(i), chunkMeshes[i].nbtData);
+	    
+	    NBTTagCompound chunkMeshesCompound = oldNbt == null ? new NBTTagCompound() : oldNbt.getCompoundTag("chunkMeshes");
+	    if(!discardedMesh) {
+	        for(int i = 0; i < chunkMeshes.length; i++) {
+	            if(chunkMeshes[i] != null) {
+	                chunkMeshesCompound.setTag(String.valueOf(i), chunkMeshes[i].nbtData);
+	            }
 	        }
+	    } else if(oldNbt != null && discardedMesh && lod == 2) {
+	        loadChunkMeshesNBT(chunkMeshesCompound, oldStringTable);
+	        LODMod.renderer.lodChunkChanged(this);
 	    }
 	    nbt.setTag("chunkMeshes", chunkMeshesCompound);
+	    dirty = false;
 	    return nbt;
 	}
 	

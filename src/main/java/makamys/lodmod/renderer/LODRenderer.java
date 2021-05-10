@@ -108,6 +108,7 @@ public class LODRenderer {
             gcInterval = 10 * 1000;
             if(lastGCTime == -1 || (System.currentTimeMillis() - lastGCTime) > gcInterval) {
                 runGC();
+                onSave();
                 lastGCTime = System.currentTimeMillis();
             }
             
@@ -494,13 +495,6 @@ public class LODRenderer {
 		
 		lodChunk.tick(player);
 		setVisible(lodChunk, true, true);
-	}
-	
-	public void setLOD(LODChunk lodChunk, int lod) {
-		if(lod == lodChunk.lod) return;
-		
-		lodChunk.lod = lod;
-		lodChunkChanged(lodChunk);
 	}
 	
 	public void setVisible(LODChunk chunk, boolean visible) {
