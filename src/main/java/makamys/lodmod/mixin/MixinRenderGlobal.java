@@ -2,9 +2,12 @@ package makamys.lodmod.mixin;
 
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import makamys.lodmod.LODMod;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderGlobal;
 import net.minecraft.client.renderer.WorldRenderer;
 
@@ -27,5 +30,12 @@ abstract class MixinRenderGlobal {
             }
         }
         return numba;
+    }
+    
+    @Inject(method = "renderSortedRenderers", at = @At(value = "HEAD"))
+    public void preRenderSortedRenderers(int startRenderer, int numRenderers, int renderPass, double partialTickTime, CallbackInfoReturnable cir) {
+        if(LODMod.isActive()) {
+            LODMod.renderer.preRenderSortedRenderers(renderPass, partialTickTime);
+        }
     }
 }

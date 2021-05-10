@@ -37,6 +37,7 @@ import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.util.vector.Matrix4f;
 
+import makamys.lodmod.LODMod;
 import makamys.lodmod.ducks.IWorldRenderer;
 import makamys.lodmod.util.Util;
 
@@ -90,7 +91,11 @@ public class LODRenderer {
         hasInited = init();
     }
     
-    public void beforeRenderTerrain(float alpha) {
+    public void preRenderSortedRenderers(int renderPass, double alpha) {
+        if(renderPass != 0) return;
+        
+        Minecraft.getMinecraft().entityRenderer.enableLightmap((double)alpha);
+        
         if(hasInited) {
             mainLoop();
             handleKeyboard();
@@ -106,6 +111,8 @@ public class LODRenderer {
                 render(alpha);
             }
         }
+        
+        Minecraft.getMinecraft().entityRenderer.disableLightmap((double)alpha);
     }
     
     private void sort() {
@@ -246,7 +253,7 @@ public class LODRenderer {
         glBindVertexArray(0);
     }
 
-	private void render(float alpha) {
+	private void render(double alpha) {
 	    GL11.glPushAttrib(GL11.GL_ENABLE_BIT);
 	    GL11.glDisable(GL11.GL_TEXTURE_2D);
 	    
@@ -303,9 +310,9 @@ public class LODRenderer {
 			float originZ = 0;
 			
 			Entity rve = Minecraft.getMinecraft().renderViewEntity;
-	        double interpX = rve.lastTickPosX + (rve.posX - rve.lastTickPosX) * (double)alpha;
-	        double interpY = rve.lastTickPosY + (rve.posY - rve.lastTickPosY) * (double)alpha + rve.getEyeHeight();
-	        double interpZ = rve.lastTickPosZ + (rve.posZ - rve.lastTickPosZ) * (double)alpha;
+	        double interpX = rve.lastTickPosX + (rve.posX - rve.lastTickPosX) * alpha;
+	        double interpY = rve.lastTickPosY + (rve.posY - rve.lastTickPosY) * alpha + rve.getEyeHeight();
+	        double interpZ = rve.lastTickPosZ + (rve.posZ - rve.lastTickPosZ) * alpha;
 	        
 			glUniform3f(u_playerPos, (float)interpX - originX, (float)interpY - originY, (float)interpZ - originZ);
 			
