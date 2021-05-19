@@ -91,7 +91,7 @@ abstract class MixinWorldRenderer implements IWorldRenderer {
     
     @Inject(method = "postRenderBlocks", at = @At(value = "HEAD"))
     private void prePostRenderBlocks(int pass, EntityLivingBase entity, CallbackInfo ci) {
-        if(LODMod.isActive()) {
+        if(LODMod.isActive() && !LODMod.renderer.disableChunkMeshes) {
             chunkMeshes.add(((ITessellator)Tessellator.instance).toChunkMesh(pass));
         }
     }

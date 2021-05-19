@@ -88,6 +88,7 @@ public class LODRenderer {
     public int renderRange = 48;
     
     private boolean freezeMeshes;
+    public boolean disableChunkMeshes = true;
     
     public LODRenderer(){
         hasInited = init();
@@ -447,6 +448,8 @@ public class LODRenderer {
 	}
 	
 	public void onWorldRendererPost(WorldRenderer wr) {
+	    if(disableChunkMeshes) return;
+	    
 	    if(Minecraft.getMinecraft().theWorld.getChunkFromChunkCoords(Math.floorDiv(wr.posX, 16), Math.floorDiv(wr.posZ, 16)).isChunkLoaded) {
     		LODChunk lodChunk = getLODChunk(Math.floorDiv(wr.posX, 16), Math.floorDiv(wr.posZ, 16));
     		lodChunk.putChunkMeshes(Math.floorDiv(wr.posY, 16), ((IWorldRenderer)wr).getChunkMeshes());

@@ -58,14 +58,16 @@ public class LODRegion {
     }
 	
 	public static LODRegion load(Path saveDir, int regionX, int regionZ) {
-	    File saveFile = getSavePath(saveDir, regionX, regionZ).toFile();
-	    if(saveFile.exists()) {
-	        try {
-                NBTTagCompound nbt = CompressedStreamTools.readCompressed(new FileInputStream(saveFile));
-                return new LODRegion(regionX, regionZ, nbt);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+	    if(!LODMod.renderer.disableChunkMeshes) {
+    	    File saveFile = getSavePath(saveDir, regionX, regionZ).toFile();
+    	    if(saveFile.exists()) {
+    	        try {
+                    NBTTagCompound nbt = CompressedStreamTools.readCompressed(new FileInputStream(saveFile));
+                    return new LODRegion(regionX, regionZ, nbt);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+    	    }
 	    }
 	    return new LODRegion(regionX, regionZ);
 	}
@@ -75,6 +77,8 @@ public class LODRegion {
 	}
 	
 	public void save(Path saveDir) {
+	    if(LODMod.renderer.disableChunkMeshes) return;
+	    
 	    try {
 	        File saveFile = getSavePath(saveDir, regionX, regionZ).toFile();
 	        saveFile.getParentFile().mkdirs();
