@@ -9,7 +9,10 @@ import net.minecraftforge.client.event.EntityViewRenderEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent.ElementType;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.event.world.WorldEvent;
+
+import java.io.File;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -19,6 +22,7 @@ import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.Mod.EventHandler;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
+import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
 import cpw.mods.fml.relauncher.Side;
@@ -36,6 +40,27 @@ public class LODMod
     
     public static LODRenderer renderer;
     
+    public static int chunkLoadsPerTick;
+    
+    private File configFile;
+    
+    @EventHandler
+    public void preInit(FMLPreInitializationEvent event)
+    {
+        configFile = event.getSuggestedConfigurationFile();
+        reloadConfig();
+    }
+    
+    private void reloadConfig() {
+        Configuration config = new Configuration(configFile);
+        
+        config.load();
+        chunkLoadsPerTick = config.get("Options", "chunkLoadsPerTick", 64).getInt();
+        if(config.hasChanged()) {
+            config.save();
+        }
+    }
+    
     @EventHandler
     public void init(FMLInitializationEvent event)
     {
@@ -52,6 +77,7 @@ public class LODMod
             LOGGER.warn("Renderer didn't get destroyed last time");
             renderer.destroy();
         }
+        reloadConfig();
         renderer = new LODRenderer();
     }
     

@@ -478,7 +478,7 @@ public class LODRenderer {
 	}
 	
 	public synchronized void serverTick() {
-		int chunkLoadsRemaining = 64;
+		int chunkLoadsRemaining = LODMod.chunkLoadsPerTick;
 		while(!serverChunkLoadQueue.isEmpty() && chunkLoadsRemaining-- > 0) {
 			ChunkCoordIntPair coords = serverChunkLoadQueue.remove(0);
 			ChunkProviderServer chunkProviderServer = Minecraft.getMinecraft().getIntegratedServer().worldServers[0].theChunkProviderServer;
