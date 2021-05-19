@@ -71,8 +71,10 @@ public class LODMod
     
     @SubscribeEvent
     public void onWorldUnload(TickEvent.ServerTickEvent event) {
-        if(isActive()) {
-            renderer.serverTick();
+        if(event.phase == TickEvent.Phase.START) {
+            if(isActive()) {
+                renderer.serverTick();
+            }
         }
     }
     
