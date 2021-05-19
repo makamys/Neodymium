@@ -59,8 +59,10 @@ public class LODMod
     public void onWorldUnload(WorldEvent.Unload event) {
         if(!event.world.isRemote) return;
         
-        renderer.destroy();
-        renderer = null;
+        if(renderer != null) {
+            renderer.destroy();
+            renderer = null;
+        }
     }
     
     public static boolean isActive() {
