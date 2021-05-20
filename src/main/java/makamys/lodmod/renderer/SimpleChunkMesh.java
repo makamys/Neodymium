@@ -38,6 +38,7 @@ public class SimpleChunkMesh extends Mesh {
 	
 	public static int usedRAM;
 	public static int instances;
+	public static int divisions = 4;
 	
 	private static boolean isSolid(Block block) {
 	    return block.isBlockNormalCube() && block.isOpaqueCube() && block.renderAsNormalBlock();
@@ -48,8 +49,6 @@ public class SimpleChunkMesh extends Mesh {
 	}
 	
 	public static List<SimpleChunkMesh> generateSimpleMeshes(Chunk target){
-		int divisions = 4;
-		
 		SimpleChunkMesh pass1 = new SimpleChunkMesh(target.xPosition, target.zPosition, divisions * divisions * 25, 0);
 		SimpleChunkMesh pass2 = new SimpleChunkMesh(target.xPosition, target.zPosition, divisions * divisions * 25, 1);
 		
@@ -64,7 +63,11 @@ public class SimpleChunkMesh extends Mesh {
 				int xOff = divX * size;
                 int zOff = divZ * size;
 				
-				BiomeGenBase biome = target.getBiomeGenForWorldCoords(xOff, zOff, target.worldObj.getWorldChunkManager());
+                int biomeId = target.getBiomeArray()[xOff << 4 | zOff] & 255;
+                if(biomeId == 255) {
+                    System.out.println("Missing biome data for chunk " + target.xPosition + ", " + target.zPosition);
+                }
+                BiomeGenBase biome = BiomeGenBase.getBiome(biomeId) == null ? BiomeGenBase.plains : BiomeGenBase.getBiome(biomeId);
 				
 				for(y = 255; y > 0; y--) {
 					Block block = target.getBlock(xOff, y, zOff);
@@ -112,12 +115,12 @@ public class SimpleChunkMesh extends Mesh {
 						} else if(block instanceof BlockLeaves) {
 						    color = biome.getBiomeFoliageColor(worldX, y, worldZ);
 						} else {
-						    color = block.colorMultiplier(target.worldObj, worldX, y, worldZ);
+						    color = block.colorMultiplier(Minecraft.getMinecraft().theWorld, worldX, y, worldZ);
 						}
 						color = (0xFF << 24) | ((color >> 16 & 0xFF) << 0) | ((color >> 8 & 0xFF) << 8) | ((color >> 0 & 0xFF) << 16);
 						
 						if(biome.getFloatTemperature(worldX, y, worldZ) < 0.15f) {
-						    pass1.addCube(worldX, worldY + 0.2f, worldZ, size, size, 1f, Blocks.snow_layer.getIcon(1, 0), Blocks.snow_layer.colorMultiplier(target.worldObj, worldX, y, worldZ), brightnessMult);
+						    pass1.addCube(worldX, worldY + 0.2f, worldZ, size, size, 1f, Blocks.snow_layer.getIcon(1, 0), Blocks.snow_layer.colorMultiplier(Minecraft.getMinecraft().theWorld, worldX, y, worldZ), brightnessMult);
 						    pass1.addCube(worldX, worldY - 0.8f, worldZ, size, size, worldY + 1 - 0.8f, icon, color, brightnessMult);
 						} else {
 						    pass1.addCube(worldX, worldY, worldZ, size, size, worldY + 1, icon, color, brightnessMult);
@@ -235,6 +238,19 @@ public class SimpleChunkMesh extends Mesh {
 	public void destroy() {
         usedRAM -= buffer.limit();
         instances--;
+	}
+	
+	public static void prepareFarChunkOnServer(Chunk chunk) {
+	    for(int divX = 0; divX < divisions; divX++) {
+            for(int divZ = 0; divZ < divisions; divZ++) {
+                int size = 16 / divisions;
+                
+                int xOff = divX * size;
+                int zOff = divZ * size;
+                
+                chunk.getBiomeGenForWorldCoords(xOff, zOff, chunk.worldObj.getWorldChunkManager());
+            }
+	    }
 	}
 	
 }

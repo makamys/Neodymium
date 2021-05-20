@@ -12,6 +12,7 @@ import net.minecraft.util.EnumFacing;
 import net.minecraft.world.ChunkCoordIntPair;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
+import net.minecraft.world.biome.BiomeGenBase;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.gen.ChunkProviderServer;
 import net.minecraftforge.event.world.ChunkEvent;
@@ -484,6 +485,7 @@ public class LODRenderer {
 			ChunkCoordIntPair coords = serverChunkLoadQueue.remove(0);
 			ChunkProviderServer chunkProviderServer = Minecraft.getMinecraft().getIntegratedServer().worldServers[0].theChunkProviderServer;
 			Chunk chunk = chunkProviderServer.currentChunkProvider.provideChunk(coords.chunkXPos, coords.chunkZPos);
+			SimpleChunkMesh.prepareFarChunkOnServer(chunk);
 			farChunks.add(chunk);
 		}
 	}
