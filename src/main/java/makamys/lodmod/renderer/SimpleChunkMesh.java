@@ -20,6 +20,7 @@ import makamys.lodmod.LODMod;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockGrass;
 import net.minecraft.block.BlockLeaves;
+import net.minecraft.block.BlockLog;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
@@ -37,6 +38,14 @@ public class SimpleChunkMesh extends Mesh {
 	
 	public static int usedRAM;
 	public static int instances;
+	
+	private static boolean isSolid(Block block) {
+	    return block.isBlockNormalCube() && block.isOpaqueCube() && block.renderAsNormalBlock();
+	}
+	
+	private static boolean isBad(Block block) {
+	    return block instanceof BlockLog;
+	}
 	
 	public static List<SimpleChunkMesh> generateSimpleMeshes(Chunk target){
 		int divisions = 4;
@@ -74,7 +83,26 @@ public class SimpleChunkMesh extends Mesh {
 						pass2.addFaceYPos(worldX, worldY, worldZ, size, size, waterIcon, waterColor, 1);
 					}
 					
-					if(block.isBlockNormalCube() && block.isOpaqueCube() && block.renderAsNormalBlock()) {
+					if(isSolid(block) && isBad(block)) {
+                        for(int dx = -1; dx <= 1; dx++) {
+                            for(int dz = -1; dz <= 1; dz++) {
+                                int newX = xOff + dx;
+                                int newZ = zOff + dz;
+                                if(newX >= 0 && newX < 16 && newZ >= 0 && newZ < 16) {
+                                    Block newBlock = target.getBlock(newX, y, newZ);
+                                    if(!isBad(newBlock)) {
+                                        xOff += dx;
+                                        zOff += dz;
+                                        worldX += dx;
+                                        worldZ += dz;
+                                        block = newBlock;
+                                    }
+                                }
+                            }
+                        }
+                    }
+					if(isSolid(block)) {
+					    
 					    float brightnessMult = foundWater ? 0.2f : 1f;
 						int meta = target.getBlockMetadata(xOff, y, zOff);
 						icon = block.getIcon(1, meta);
@@ -90,9 +118,9 @@ public class SimpleChunkMesh extends Mesh {
 						
 						if(biome.getFloatTemperature(worldX, y, worldZ) < 0.15f) {
 						    pass1.addCube(worldX, worldY + 0.2f, worldZ, size, size, 1f, Blocks.snow_layer.getIcon(1, 0), Blocks.snow_layer.colorMultiplier(target.worldObj, worldX, y, worldZ), brightnessMult);
-						    pass1.addCube(worldX, worldY - 0.8f, worldZ, size, size, worldY - 0.8f, icon, color, brightnessMult);
+						    pass1.addCube(worldX, worldY - 0.8f, worldZ, size, size, worldY + 1 - 0.8f, icon, color, brightnessMult);
 						} else {
-						    pass1.addCube(worldX, worldY, worldZ, size, size, worldY, icon, color, brightnessMult);
+						    pass1.addCube(worldX, worldY, worldZ, size, size, worldY + 1, icon, color, brightnessMult);
 						}
 						
 						
