@@ -4,7 +4,7 @@ buildscript {
 		jcenter()
         maven {
             name = "forge"
-            url = "https://repo.spongepowered.org/repository/forge-proxy/"
+            url = "http://files.minecraftforge.net/maven"
         }
         maven {
             name = "sonatype"
