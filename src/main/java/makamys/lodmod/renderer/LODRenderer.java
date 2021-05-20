@@ -14,6 +14,7 @@ import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.gen.ChunkProviderServer;
+import net.minecraftforge.event.world.ChunkEvent;
 
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
@@ -633,6 +634,10 @@ public class LODRenderer {
 	    long t0 = System.currentTimeMillis();
 	    loadedRegionsMap.forEach((k, v) -> v.save(getSaveDir()));
 	    System.out.println("Finished saving LOD regions in " + ((System.currentTimeMillis() - t0) / 1000.0) + "s");
+	}
+	
+	public void onChunkLoad(ChunkEvent.Load event) {
+	    farChunks.add(event.getChunk());
 	}
 	
 	private Path getSaveDir(){

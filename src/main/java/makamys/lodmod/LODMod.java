@@ -10,6 +10,7 @@ import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent.ElementType;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.config.Configuration;
+import net.minecraftforge.event.world.ChunkEvent;
 import net.minecraftforge.event.world.WorldEvent;
 
 import java.io.File;
@@ -88,6 +89,15 @@ public class LODMod
         if(renderer != null) {
             renderer.destroy();
             renderer = null;
+        }
+    }
+    
+    @SubscribeEvent
+    public void onChunkLoad(ChunkEvent.Load event) {
+        if(!event.world.isRemote) return;
+        
+        if(isActive()) {
+            renderer.onChunkLoad(event);
         }
     }
     
