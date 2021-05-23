@@ -13,6 +13,10 @@ import net.minecraftforge.event.world.ChunkEvent;
 import net.minecraftforge.event.world.WorldEvent;
 
 import java.io.File;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -40,6 +44,7 @@ public class LODMod
     public static LODRenderer renderer;
     
     public static int chunkLoadsPerTick;
+    public static List<Class> blockClassBlacklist;
     
     private File configFile;
     
@@ -57,6 +62,17 @@ public class LODMod
         
         config.load();
         chunkLoadsPerTick = config.get("Options", "chunkLoadsPerTick", 64).getInt();
+        blockClassBlacklist = Arrays.stream(config.get("Options", "blockClassBlacklist", "net.minecraft.block.BlockRotatedPillar;biomesoplenty.common.blocks.BlockBOPLog;gregapi.block.multitileentity.MultiTileEntityBlock").getString().split(";"))
+                .map(className -> {
+                    try {
+                        return Class.forName(className);
+                    } catch (ClassNotFoundException e) {
+                        return null;
+                    }
+                })
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+        
         if(config.hasChanged()) {
             config.save();
         }

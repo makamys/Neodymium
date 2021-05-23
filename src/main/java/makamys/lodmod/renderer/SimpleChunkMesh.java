@@ -20,7 +20,6 @@ import makamys.lodmod.LODMod;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockGrass;
 import net.minecraft.block.BlockLeaves;
-import net.minecraft.block.BlockLog;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
@@ -45,7 +44,12 @@ public class SimpleChunkMesh extends Mesh {
 	}
 	
 	private static boolean isBad(Block block) {
-	    return block instanceof BlockLog;
+	    for(Class clazz : LODMod.blockClassBlacklist) {
+	        if(clazz.isInstance(block)) {
+	            return true;
+	        }
+	    }
+	    return false;
 	}
 	
 	public static List<SimpleChunkMesh> generateSimpleMeshes(Chunk target){
