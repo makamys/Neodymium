@@ -101,6 +101,8 @@ public class LODRenderer {
     public void preRenderSortedRenderers(int renderPass, double alpha, WorldRenderer[] sortedWorldRenderers) {
         if(renderPass != 0) return;
         
+        LODMod.fogEventWasPosted = false;
+        
         Minecraft.getMinecraft().entityRenderer.enableLightmap((double)alpha);
         
         if(hasInited) {

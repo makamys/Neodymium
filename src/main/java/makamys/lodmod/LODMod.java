@@ -4,7 +4,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.entity.RenderManager;
-import net.minecraft.potion.Potion;
 import net.minecraftforge.client.event.EntityViewRenderEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent.ElementType;
@@ -17,7 +16,6 @@ import java.io.File;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.lwjgl.opengl.GL11;
 
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.Mod;
@@ -44,6 +42,8 @@ public class LODMod
     public static int chunkLoadsPerTick;
     
     private File configFile;
+    
+    public static boolean fogEventWasPosted;
     
     @EventHandler
     public void preInit(FMLPreInitializationEvent event)
@@ -131,14 +131,11 @@ public class LODMod
             }
         }
     }
+
     
     @SubscribeEvent
     public void onRenderFog(EntityViewRenderEvent.RenderFogEvent event) {
-        if(isActive()) {
-            if(event.fogMode >= 0 && !Minecraft.getMinecraft().theWorld.provider.doesXZShowFog((int)event.entity.posX, (int)event.entity.posZ)) {
-                GL11.glFogf(GL11.GL_FOG_START, event.farPlaneDistance * 0.2f);
-                GL11.glFogf(GL11.GL_FOG_END, event.farPlaneDistance);
-            }
-        }
+        fogEventWasPosted = true;
     }
+
 }
