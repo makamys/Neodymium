@@ -29,11 +29,7 @@ abstract class MixinEntityRenderer {
     @Inject(method = "setupFog", at = @At(value = "RETURN"))
     private void afterSetupFog(int mode, float alpha, CallbackInfo ci) {
         if(LODMod.isActive()) {
-            EntityLivingBase entity = Minecraft.getMinecraft().renderViewEntity;
-            if(LODMod.fogEventWasPosted && mode >= 0 && !Minecraft.getMinecraft().theWorld.provider.doesXZShowFog((int)entity.posX, (int)entity.posZ)) {
-                GL11.glFogf(GL11.GL_FOG_START, farPlaneDistance * 0.2f);
-                GL11.glFogf(GL11.GL_FOG_END, farPlaneDistance);
-            }
+            LODMod.renderer.afterSetupFog(mode, alpha, farPlaneDistance);
         }
     }
 }

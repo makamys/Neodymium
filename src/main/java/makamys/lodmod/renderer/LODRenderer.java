@@ -8,6 +8,7 @@ import net.minecraft.client.renderer.WorldRenderer;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.world.ChunkCoordIntPair;
 import net.minecraft.world.IBlockAccess;
@@ -208,6 +209,14 @@ public class LODRenderer {
     
     public int getFarPlaneDistanceMultiplier() {
         return renderRange / 12;
+    }
+    
+    public void afterSetupFog(int mode, float alpha, float farPlaneDistance) {
+        EntityLivingBase entity = Minecraft.getMinecraft().renderViewEntity;
+        if(LODMod.fogEventWasPosted && !Minecraft.getMinecraft().theWorld.provider.doesXZShowFog((int)entity.posX, (int)entity.posZ)) {
+            GL11.glFogf(GL11.GL_FOG_START, mode < 0 ? 0 : farPlaneDistance * 0.2f);
+            GL11.glFogf(GL11.GL_FOG_END, mode < 0 ? farPlaneDistance/4 : farPlaneDistance * 0.8f);
+        }
     }
 	
 	private void handleKeyboard() {
