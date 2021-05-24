@@ -20,6 +20,7 @@ import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.lwjgl.opengl.GL11;
 
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.Mod;
@@ -43,8 +44,11 @@ public class LODMod
     
     public static LODRenderer renderer;
     
+    public static boolean enabled;
     public static int chunkLoadsPerTick;
     public static List<Class> blockClassBlacklist;
+    public static double fogStart;
+    public static double fogEnd;
     
     private File configFile;
     
@@ -61,8 +65,9 @@ public class LODMod
         Configuration config = new Configuration(configFile);
         
         config.load();
-        chunkLoadsPerTick = config.get("Options", "chunkLoadsPerTick", 64).getInt();
-        blockClassBlacklist = Arrays.stream(config.get("Options", "blockClassBlacklist", "net.minecraft.block.BlockRotatedPillar;biomesoplenty.common.blocks.BlockBOPLog;gregapi.block.multitileentity.MultiTileEntityBlock").getString().split(";"))
+        enabled = config.get("General", "enabled", true).getBoolean();
+        chunkLoadsPerTick = config.get("General", "chunkLoadsPerTick", 64).getInt();
+        blockClassBlacklist = Arrays.stream(config.get("General", "blockClassBlacklist", "net.minecraft.block.BlockRotatedPillar;biomesoplenty.common.blocks.BlockBOPLog;gregapi.block.multitileentity.MultiTileEntityBlock").getString().split(";"))
                 .map(className -> {
                     try {
                         return Class.forName(className);
@@ -72,6 +77,8 @@ public class LODMod
                 })
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
+        fogStart = config.get("Fog", "fogStart", "0.4").getDouble();
+        fogEnd = config.get("Fog", "fogEnd", "0.8").getDouble();
         
         if(config.hasChanged()) {
             config.save();
@@ -89,13 +96,16 @@ public class LODMod
     public void onWorldLoad(WorldEvent.Load event) {
         if(!event.world.isRemote) return;
         
-        SpriteUtil.init();
-        if(renderer != null) {
-            LOGGER.warn("Renderer didn't get destroyed last time");
-            renderer.destroy();
-        }
         reloadConfig();
-        renderer = new LODRenderer();
+        
+        if(enabled) {
+            SpriteUtil.init();
+            if(renderer != null) {
+                LOGGER.warn("Renderer didn't get destroyed last time");
+                renderer.destroy();
+            }
+            renderer = new LODRenderer();
+        }
     }
     
     @SubscribeEvent
