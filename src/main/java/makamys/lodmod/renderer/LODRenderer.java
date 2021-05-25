@@ -137,7 +137,7 @@ public class LODRenderer {
     }
     
     private void sort() {
-        Entity player = (Entity)Minecraft.getMinecraft().getIntegratedServer().getConfigurationManager().playerEntityList.get(0);
+        Entity player = Minecraft.getMinecraft().renderViewEntity;
         sentMeshes[1].sort(new MeshDistanceComparator(player.posX, player.posY, player.posZ));
     }
     
@@ -162,46 +162,43 @@ public class LODRenderer {
             sendChunkToGPU(lodChunk);
         }
         
-        List<Object> players = Minecraft.getMinecraft().getIntegratedServer().getConfigurationManager().playerEntityList;
-        if(!players.isEmpty()) {
-            Entity player = (Entity)players.get(0);
+        Entity player = Minecraft.getMinecraft().renderViewEntity;
+        
+        List<ChunkCoordIntPair> newServerChunkLoadQueue = new ArrayList<>();
+        
+        if(Double.isNaN(lastSortX) || getLastSortDistanceSq(player) > 16 * 16) {
+            int centerX = (int)Math.floor(player.posX / 16.0);
+            int centerZ = (int)Math.floor(player.posZ / 16.0);
             
-            List<ChunkCoordIntPair> newServerChunkLoadQueue = new ArrayList<>();
-            
-            if(Double.isNaN(lastSortX) || getLastSortDistanceSq(player) > 16 * 16) {
-                int centerX = (int)Math.floor(player.posX / 16.0);
-                int centerZ = (int)Math.floor(player.posZ / 16.0);
-                
-                for(int x = -renderRange; x <= renderRange; x++) {
-                    for(int z = -renderRange; z <= renderRange; z++) {
-                        if(x * x + z * z < renderRange * renderRange) {
-                            int chunkX = centerX + x;
-                            int chunkZ = centerZ + z;
-                            
-                            if(getLODChunk(chunkX, chunkZ).needsChunk) {
-                                newServerChunkLoadQueue.add(new ChunkCoordIntPair(chunkX, chunkZ));
-                                getLODChunk(chunkX, chunkZ).needsChunk = false;
-                            }
+            for(int x = -renderRange; x <= renderRange; x++) {
+                for(int z = -renderRange; z <= renderRange; z++) {
+                    if(x * x + z * z < renderRange * renderRange) {
+                        int chunkX = centerX + x;
+                        int chunkZ = centerZ + z;
+                        
+                        if(getLODChunk(chunkX, chunkZ).needsChunk) {
+                            newServerChunkLoadQueue.add(new ChunkCoordIntPair(chunkX, chunkZ));
+                            getLODChunk(chunkX, chunkZ).needsChunk = false;
                         }
                     }
                 }
-                Collections.sort(newServerChunkLoadQueue, new ChunkCoordDistanceComparator(player.posX, player.posY, player.posZ));
-                addToServerChunkLoadQueue(newServerChunkLoadQueue);
+            }
+            Collections.sort(newServerChunkLoadQueue, new ChunkCoordDistanceComparator(player.posX, player.posY, player.posZ));
+            addToServerChunkLoadQueue(newServerChunkLoadQueue);
+            
+            lastSortX = player.posX;
+            lastSortY = player.posY;
+            lastSortZ = player.posZ;
+            for(Iterator<ChunkCoordIntPair> it = loadedRegionsMap.keySet().iterator(); it.hasNext();) {
+                ChunkCoordIntPair k = it.next();
+                LODRegion v = loadedRegionsMap.get(k);
                 
-                lastSortX = player.posX;
-                lastSortY = player.posY;
-                lastSortZ = player.posZ;
-                for(Iterator<ChunkCoordIntPair> it = loadedRegionsMap.keySet().iterator(); it.hasNext();) {
-                    ChunkCoordIntPair k = it.next();
-                    LODRegion v = loadedRegionsMap.get(k);
-                    
-                    if(v.distanceTaxicab(player) > renderRange * 16 + 16 * 16) {
-                        System.out.println("unloading " + v);
-                        v.destroy(getSaveDir());
-                        it.remove();
-                    } else {
-                        v.tick(player);
-                    }
+                if(v.distanceTaxicab(player) > renderRange * 16 + 16 * 16) {
+                    System.out.println("unloading " + v);
+                    v.destroy(getSaveDir());
+                    it.remove();
+                } else {
+                    v.tick(player);
                 }
             }
         }
@@ -516,7 +513,7 @@ public class LODRenderer {
 	}
 	
 	private void sendChunkToGPU(LODChunk lodChunk) {
-		Entity player = (Entity) Minecraft.getMinecraft().getIntegratedServer().getConfigurationManager().playerEntityList.get(0);
+		Entity player = Minecraft.getMinecraft().renderViewEntity;
 		
 		lodChunk.tick(player);
 		setVisible(lodChunk, true, true);
