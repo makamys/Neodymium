@@ -52,8 +52,6 @@ import static org.lwjgl.opengl.GL30.*;
 
 public class LODRenderer {
     
-    public static boolean debugEnabled = Boolean.parseBoolean(System.getProperty("lodmod.debug", "false"));
-    
 	public boolean hasInited = false;
 	
 	private boolean[] wasDown = new boolean[256];
@@ -114,7 +112,7 @@ public class LODRenderer {
             }
             
             mainLoop();
-            if(debugEnabled) {
+            if(LODMod.debugEnabled) {
                 handleKeyboard();
             }
             if(lastGCTime == -1 || (System.currentTimeMillis() - lastGCTime) > gcInterval) {

@@ -45,10 +45,12 @@ public class LODMod
     public static LODRenderer renderer;
     
     public static boolean enabled;
+    public static boolean debugEnabled;
     public static int chunkLoadsPerTick;
     public static List<Class> blockClassBlacklist;
     public static double fogStart;
     public static double fogEnd;
+	public static float maxSimpleMeshHeight;
     
     private File configFile;
     
@@ -79,6 +81,8 @@ public class LODMod
                 .collect(Collectors.toList());
         fogStart = config.get("Fog", "fogStart", "0.4").getDouble();
         fogEnd = config.get("Fog", "fogEnd", "0.8").getDouble();
+		debugEnabled = config.get("Debug", "enabled", false).getBoolean();
+		maxSimpleMeshHeight = (float)config.get("Debug", "maxSimpleMeshHeight", 1000.0).getDouble();
         
         if(config.hasChanged()) {
             config.save();

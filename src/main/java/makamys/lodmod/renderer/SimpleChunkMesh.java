@@ -125,9 +125,9 @@ public class SimpleChunkMesh extends Mesh {
 						
 						if(biome.getFloatTemperature(worldX, y, worldZ) < 0.15f) {
 						    pass1.addCube(worldX, worldY + 0.2f, worldZ, size, size, 1f, Blocks.snow_layer.getIcon(1, 0), 0xFFFFFFFF, brightnessMult);
-						    pass1.addCube(worldX, worldY - 0.8f, worldZ, size, size, worldY + 1 - 0.8f, icon, color, brightnessMult);
+						    pass1.addCube(worldX, worldY - 0.8f, worldZ, size, size, Math.min(LODMod.maxSimpleMeshHeight, worldY + 1 - 0.8f), icon, color, brightnessMult);
 						} else {
-						    pass1.addCube(worldX, worldY, worldZ, size, size, worldY + 1, icon, color, brightnessMult);
+						    pass1.addCube(worldX, worldY, worldZ, size, size, Math.min(LODMod.maxSimpleMeshHeight, worldY + 1), icon, color, brightnessMult);
 						}
 						
 						
