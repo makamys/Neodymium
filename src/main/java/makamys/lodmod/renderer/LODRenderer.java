@@ -241,8 +241,10 @@ public class LODRenderer {
 	    glBindVertexArray(VAO);
         glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	    
-        int deletedNum = 0;
+        int[] deletedNum = new int[2];
         int deletedRAM = 0;
+        
+        long t0 = System.nanoTime();
         
         for(int i = 0; i < 2; i++) {
             piFirst[i].limit(0);
@@ -269,13 +271,15 @@ public class LODRenderer {
                     mesh.visible = false;
                     mesh.pendingGPUDelete = false;
                     it.remove();
-                    deletedNum++;
+                    deletedNum[i]++;
                     deletedRAM += mesh.bufferSize();
                 }
             }
         }
 	    
-	    System.out.println("Deleted " + deletedNum + " meshes, freeing up " + (deletedRAM / 1024 / 1024) + "MB of VRAM");
+        long t1 = System.nanoTime();
+        
+	    System.out.println("Deleted " + deletedNum[0] + "+" + deletedNum[1] + " meshes in " + ((t1 - t0) / 1_000_000.0) + " ms, freeing up " + (deletedRAM / 1024 / 1024) + "MB of VRAM");
 	    
 	    glBindBuffer(GL_ARRAY_BUFFER, 0);
         glBindVertexArray(0);
