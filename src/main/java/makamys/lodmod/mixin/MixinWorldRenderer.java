@@ -50,7 +50,7 @@ abstract class MixinWorldRenderer implements IWorldRenderer {
     @Shadow
     public boolean needsUpdate;
     
-    public List<ChunkMesh> chunkMeshes = new ArrayList<>();
+    public List<ChunkMesh> chunkMeshes;
     
     @Redirect(method = "setPosition", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/entity/Render;renderAABB(Lnet/minecraft/util/AxisAlignedBB;)V"))
     private void redirectRenderAABB(AxisAlignedBB p1) {
@@ -72,7 +72,11 @@ abstract class MixinWorldRenderer implements IWorldRenderer {
     private void preUpdateRenderer(CallbackInfo ci) {
         if(LODMod.isActive()) {
             if(needsUpdate) {
-                chunkMeshes.clear();
+                if(chunkMeshes != null) {
+                    chunkMeshes.clear();
+                } else {
+                    chunkMeshes = new ArrayList<>();
+                }
             } else {
                 chunkMeshes = null;
             }
@@ -92,7 +96,9 @@ abstract class MixinWorldRenderer implements IWorldRenderer {
     @Inject(method = "postRenderBlocks", at = @At(value = "HEAD"))
     private void prePostRenderBlocks(int pass, EntityLivingBase entity, CallbackInfo ci) {
         if(LODMod.isActive() && !LODMod.renderer.disableChunkMeshes) {
-            chunkMeshes.add(((ITessellator)Tessellator.instance).toChunkMesh(pass));
+            if(chunkMeshes != null) {
+                chunkMeshes.add(((ITessellator)Tessellator.instance).toChunkMesh(pass));
+            }
         }
     }
     
