@@ -17,6 +17,7 @@ import java.util.List;
 import org.lwjgl.BufferUtils;
 
 import makamys.lodmod.LODMod;
+import makamys.lodmod.util.MCUtil;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockGrass;
 import net.minecraft.block.BlockLeaves;
@@ -125,7 +126,8 @@ public class SimpleChunkMesh extends Mesh {
 						}
 						color = (0xFF << 24) | ((color >> 16 & 0xFF) << 0) | ((color >> 8 & 0xFF) << 8) | ((color >> 0 & 0xFF) << 16);
 						
-						if(biome.getFloatTemperature(worldX, y, worldZ) < 0.15f) {
+						if((LODMod.forceVanillaBiomeTemperature ? MCUtil.getBiomeTemperatureVanilla(biome, worldX, y, worldZ)
+						        : biome.getFloatTemperature(worldX, y, worldZ)) < 0.15f) {
 						    
 						    builder.addCube(divX, divZ, worldY + 0.2f, 1f, Blocks.snow_layer.getIcon(1, 0), 0xFFFFFFFF, brightnessMult);
 						    builder.addCube(divX, divZ, worldY - 0.8f, -1, icon, color, brightnessMult);

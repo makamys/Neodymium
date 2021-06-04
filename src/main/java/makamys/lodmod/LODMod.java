@@ -51,6 +51,7 @@ public class LODMod
     public static double fogStart;
     public static double fogEnd;
 	public static float maxSimpleMeshHeight;
+	public static boolean forceVanillaBiomeTemperature;
     
     private File configFile;
     
@@ -83,6 +84,8 @@ public class LODMod
         fogEnd = config.get("Fog", "fogEnd", "0.8").getDouble();
 		debugEnabled = config.get("Debug", "enabled", false).getBoolean();
 		maxSimpleMeshHeight = (float)config.get("Debug", "maxSimpleMeshHeight", 1000.0).getDouble();
+		
+		forceVanillaBiomeTemperature = config.get("Simple mesh generation", "forceVanillaBiomeTemperature", true).getBoolean();
         
         if(config.hasChanged()) {
             config.save();
