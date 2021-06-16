@@ -52,7 +52,7 @@ abstract class MixinWorldRenderer implements IWorldRenderer {
     
     public List<ChunkMesh> chunkMeshes;
     
-    @Redirect(method = "setPosition", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/entity/Render;renderAABB(Lnet/minecraft/util/AxisAlignedBB;)V"))
+    @Redirect(method = "setPosition", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/entity/RenderItem;renderAABB(Lnet/minecraft/util/AxisAlignedBB;)V"))
     private void redirectRenderAABB(AxisAlignedBB p1) {
         if(!FarWorldRenderer.class.isInstance(this.getClass())) {
             RenderItem.renderAABB(p1);
