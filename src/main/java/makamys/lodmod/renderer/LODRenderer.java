@@ -165,43 +165,45 @@ public class LODRenderer {
             sendChunkToGPU(lodChunk);
         }
         
-        Entity player = Minecraft.getMinecraft().renderViewEntity;
-        
-        List<ChunkCoordIntPair> newServerChunkLoadQueue = new ArrayList<>();
-        
-        if(Double.isNaN(lastSortX) || getLastSortDistanceSq(player) > 16 * 16) {
-            int centerX = (int)Math.floor(player.posX / 16.0);
-            int centerZ = (int)Math.floor(player.posZ / 16.0);
+        if(Minecraft.getMinecraft().playerController.netClientHandler.doneLoadingTerrain) {
+        	Entity player = Minecraft.getMinecraft().renderViewEntity;
             
-            for(int x = -renderRange; x <= renderRange; x++) {
-                for(int z = -renderRange; z <= renderRange; z++) {
-                    if(x * x + z * z < renderRange * renderRange) {
-                        int chunkX = centerX + x;
-                        int chunkZ = centerZ + z;
-                        
-                        if(getLODChunk(chunkX, chunkZ).needsChunk) {
-                            newServerChunkLoadQueue.add(new ChunkCoordIntPair(chunkX, chunkZ));
-                            getLODChunk(chunkX, chunkZ).needsChunk = false;
+            List<ChunkCoordIntPair> newServerChunkLoadQueue = new ArrayList<>();
+            
+            if(Double.isNaN(lastSortX) || getLastSortDistanceSq(player) > 16 * 16) {
+                int centerX = (int)Math.floor(player.posX / 16.0);
+                int centerZ = (int)Math.floor(player.posZ / 16.0);
+                
+                for(int x = -renderRange; x <= renderRange; x++) {
+                    for(int z = -renderRange; z <= renderRange; z++) {
+                        if(x * x + z * z < renderRange * renderRange) {
+                            int chunkX = centerX + x;
+                            int chunkZ = centerZ + z;
+                            
+                            if(getLODChunk(chunkX, chunkZ).needsChunk) {
+                                newServerChunkLoadQueue.add(new ChunkCoordIntPair(chunkX, chunkZ));
+                                getLODChunk(chunkX, chunkZ).needsChunk = false;
+                            }
                         }
                     }
                 }
-            }
-            Collections.sort(newServerChunkLoadQueue, new ChunkCoordDistanceComparator(player.posX, player.posY, player.posZ));
-            addToServerChunkLoadQueue(newServerChunkLoadQueue);
-            
-            lastSortX = player.posX;
-            lastSortY = player.posY;
-            lastSortZ = player.posZ;
-            for(Iterator<ChunkCoordIntPair> it = loadedRegionsMap.keySet().iterator(); it.hasNext();) {
-                ChunkCoordIntPair k = it.next();
-                LODRegion v = loadedRegionsMap.get(k);
+                Collections.sort(newServerChunkLoadQueue, new ChunkCoordDistanceComparator(player.posX, player.posY, player.posZ));
+                addToServerChunkLoadQueue(newServerChunkLoadQueue);
                 
-                if(v.distanceTaxicab(player) > renderRange * 16 + 16 * 16) {
-                    System.out.println("unloading " + v);
-                    v.destroy(getSaveDir());
-                    it.remove();
-                } else {
-                    v.tick(player);
+                lastSortX = player.posX;
+                lastSortY = player.posY;
+                lastSortZ = player.posZ;
+                for(Iterator<ChunkCoordIntPair> it = loadedRegionsMap.keySet().iterator(); it.hasNext();) {
+                    ChunkCoordIntPair k = it.next();
+                    LODRegion v = loadedRegionsMap.get(k);
+                    
+                    if(v.distanceTaxicab(player) > renderRange * 16 + 16 * 16) {
+                        System.out.println("unloading " + v);
+                        v.destroy(getSaveDir());
+                        it.remove();
+                    } else {
+                        v.tick(player);
+                    }
                 }
             }
         }
