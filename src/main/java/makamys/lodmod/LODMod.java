@@ -112,7 +112,7 @@ public class LODMod
             renderer.destroy();
             renderer = null;
         }
-    	if(enabled && newWorld != null) {
+    	if(enabled) {
             renderer = new LODRenderer(newWorld);
         }
     }

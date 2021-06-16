@@ -96,8 +96,10 @@ public class LODRenderer {
     public boolean disableChunkMeshes = true;
     
     public LODRenderer(World world){
-        hasInited = init();
-        this.world = world;
+    	this.world = world;
+    	if(shouldRenderInWorld(world)) {
+    		hasInited = init();
+    	}
     }
     
     public void preRenderSortedRenderers(int renderPass, double alpha, WorldRenderer[] sortedWorldRenderers) {
@@ -661,6 +663,10 @@ public class LODRenderer {
 	
 	private Path getSaveDir(){
 	    return Minecraft.getMinecraft().mcDataDir.toPath().resolve("lodmod").resolve(Minecraft.getMinecraft().getIntegratedServer().getFolderName());
+	}
+	
+	private boolean shouldRenderInWorld(World world) {
+		return world != null && !world.provider.isHellWorld;
 	}
 	
 	public static class LODChunkComparator implements Comparator<LODChunk> {
