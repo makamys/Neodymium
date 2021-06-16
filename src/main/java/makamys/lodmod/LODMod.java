@@ -4,6 +4,8 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.entity.RenderManager;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.world.World;
 import net.minecraftforge.client.event.EntityViewRenderEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent.ElementType;
@@ -99,29 +101,27 @@ public class LODMod
         MinecraftForge.EVENT_BUS.register(this);
     }
     
-    @SubscribeEvent
-    public void onWorldLoad(WorldEvent.Load event) {
-        if(!event.world.isRemote) return;
-        
-        reloadConfig();
-        
-        if(enabled) {
-            SpriteUtil.init();
-            if(renderer != null) {
-                LOGGER.warn("Renderer didn't get destroyed last time");
-                renderer.destroy();
-            }
-            renderer = new LODRenderer();
+    private void onPlayerWorldChanged(World newWorld) {
+    	if(getRendererWorld() == null && newWorld != null) {
+    		reloadConfig();
+    		if(enabled) {
+    			SpriteUtil.init();
+    		}
+    	}
+    	if(renderer != null) {
+            renderer.destroy();
+            renderer = null;
+        }
+    	if(enabled && newWorld != null) {
+            renderer = new LODRenderer(newWorld);
         }
     }
     
     @SubscribeEvent
+    @SideOnly(Side.CLIENT)
     public void onWorldUnload(WorldEvent.Unload event) {
-        if(!event.world.isRemote) return;
-        
-        if(renderer != null) {
-            renderer.destroy();
-            renderer = null;
+        if(event.world == getRendererWorld()) {
+        	onPlayerWorldChanged(null);
         }
     }
     
@@ -136,6 +136,21 @@ public class LODMod
     
     public static boolean isActive() {
         return renderer != null && renderer.hasInited;
+    }
+    
+    private World getRendererWorld() {
+    	return renderer != null ? renderer.world : null;
+    }
+    
+    @SubscribeEvent
+    public void onClientTick(TickEvent.ClientTickEvent event) {
+    	if(event.phase == TickEvent.Phase.START) {
+    		EntityPlayer player = Minecraft.getMinecraft().thePlayer;
+    		World world = player != null ? player.worldObj : null;
+        	if(world != getRendererWorld()) {
+        		onPlayerWorldChanged(world);
+        	}
+    	}
     }
     
     @SubscribeEvent

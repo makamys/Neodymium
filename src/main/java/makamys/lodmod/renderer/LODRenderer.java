@@ -74,6 +74,8 @@ public class LODRenderer {
     private boolean hasServerInited = false;
     private Map<ChunkCoordIntPair, LODRegion> loadedRegionsMap = new HashMap<>();
     
+    public World world;
+    
     // TODO make these packets to make this work on dedicated servers
     Queue<Chunk> farChunks = new ConcurrentLinkedQueue<>();
     
@@ -93,8 +95,9 @@ public class LODRenderer {
     private boolean freezeMeshes;
     public boolean disableChunkMeshes = true;
     
-    public LODRenderer(){
+    public LODRenderer(World world){
         hasInited = init();
+        this.world = world;
     }
     
     public void preRenderSortedRenderers(int renderPass, double alpha, WorldRenderer[] sortedWorldRenderers) {
@@ -497,7 +500,7 @@ public class LODRenderer {
 		int chunkLoadsRemaining = LODMod.chunkLoadsPerTick;
 		while(!serverChunkLoadQueue.isEmpty() && chunkLoadsRemaining-- > 0) {
 			ChunkCoordIntPair coords = serverChunkLoadQueue.remove(0);
-			ChunkProviderServer chunkProviderServer = Minecraft.getMinecraft().getIntegratedServer().worldServers[0].theChunkProviderServer;
+			ChunkProviderServer chunkProviderServer = Minecraft.getMinecraft().getIntegratedServer().worldServerForDimension(world.provider.dimensionId).theChunkProviderServer;
 			Chunk chunk = chunkProviderServer.currentChunkProvider.provideChunk(coords.chunkXPos, coords.chunkZPos);
 			SimpleChunkMesh.prepareFarChunkOnServer(chunk);
 			farChunks.add(chunk);
