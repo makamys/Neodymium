@@ -52,6 +52,7 @@ public class LODMod
     public static List<Class> blockClassBlacklist;
     public static double fogStart;
     public static double fogEnd;
+    public static double farPlaneDistanceMultiplier;
 	public static float maxSimpleMeshHeight;
 	public static boolean forceVanillaBiomeTemperature;
     
@@ -84,6 +85,8 @@ public class LODMod
                 .collect(Collectors.toList());
         fogStart = config.get("Fog", "fogStart", "0.4").getDouble();
         fogEnd = config.get("Fog", "fogEnd", "0.8").getDouble();
+        farPlaneDistanceMultiplier = config.get("Fog", "farPlaneDistanceMultiplier", "1.0").getDouble();
+        
 		debugEnabled = config.get("Debug", "enabled", false).getBoolean();
 		maxSimpleMeshHeight = (float)config.get("Debug", "maxSimpleMeshHeight", 1000.0).getDouble();
 		

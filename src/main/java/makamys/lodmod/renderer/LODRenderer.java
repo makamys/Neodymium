@@ -209,8 +209,8 @@ public class LODRenderer {
         }
     }
     
-    public int getFarPlaneDistanceMultiplier() {
-        return renderRange / 12;
+    public float getFarPlaneDistanceMultiplier() {
+        return renderRange / 12 * (float)LODMod.farPlaneDistanceMultiplier;
     }
     
     public void afterSetupFog(int mode, float alpha, float farPlaneDistance) {
