@@ -216,8 +216,8 @@ public class LODRenderer {
     public void afterSetupFog(int mode, float alpha, float farPlaneDistance) {
         EntityLivingBase entity = Minecraft.getMinecraft().renderViewEntity;
         if(LODMod.fogEventWasPosted && !Minecraft.getMinecraft().theWorld.provider.doesXZShowFog((int)entity.posX, (int)entity.posZ)) {
-            GL11.glFogf(GL11.GL_FOG_START, mode < 0 ? 0 : farPlaneDistance * 0.2f);
-            GL11.glFogf(GL11.GL_FOG_END, mode < 0 ? farPlaneDistance/4 : farPlaneDistance * 0.8f);
+            GL11.glFogf(GL11.GL_FOG_START, mode < 0 ? 0 : farPlaneDistance * (float)LODMod.fogStart);
+            GL11.glFogf(GL11.GL_FOG_END, mode < 0 ? farPlaneDistance/4 : farPlaneDistance * (float)LODMod.fogEnd);
         }
     }
 	
