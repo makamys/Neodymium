@@ -15,6 +15,7 @@ import net.minecraftforge.event.world.ChunkEvent;
 import net.minecraftforge.event.world.WorldEvent;
 
 import java.io.File;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -63,6 +64,8 @@ public class LODMod
     private File configFile;
     
     public static boolean fogEventWasPosted;
+    
+    public static boolean ofFastRender;
     
     @EventHandler
     public void preInit(FMLPreInitializationEvent event)
@@ -161,6 +164,15 @@ public class LODMod
     		World world = player != null ? player.worldObj : null;
         	if(world != getRendererWorld()) {
         		onPlayerWorldChanged(world);
+        	}
+        	
+        	if(MixinConfigPlugin.isOptiFinePresent()) {
+    	        try {
+    	            ofFastRender = (boolean)Class.forName("Config").getMethod("isFastRender").invoke(null);
+    	        } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException
+    	                | SecurityException | ClassNotFoundException e) {
+    	            // oops
+    	        }
         	}
     	}
     }

@@ -80,8 +80,8 @@ abstract class MixinTessellator implements ITessellator {
         int zOffset = wr.posZ;
         
         for(int quadI = 0; quadI < this.vertexCount / 4; quadI++) {
-            boolean of = MixinConfigPlugin.isOptiFinePresent();
-            MeshQuad quad = new MeshQuad(rawBuffer, quadI * 32, new ChunkMesh.Flags(hasTexture, hasBrightness, hasColor, hasNormals), of ? xOffset : 0, of ? yOffset : 0, of ? zOffset : 0);
+            boolean fr = MixinConfigPlugin.isOptiFinePresent() && LODMod.ofFastRender;
+            MeshQuad quad = new MeshQuad(rawBuffer, quadI * 32, new ChunkMesh.Flags(hasTexture, hasBrightness, hasColor, hasNormals), fr ? xOffset : 0, fr ? yOffset : 0, fr ? zOffset : 0);
             /*if(quad.bUs[0] == quad.bUs[1] && quad.bUs[1] == quad.bUs[2] && quad.bUs[2] == quad.bUs[3] && quad.bUs[3] == quad.bVs[0] && quad.bVs[0] == quad.bVs[1] && quad.bVs[1] == quad.bVs[2] && quad.bVs[2] == quad.bVs[3] && quad.bVs[3] == 0) {
                 quad.deleted = true;
             }*/

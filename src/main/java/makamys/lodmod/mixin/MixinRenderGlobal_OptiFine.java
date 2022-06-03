@@ -9,8 +9,9 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 
 import makamys.lodmod.LODMod;
 import net.minecraft.client.renderer.RenderBlocks;
+import net.minecraft.client.renderer.RenderGlobal;
 
-@Mixin(RenderBlocks.class)
+@Mixin(RenderGlobal.class)
 abstract class MixinRenderGlobal_OptiFine {
     
     // for OptiFine's Fast Render option
