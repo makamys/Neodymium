@@ -83,7 +83,7 @@ abstract class MixinTessellator implements ITessellator {
             }
             quads.add(quad);
         }
-        boolean optimize = true;
+        boolean optimize = LODMod.optimizeChunkMeshes;
         if(optimize) {
             ArrayList<ArrayList<MeshQuad>> quadsByPlaneDir = new ArrayList<>(); // XY, XZ, YZ
             for(int i = 0; i < 3; i++) {

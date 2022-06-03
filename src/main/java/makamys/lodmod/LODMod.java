@@ -58,6 +58,7 @@ public class LODMod
 	public static boolean hideUnderVanillaChunks;
 	public static boolean disableChunkMeshes;
 	public static boolean disableSimpleMeshes;
+	public static boolean optimizeChunkMeshes;
     
     private File configFile;
     
@@ -98,6 +99,7 @@ public class LODMod
 		hideUnderVanillaChunks = config.getBoolean("hideUnderVanillaChunks", "render", true, "");
 		disableChunkMeshes = config.getBoolean("disableChunkMeshes", "render", true, "");
 		disableSimpleMeshes = config.getBoolean("disableSimpleMeshes", "render", false, "");
+		optimizeChunkMeshes = config.getBoolean("optimizeChunkMeshes", "render", true, "");
 		
         if(config.hasChanged()) {
             config.save();
