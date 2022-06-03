@@ -19,7 +19,7 @@ abstract class MixinEntityRenderer {
     @Shadow
     private float farPlaneDistance;
     
-    @Inject(method = "setupCameraTransform", at = @At(value = "FIELD", target = "Lnet/minecraft/client/renderer/EntityRenderer;farPlaneDistance:F", shift = At.Shift.AFTER, ordinal = 0))
+    @Inject(method = "setupCameraTransform", at = @At(value = "FIELD", target = "Lnet/minecraft/client/renderer/EntityRenderer;farPlaneDistance:F", shift = At.Shift.AFTER, ordinal = 1))
     private void onConstructed(CallbackInfo ci) {
         if(LODMod.isActive()) {
             farPlaneDistance *= LODMod.renderer.getFarPlaneDistanceMultiplier();
