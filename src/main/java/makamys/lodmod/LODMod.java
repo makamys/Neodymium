@@ -198,4 +198,8 @@ public class LODMod
         fogEventWasPosted = true;
     }
 
+    public static void debugHookToChunkMeshEnd() {
+        
+    }
+
 }

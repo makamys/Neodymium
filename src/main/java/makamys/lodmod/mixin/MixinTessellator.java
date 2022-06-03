@@ -6,11 +6,13 @@ import java.util.List;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 
+import makamys.lodmod.LODMod;
 import makamys.lodmod.ducks.ITessellator;
 import makamys.lodmod.renderer.ChunkMesh;
 import makamys.lodmod.renderer.MeshQuad;
 import makamys.lodmod.renderer.MeshQuad.QuadPlaneComparator;
 import net.minecraft.client.renderer.Tessellator;
+import net.minecraft.client.renderer.WorldRenderer;
 
 @Mixin(Tessellator.class)
 abstract class MixinTessellator implements ITessellator {
@@ -54,7 +56,7 @@ abstract class MixinTessellator implements ITessellator {
         }
     }*/
     
-    public ChunkMesh toChunkMesh(int pass) {
+    public ChunkMesh toChunkMesh(int pass, WorldRenderer wr) {
         if(this.vertexCount % 4 != 0) {
             System.out.println("Error: Vertex count is not a multiple of 4");
             return null;
@@ -72,8 +74,12 @@ abstract class MixinTessellator implements ITessellator {
         List<Byte> bVs = new ArrayList<>();
         List<Integer> cs = new ArrayList<>();
         
+        int xOffset = wr.posX;
+        int yOffset = wr.posY;
+        int zOffset = wr.posZ;
+        
         for(int quadI = 0; quadI < this.vertexCount / 4; quadI++) {
-            MeshQuad quad = new MeshQuad(rawBuffer, quadI * 32, new ChunkMesh.Flags(hasTexture, hasBrightness, hasColor, hasNormals));
+            MeshQuad quad = new MeshQuad(rawBuffer, quadI * 32, new ChunkMesh.Flags(hasTexture, hasBrightness, hasColor, hasNormals), xOffset, yOffset, zOffset);
             /*if(quad.bUs[0] == quad.bUs[1] && quad.bUs[1] == quad.bUs[2] && quad.bUs[2] == quad.bUs[3] && quad.bUs[3] == quad.bVs[0] && quad.bVs[0] == quad.bVs[1] && quad.bVs[1] == quad.bVs[2] && quad.bVs[2] == quad.bVs[3] && quad.bVs[3] == 0) {
                 quad.deleted = true;
             }*/
@@ -118,9 +124,11 @@ abstract class MixinTessellator implements ITessellator {
         totalSimplifiedQuadCount += quadCount;
         //System.out.println("simplified quads " + totalOriginalQuadCount + " -> " + totalSimplifiedQuadCount + " (ratio: " + ((float)totalSimplifiedQuadCount / (float)totalOriginalQuadCount) + ") totalMergeCountByPlane: " + Arrays.toString(totalMergeCountByPlane));
         
+        LODMod.debugHookToChunkMeshEnd();
+        
         if(quadCount > 0) {
             return new ChunkMesh(
-                    (int)(-xOffset / 16), (int)(-yOffset / 16), (int)(-zOffset / 16),
+                    (int)(xOffset / 16), (int)(yOffset / 16), (int)(zOffset / 16),
                     new ChunkMesh.Flags(hasTexture, hasBrightness, hasColor, hasNormals),
                     quadCount, quads, pass);
         } else {

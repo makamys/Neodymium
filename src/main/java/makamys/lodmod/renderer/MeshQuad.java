@@ -19,6 +19,7 @@ public class MeshQuad {
     public int[] xs = new int[4];
     public int[] ys = new int[4];
     public int[] zs = new int[4];
+    public int baseX = -1, baseY, baseZ;
     public int minX = Integer.MAX_VALUE;
     public int minY = Integer.MAX_VALUE;
     public int minZ = Integer.MAX_VALUE;
@@ -56,7 +57,7 @@ public class MeshQuad {
         }
     }
     
-    public MeshQuad(int[] rawBuffer, int offset, ChunkMesh.Flags flags) {
+    public MeshQuad(int[] rawBuffer, int offset, ChunkMesh.Flags flags, int offsetX, int offsetY, int offsetZ) {
         this.offset = offset;
         this.flags = flags;
         int i = offset;
@@ -89,9 +90,9 @@ public class MeshQuad {
         } else {
             spriteName = sprite.getIconName();
             for(int vertexI = 0; vertexI < 4; vertexI++) {
-                float x = Float.intBitsToFloat(rawBuffer[i + 0]);
-                float y = Float.intBitsToFloat(rawBuffer[i + 1]);
-                float z = Float.intBitsToFloat(rawBuffer[i + 2]);
+                float x = Float.intBitsToFloat(rawBuffer[i + 0]) - offsetX;
+                float y = Float.intBitsToFloat(rawBuffer[i + 1]) - offsetY;
+                float z = Float.intBitsToFloat(rawBuffer[i + 2]) - offsetZ;
                 
                 int simpleX = (int)(x * 16);
                 //if(simpleX == 256) simpleX = 255;
