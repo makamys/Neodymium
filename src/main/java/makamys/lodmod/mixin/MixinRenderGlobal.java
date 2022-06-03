@@ -31,14 +31,6 @@ abstract class MixinRenderGlobal {
         }
     }
     
-    // for OptiFine's Fast Render option
-    @Redirect(method = "renderSortedRenderersFast", at = @At(value = "INVOKE", target = "Lorg/lwjgl/opengl/GL11;glCallLists(Ljava/nio/IntBuffer;)V"), remap=false)
-    private void redirectRenderAllRenderLists(IntBuffer buffer) {
-        if(!LODMod.isActive() || (LODMod.isActive() && LODMod.renderer.renderWorld)) {
-            GL11.glCallLists(buffer);
-        }
-    }
-    
     @Inject(method = "renderSortedRenderers", at = @At(value = "HEAD"))
     public void preRenderSortedRenderers(int startRenderer, int numRenderers, int renderPass, double partialTickTime, CallbackInfoReturnable cir) {
         if(LODMod.isActive()) {

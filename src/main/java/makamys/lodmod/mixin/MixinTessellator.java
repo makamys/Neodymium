@@ -7,6 +7,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 
 import makamys.lodmod.LODMod;
+import makamys.lodmod.MixinConfigPlugin;
 import makamys.lodmod.ducks.ITessellator;
 import makamys.lodmod.renderer.ChunkMesh;
 import makamys.lodmod.renderer.MeshQuad;
@@ -79,7 +80,8 @@ abstract class MixinTessellator implements ITessellator {
         int zOffset = wr.posZ;
         
         for(int quadI = 0; quadI < this.vertexCount / 4; quadI++) {
-            MeshQuad quad = new MeshQuad(rawBuffer, quadI * 32, new ChunkMesh.Flags(hasTexture, hasBrightness, hasColor, hasNormals), xOffset, yOffset, zOffset);
+            boolean of = MixinConfigPlugin.isOptiFinePresent();
+            MeshQuad quad = new MeshQuad(rawBuffer, quadI * 32, new ChunkMesh.Flags(hasTexture, hasBrightness, hasColor, hasNormals), of ? xOffset : 0, of ? yOffset : 0, of ? zOffset : 0);
             /*if(quad.bUs[0] == quad.bUs[1] && quad.bUs[1] == quad.bUs[2] && quad.bUs[2] == quad.bUs[3] && quad.bUs[3] == quad.bVs[0] && quad.bVs[0] == quad.bVs[1] && quad.bVs[1] == quad.bVs[2] && quad.bVs[2] == quad.bVs[3] && quad.bVs[3] == 0) {
                 quad.deleted = true;
             }*/
