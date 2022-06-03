@@ -103,7 +103,7 @@ public class LODChunk {
 	
 	public void tick(Entity player) {
 		double distSq = distSq(player);
-		if(distSq < Math.pow((LODMod.renderer.renderRange / 2) * 16, 2)) {
+		if(LODMod.disableSimpleMeshes || distSq < Math.pow((LODMod.renderer.renderRange / 2) * 16, 2)) {
 		    setLOD(2);
 		} else if(distSq < Math.pow((LODMod.renderer.renderRange) * 16, 2)) {
 		    setLOD(1);

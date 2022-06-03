@@ -93,7 +93,6 @@ public class LODRenderer {
     public int renderRange = 48;
     
     private boolean freezeMeshes;
-    public boolean disableChunkMeshes = true;
     
     public LODRenderer(World world){
     	this.world = world;
@@ -461,17 +460,19 @@ public class LODRenderer {
         int z = Math.floorDiv(wr.posZ, 16);
         LODChunk lodChunk = getLODChunk(x, z);
         
-        if(visible) {
-            lodChunk.hidden[y] = true;
-            lodChunkChanged(lodChunk);
-        } else {
-            lodChunk.hidden[y] = false;
-            lodChunkChanged(lodChunk);
+        if(LODMod.hideUnderVanillaChunks) {
+            if(visible) {
+                lodChunk.hidden[y] = true;
+                lodChunkChanged(lodChunk);
+            } else {
+                lodChunk.hidden[y] = false;
+                lodChunkChanged(lodChunk);
+            }
         }
 	}
 	
 	public void onWorldRendererPost(WorldRenderer wr) {
-	    if(disableChunkMeshes) return;
+	    if(LODMod.disableChunkMeshes) return;
 	    
 	    if(Minecraft.getMinecraft().theWorld.getChunkFromChunkCoords(Math.floorDiv(wr.posX, 16), Math.floorDiv(wr.posZ, 16)).isChunkLoaded) {
     		LODChunk lodChunk = getLODChunk(Math.floorDiv(wr.posX, 16), Math.floorDiv(wr.posZ, 16));
@@ -540,7 +541,7 @@ public class LODRenderer {
 	}
 	
 	public void lodChunkChanged(LODChunk lodChunk) {
-		int newLOD = (!lodChunk.hasChunkMeshes() && lodChunk.lod == 2) ? 1 : lodChunk.lod;
+		int newLOD = (!lodChunk.hasChunkMeshes() && lodChunk.lod == 2) ? (LODMod.disableSimpleMeshes ? 0 : 1) : lodChunk.lod;
 		for(SimpleChunkMesh sm : lodChunk.simpleMeshes) {
 		    if(sm != null) {
 		        if(lodChunk.isFullyVisible() && newLOD == 1) {

@@ -55,6 +55,9 @@ public class LODMod
     public static double farPlaneDistanceMultiplier;
 	public static float maxSimpleMeshHeight;
 	public static boolean forceVanillaBiomeTemperature;
+	public static boolean hideUnderVanillaChunks;
+	public static boolean disableChunkMeshes;
+	public static boolean disableSimpleMeshes;
     
     private File configFile;
     
@@ -92,6 +95,10 @@ public class LODMod
 		
 		forceVanillaBiomeTemperature = config.get("Simple mesh generation", "forceVanillaBiomeTemperature", true).getBoolean();
         
+		hideUnderVanillaChunks = config.getBoolean("hideUnderVanillaChunks", "render", true, "");
+		disableChunkMeshes = config.getBoolean("disableChunkMeshes", "render", true, "");
+		disableSimpleMeshes = config.getBoolean("disableSimpleMeshes", "render", false, "");
+		
         if(config.hasChanged()) {
             config.save();
         }

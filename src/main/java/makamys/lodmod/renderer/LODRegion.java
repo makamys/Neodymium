@@ -58,7 +58,7 @@ public class LODRegion {
     }
 	
 	public static LODRegion load(Path saveDir, int regionX, int regionZ) {
-	    if(!LODMod.renderer.disableChunkMeshes) {
+	    if(!LODMod.disableChunkMeshes) {
     	    File saveFile = getSavePath(saveDir, regionX, regionZ).toFile();
     	    if(saveFile.exists()) {
     	        try {
@@ -77,7 +77,7 @@ public class LODRegion {
 	}
 	
 	public void save(Path saveDir) {
-	    if(LODMod.renderer.disableChunkMeshes) return;
+	    if(LODMod.disableChunkMeshes) return;
 	    
 	    try {
 	        File saveFile = getSavePath(saveDir, regionX, regionZ).toFile();
