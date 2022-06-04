@@ -145,6 +145,8 @@ public class LODRenderer {
             }
         }
         
+        frameCount++;
+        
         Minecraft.getMinecraft().entityRenderer.disableLightmap((double)alpha);
     }
     
