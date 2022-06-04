@@ -244,6 +244,9 @@ public class LODRenderer {
 		if(Keyboard.isKeyDown(Keyboard.KEY_V) && !wasDown[Keyboard.KEY_V]) {
 			renderWorld = !renderWorld;
 		}
+		if(Keyboard.isKeyDown(Keyboard.KEY_R) && !wasDown[Keyboard.KEY_R]) {
+            loadShader();
+        }
 		if(Keyboard.isKeyDown(Keyboard.KEY_G) && !wasDown[Keyboard.KEY_G]) {
             //LODChunk chunk = getLODChunk(9, -18);
             //setMeshVisible(chunk.chunkMeshes[7], false, true);
@@ -395,37 +398,7 @@ public class LODRenderer {
 	public boolean init() {
 		Map<String, TextureAtlasSprite> uploadedSprites = ((TextureMap)Minecraft.getMinecraft().getTextureManager().getTexture(TextureMap.locationBlocksTexture)).mapUploadedSprites;
 		
-		int vertexShader;
-		vertexShader = glCreateShader(GL_VERTEX_SHADER);
-		
-		glShaderSource(vertexShader, Util.readFile("shaders/chunk.vert"));
-		glCompileShader(vertexShader);
-		
-		if(glGetShaderi(vertexShader, GL_COMPILE_STATUS) == 0) {
-			System.out.println("Error compiling vertex shader: " + glGetShaderInfoLog(vertexShader, 256));
-		}
-		
-		int fragmentShader;
-		fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-		
-		glShaderSource(fragmentShader, Util.readFile("shaders/chunk.frag"));
-		glCompileShader(fragmentShader);
-		
-		if(glGetShaderi(fragmentShader, GL_COMPILE_STATUS) == 0) {
-			System.out.println("Error compiling fragment shader: " + glGetShaderInfoLog(fragmentShader, 256));
-		}
-		
-		shaderProgram = glCreateProgram();
-		glAttachShader(shaderProgram, vertexShader);
-		glAttachShader(shaderProgram, fragmentShader);
-		glLinkProgram(shaderProgram);
-		
-		if(glGetProgrami(shaderProgram, GL_LINK_STATUS) == 0) {
-			System.out.println("Error linking shader: " + glGetShaderInfoLog(shaderProgram, 256));
-		}
-		
-		glDeleteShader(vertexShader);
-		glDeleteShader(fragmentShader);
+		loadShader();
 		
 		VAO = glGenVertexArrays();
 		glBindVertexArray(VAO);
@@ -459,6 +432,40 @@ public class LODRenderer {
 		
 		return true;
 	}
+	
+	   private void loadShader() {
+	        int vertexShader;
+	        vertexShader = glCreateShader(GL_VERTEX_SHADER);
+	        
+	        glShaderSource(vertexShader, Util.readFile("shaders/chunk.vert"));
+	        glCompileShader(vertexShader);
+	        
+	        if(glGetShaderi(vertexShader, GL_COMPILE_STATUS) == 0) {
+	            System.out.println("Error compiling vertex shader: " + glGetShaderInfoLog(vertexShader, 256));
+	        }
+	        
+	        int fragmentShader;
+	        fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+	        
+	        glShaderSource(fragmentShader, Util.readFile("shaders/chunk.frag"));
+	        glCompileShader(fragmentShader);
+	        
+	        if(glGetShaderi(fragmentShader, GL_COMPILE_STATUS) == 0) {
+	            System.out.println("Error compiling fragment shader: " + glGetShaderInfoLog(fragmentShader, 256));
+	        }
+	        
+	        shaderProgram = glCreateProgram();
+	        glAttachShader(shaderProgram, vertexShader);
+	        glAttachShader(shaderProgram, fragmentShader);
+	        glLinkProgram(shaderProgram);
+	        
+	        if(glGetProgrami(shaderProgram, GL_LINK_STATUS) == 0) {
+	            System.out.println("Error linking shader: " + glGetShaderInfoLog(shaderProgram, 256));
+	        }
+	        
+	        glDeleteShader(vertexShader);
+	        glDeleteShader(fragmentShader);
+	    }
 	
 	public void destroy() {
 	    onSave();
