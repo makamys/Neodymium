@@ -10,8 +10,20 @@ import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+import net.minecraft.launchwrapper.Launch;
+
 public class Util {
+    
+    private static boolean allowResourceOverrides = Boolean.parseBoolean(System.getProperty("lodmod.allowResourceOverrides", "false"));
+    
     public static Path getResourcePath(String relPath) {
+        if(allowResourceOverrides) {
+            File overrideFile = new File(new File(Launch.minecraftHome, "lodmod/resources"), relPath);
+            if(overrideFile.exists()) {
+                return overrideFile.toPath();
+            }
+        }
+        
         try {
             URL resourceURL = Util.class.getClassLoader().getResource(relPath);
             
