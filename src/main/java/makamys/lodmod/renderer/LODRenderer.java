@@ -92,6 +92,7 @@ public class LODRenderer {
     private long saveInterval = 60 * 1000;
     
     private int renderedMeshes;
+    private int frameCount;
     
     public int renderRange = 48;
     
@@ -134,7 +135,10 @@ public class LODRenderer {
             }
             
             if(renderLOD) {
-                sort();
+                if(frameCount % LODMod.sortFrequency == 0) {
+                    sort();
+                }
+                
                 updateMeshes();
                 initIndexBuffers();
                 render(alpha);

@@ -59,8 +59,10 @@ public class LODMod
 	public static boolean hideUnderVanillaChunks;
 	public static boolean disableChunkMeshes;
 	public static boolean disableSimpleMeshes;
+	public static boolean saveMeshes;
 	public static boolean optimizeChunkMeshes;
 	public static int maxMeshesPerFrame;
+	public static int sortFrequency;
     
     private File configFile;
     
@@ -104,7 +106,9 @@ public class LODMod
 		disableChunkMeshes = config.getBoolean("disableChunkMeshes", "render", true, "");
 		disableSimpleMeshes = config.getBoolean("disableSimpleMeshes", "render", false, "");
 		optimizeChunkMeshes = config.getBoolean("optimizeChunkMeshes", "render", true, "");
+		saveMeshes = config.getBoolean("saveMeshes", "render", false, "");
 		maxMeshesPerFrame = config.getInt("maxMeshesPerFrame", "render", -1, -1, Integer.MAX_VALUE, "");
+		sortFrequency = config.getInt("sortFrequency", "render", 1, 1, Integer.MAX_VALUE, "");
 		
         if(config.hasChanged()) {
             config.save();
