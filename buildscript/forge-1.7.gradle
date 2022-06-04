@@ -1,0 +1,90 @@
+/** Common code for Forge 1.7.10 builds */
+
+apply plugin: 'forge'
+
+
+project.version = new File(project.multiproject_structure.toBoolean() ? "${projectDir}/../version.txt" : "${projectDir}/publish/version.txt").getText('UTF-8').trim()
+
+group = project.group
+archivesBaseName = "${project.archives_base}-${project.minecraft_version}"
+
+minecraft {
+    version = "${project.minecraft_version}-${project.forge_version}"
+    runDir = "run"
+	replace '@VERSION@', project.version
+}
+
+// These settings allow you to choose what version of Java you want to be compatible with. Forge 1.7.10 runs on Java 6 to 8.
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+repositories {
+	maven {
+		name = "chickenbones"
+		url = "http://chickenbones.net/maven/"
+	}
+}
+
+configurations {
+    embed
+    compile.extendsFrom(embed)
+	shade
+    compile.extendsFrom(shade)
+}
+
+if(project.enable_mixin.toBoolean()) {
+	apply from: "buildscript/forge-1.7-mixin.gradle"
+}
+
+apply from: "project.gradle"
+
+jar {
+    from(sourceSets.main.output);
+
+    // embed libraries in jar
+    from configurations.embed.collect {
+        exclude '**/LICENSE', '**/LICENSE.txt'
+        it.isDirectory() ? it : zipTree(it)
+    }
+	
+	configurations.shade.each { dep ->
+        from(project.zipTree(dep)){
+            exclude '**/LICENSE', '**/LICENSE.txt', 'META-INF', 'META-INF/**'
+        }
+    }
+}
+
+processResources {
+    // This will ensure that this task is redone when the versions or any
+	// user-defined properties change.
+    inputs.property "version", version
+    inputs.property "mcversion", project.minecraft.version
+	inputs.properties project.ext.getProperties()
+
+    filesMatching('*.info') {
+        expand project.properties
+    }
+}
+
+// Ensures that the encoding of source files is set to UTF-8, see http://yodaconditions.net/blog/fix-for-java-file-encoding-problems-with-gradle.html
+tasks.withType(JavaCompile) {
+    options.encoding = "UTF-8"
+}
+
+// This task creates a .jar file containing the source code of this mod.
+task sourcesJar(type: Jar, dependsOn: classes) {
+    classifier = "sources"
+    from sourceSets.main.allSource
+}
+
+// This task creates a .jar file containing a deobfuscated version of this mod, for other developers to use in a development environment.
+task devJar(type: Jar) {
+    classifier = "dev"
+    from sourceSets.main.output
+}
+
+// Creates the listed artifacts on building the mod.
+artifacts {
+    archives sourcesJar
+    archives devJar
+}

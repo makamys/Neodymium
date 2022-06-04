@@ -1,0 +1,158 @@
+plugins {
+	id "com.github.breadmoirai.github-release" version "2.2.12"
+	id "com.matthewprenger.cursegradle" version "1.4.0"
+	id "com.modrinth.minotaur" version "1.2.1"
+}
+
+import com.modrinth.minotaur.TaskModrinthUpload
+import groovy.json.JsonSlurper
+import okhttp3.OkHttpClient
+import java.util.concurrent.TimeUnit
+
+def buildVersion = new File("${projectDir}/version.txt").getText('UTF-8').trim()
+def changeLog = new File("${projectDir}/changelog.md").getText('UTF-8')
+def gameVersionsMap = new JsonSlurper().parseText(file("gameVersions.json").getText('UTF-8'))
+ext.gameVersions = gameVersionsMap.keySet()
+
+def githubOK = project.hasProperty("githubToken")
+def curseOK = project.hasProperty("curseToken") && project.hasProperty("gameVersion")
+def modrinthOK = project.hasProperty("modrinthToken") && project.hasProperty("gameVersion")
+
+def debugPublish = project.hasProperty("debugPublish") && project.debugPublish.toBoolean()
+
+task build {}
+task assemble {}
+
+if(githubOK){
+	githubRelease {
+		token project.githubToken // This is your personal access token with Repo permissions
+							 // You get this from your user settings > developer settings > Personal Access Tokens
+		owner project.githubOwner // default is the last part of your group. Eg group: "com.github.breadmoirai" => owner: "breadmoirai"
+		repo project.githubRepo // by default this is set to your project name
+		tagName "v${buildVersion}" // by default this is set to "v${project.version}"
+		targetCommitish "master" // by default this is set to "master"
+		releaseName "${project.releaseName} ${buildVersion}"
+		body changeLog // by default this is empty
+		draft false // by default this is false
+		prerelease false // by default this is false
+		releaseAssets getFiles() // this points to which files you want to upload as assets with your release
+
+		overwrite false // by default false; if set to true, will delete an existing release with the same tag and name
+		dryRun debugPublish // by default false; you can use this to see what actions would be taken without making a release
+		apiEndpoint "https://api.github.com" // should only change for github enterprise users
+		client new OkHttpClient.Builder()
+			.writeTimeout(5, TimeUnit.MINUTES)
+			.readTimeout(5, TimeUnit.MINUTES)
+			.build() // Added because I kept getting SocketTimeoutExceptions
+	}
+} else {
+	println("Not configuring GitHub publish because project arguments are missing.")
+}
+
+if(project.hasProperty("gameVersion")){
+	def gameVersion = project.gameVersion
+	def baseVersion = toBaseVersion(gameVersion)
+	def files = getFiles(baseVersion)
+	def shortest = null
+	files.each {
+		if(shortest == null || it.name.length() < shortest.name.length()){
+			shortest = it
+		}
+	}
+	def additionalFiles = files - shortest	
+
+	if(curseOK) {
+		curseforge {
+			apiKey = project.curseToken
+			project {
+				id = project.curseID
+				changelogType = 'markdown'
+				changelog = changeLog
+				releaseType = 'release'
+				addGameVersion gameVersion
+				addGameVersion "Forge"
+
+				mainArtifact(file(shortest)) {
+					displayName = "${releaseName} ${buildVersion} for Minecraft ${gameVersion}"
+				}
+				additionalFiles.each { addArtifact(it) }
+			}
+			options {
+				debug = debugPublish
+				javaIntegration = false
+				forgeGradleIntegration = false
+				javaVersionAutoDetect = false
+			}
+		}
+	} else {
+		println("Not configuring CurseForge publish because project arguments are missing.")
+	}
+	
+	if(modrinthOK) {
+		task publishModrinth (type: TaskModrinthUpload) {
+			token = project.modrinthToken
+			projectId = project.modrinthID
+			versionNumber = "$gameVersion-$buildVersion"
+			versionName = "$gameVersion-$buildVersion" // the doc says this defaults to the versionNumber, but it defaulted to the string "undefined" for me so i'm setting it
+			uploadFile = shortest
+			addGameVersion(gameVersion)
+			additionalFiles.each { addFile(it) }
+			addLoader('forge')
+			changelog = changeLog
+			detectLoaders = false
+		}
+	} else {
+		println("Not configuring Modrinth publish because project arguments are missing.")
+	}
+}
+
+def toBaseVersion(ver){
+	return String.join(".", ver.tokenize(".").subList(0, 2))
+}
+
+def getVersionProjectPath(ver){
+	if(project.versionedProjectDirectories.toBoolean()){
+		return "${projectDir}/../${ver}"
+	} else {
+		return "${projectDir}/.."
+	}
+}
+
+def getFiles(ver) {
+	def files = []
+	new File("${getVersionProjectPath(ver)}/build/libs").eachFile(groovy.io.FileType.FILES, {
+		if(!(it.name.endsWith("-sources.jar") || it.name.endsWith("-dev.jar"))){
+			files << it
+		}
+	})
+	return files
+}
+
+def getFiles() {
+	def files = []
+	project.gameVersions.collect({toBaseVersion(it)}).each {
+		files += getFiles(it)
+	}
+	return files
+}
+
+// for debug
+task listFiles {
+	doLast {
+		project.gameVersions.collect({toBaseVersion(it)}).each {
+			println("$it: ${getFiles(it)}")
+		}
+	}
+}
+
+project.gameVersions.collect({toBaseVersion(it)}).each { ver ->
+	def dir = getVersionProjectPath(ver)
+	task ("cleanBuild-$ver", type: Exec) {
+		workingDir dir
+		commandLine 'sh', '-c', "rm -f build/libs/* && ./gradlew build"
+	}
+}
+
+task cleanBuildAll(dependsOn: project.gameVersions.collect({"cleanBuild-${toBaseVersion(it)}"})) {
+
+}

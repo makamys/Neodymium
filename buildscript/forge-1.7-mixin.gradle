@@ -1,0 +1,42 @@
+/** Applying this file in a Forge build will imbue it with the powers of Mixin. */
+
+repositories {
+	maven {
+		name = 'sponge'
+		url = 'https://repo.spongepowered.org/maven/'
+	}
+}
+
+dependencies {
+	embed('org.spongepowered:mixin:0.7.11-SNAPSHOT'){
+		setTransitive false
+	}
+}
+
+ext.outRefMapFile = "${tasks.compileJava.temporaryDir}/${project.modid}.mixin.refmap.json"
+
+jar {
+	manifest {
+        attributes (
+			'MixinConfigs': "${project.modid}.mixin.json",
+            'TweakClass': 'org.spongepowered.asm.launch.MixinTweaker',
+            'TweakOrder': 0,
+			
+			// If these two are not set, Forge will not detect the mod, it will only run the mixins
+            'FMLCorePluginContainsFMLMod': 'true',
+            'ForceLoadAsMod': 'true',
+		)
+	}
+	
+	from outRefMapFile;
+}
+
+def outSrgFile = "${tasks.compileJava.temporaryDir}/outSrg.srg"
+
+afterEvaluate {
+    tasks.compileJava.options.compilerArgs += ["-AreobfSrgFile=${tasks.reobf.srg}", "-AoutSrgFile=${outSrgFile}", "-AoutRefMapFile=${outRefMapFile}"];
+}
+
+reobf {
+    addExtraSrgFile outSrgFile
+}

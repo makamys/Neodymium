@@ -1,10 +1,10 @@
 [
 {
-  "modid": "lodmod",
+  "modid": "${modid}",
   "name": "LOD mod",
   "description": "Increases render distance by rendering distant chunks with a low level of detail",
   "version": "${version}",
-  "mcversion": "${mcversion}",
+  "mcversion": "${minecraft_version}",
   "url": "",
   "updateUrl": "",
   "authorList": ["makamys"],
