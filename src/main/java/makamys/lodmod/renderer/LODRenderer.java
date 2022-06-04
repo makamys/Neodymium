@@ -167,8 +167,8 @@ public class LODRenderer {
     
     private void initIndexBuffers() {
         for(int i = 0; i < 2; i++) {
-            piFirst[i].limit(sentMeshes[i].size() + sentMeshes[i].size());
-            piCount[i].limit(sentMeshes[i].size() + sentMeshes[i].size());
+            piFirst[i].limit(sentMeshes[i].size());
+            piCount[i].limit(sentMeshes[i].size());
             for(Mesh mesh : sentMeshes[i]) {
                 if(mesh.visible && (LODMod.maxMeshesPerFrame == -1 || renderedMeshes < LODMod.maxMeshesPerFrame)) {
                     renderedMeshes++;
@@ -279,9 +279,6 @@ public class LODRenderer {
         long t0 = System.nanoTime();
         
         for(int i = 0; i < 2; i++) {
-            piFirst[i].limit(0);
-            piCount[i].limit(0);
-            
             for(Iterator<Mesh> it = sentMeshes[i].iterator(); it.hasNext(); ) {
                 Mesh mesh = it.next();
                 if(mesh.gpuStatus == GPUStatus.SENT) {
@@ -293,11 +290,6 @@ public class LODRenderer {
                     
                     nextMeshOffset += mesh.bufferSize();
                     nextTri += mesh.quadCount * 6;
-                    
-                    piFirst[i].limit(piFirst[i].limit() + 1);
-                    piFirst[i].put(mesh.iFirst);
-                    piCount[i].limit(piCount[i].limit() + 1);
-                    piCount[i].put(mesh.iCount);
                 } else if(mesh.gpuStatus == GPUStatus.PENDING_DELETE) {
                     mesh.iFirst = mesh.offset = -1;
                     mesh.visible = false;
