@@ -129,7 +129,7 @@ public class LODRenderer {
                 runGC();
                 lastGCTime = System.currentTimeMillis();
             }
-            if(lastSaveTime == -1 || (System.currentTimeMillis() - lastSaveTime) > saveInterval) {
+            if(lastSaveTime == -1 || (System.currentTimeMillis() - lastSaveTime) > saveInterval && LODMod.saveMeshes) {
                 onSave();
                 lastSaveTime = System.currentTimeMillis();
             }
