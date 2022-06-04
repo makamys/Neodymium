@@ -91,6 +91,8 @@ public class LODRenderer {
     private long gcInterval = 10 * 1000;
     private long saveInterval = 60 * 1000;
     
+    private int renderedMeshes;
+    
     public int renderRange = 48;
     
     private boolean freezeMeshes;
@@ -106,6 +108,8 @@ public class LODRenderer {
         if(renderPass != 0) return;
         
         LODMod.fogEventWasPosted = false;
+        
+        renderedMeshes = 0;
         
         Minecraft.getMinecraft().entityRenderer.enableLightmap((double)alpha);
         
@@ -161,6 +165,7 @@ public class LODRenderer {
             piCount[i].limit(sentMeshes[i].size() + sentMeshes[i].size());
             for(Mesh mesh : sentMeshes[i]) {
                 if(mesh.visible) {
+                    renderedMeshes++;
                     piFirst[i].put(mesh.iFirst);
                     piCount[i].put(mesh.iCount);
                 }
@@ -475,14 +480,14 @@ public class LODRenderer {
         LODChunk lodChunk = getLODChunk(x, z);
         
         if(LODMod.hideUnderVanillaChunks) {
-            if(visible) {
-                lodChunk.hidden[y] = true;
-                lodChunkChanged(lodChunk);
-            } else {
-                lodChunk.hidden[y] = false;
-                lodChunkChanged(lodChunk);
-            }
+        if(visible) {
+            lodChunk.hidden[y] = true;
+            lodChunkChanged(lodChunk);
+        } else {
+            lodChunk.hidden[y] = false;
+            lodChunkChanged(lodChunk);
         }
+   
 	}
 	
 	public void onWorldRendererPost(WorldRenderer wr) {
@@ -667,7 +672,8 @@ public class LODRenderer {
 	            "VRAM: " + (nextMeshOffset / 1024 / 1024) + "MB / " + (BUFFER_SIZE / 1024 / 1024) + "MB",
 	            "Simple meshes: " + SimpleChunkMesh.instances + " (" + SimpleChunkMesh.usedRAM / 1024 / 1024 + "MB)",
 	            "Full meshes: " + ChunkMesh.instances + " (" + ChunkMesh.usedRAM / 1024 / 1024 + "MB)",
-	            "Total RAM used: " + ((SimpleChunkMesh.usedRAM + ChunkMesh.usedRAM) / 1024 / 1024) + " MB"
+	            "Total RAM used: " + ((SimpleChunkMesh.usedRAM + ChunkMesh.usedRAM) / 1024 / 1024) + " MB",
+	            "Rendered: " + renderedMeshes
 	    );
 	}
 	
