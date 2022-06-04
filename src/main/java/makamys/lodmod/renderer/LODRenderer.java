@@ -42,6 +42,7 @@ import org.lwjgl.util.vector.Matrix4f;
 
 import makamys.lodmod.LODMod;
 import makamys.lodmod.ducks.IWorldRenderer;
+import makamys.lodmod.renderer.Mesh.GPUStatus;
 import makamys.lodmod.util.Util;
 
 import static org.lwjgl.opengl.GL11.*;
@@ -258,7 +259,7 @@ public class LODRenderer {
             
             for(Iterator<Mesh> it = sentMeshes[i].iterator(); it.hasNext(); ) {
                 Mesh mesh = it.next();
-                if(!mesh.pendingGPUDelete) {
+                if(mesh.gpuStatus == GPUStatus.SENT) {
                     if(mesh.offset != nextMeshOffset) {
                         glBufferSubData(GL_ARRAY_BUFFER, nextMeshOffset, mesh.buffer);
                     }
@@ -272,10 +273,10 @@ public class LODRenderer {
                     piFirst[i].put(mesh.iFirst);
                     piCount[i].limit(piCount[i].limit() + 1);
                     piCount[i].put(mesh.iCount);
-                } else {
+                } else if(mesh.gpuStatus == GPUStatus.PENDING_DELETE) {
                     mesh.iFirst = mesh.offset = -1;
                     mesh.visible = false;
-                    mesh.pendingGPUDelete = false;
+                    mesh.gpuStatus = GPUStatus.UNSENT;
                     it.remove();
                     deletedNum[i]++;
                     deletedRAM += mesh.bufferSize();
@@ -599,31 +600,31 @@ public class LODRenderer {
         if(mesh == null) {
             return;
         }
-        if(mesh.pendingGPUDelete) {
-            mesh.pendingGPUDelete = false;
-            return;
+        if(mesh.gpuStatus == GPUStatus.UNSENT) {   
+            glBindVertexArray(VAO);
+            glBindBuffer(GL_ARRAY_BUFFER, VBO);
+            
+            glBufferSubData(GL_ARRAY_BUFFER, nextMeshOffset, mesh.buffer);
+            mesh.iFirst = nextTri;
+            mesh.iCount = mesh.quadCount * 6;
+            mesh.offset = nextMeshOffset;
+            
+            nextTri += mesh.quadCount * 6;
+            nextMeshOffset += mesh.buffer.limit();
+            sentMeshes[mesh.pass].add(mesh);
+            
+            glBindBuffer(GL_ARRAY_BUFFER, 0);
+            glBindVertexArray(0);
         }
-        glBindVertexArray(VAO);
-        glBindBuffer(GL_ARRAY_BUFFER, VBO);
         
-        glBufferSubData(GL_ARRAY_BUFFER, nextMeshOffset, mesh.buffer);
-        mesh.iFirst = nextTri;
-        mesh.iCount = mesh.quadCount * 6;
-        mesh.offset = nextMeshOffset;
-        
-        nextTri += mesh.quadCount * 6;
-        nextMeshOffset += mesh.buffer.limit();
-        sentMeshes[mesh.pass].add(mesh);
-        
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-        glBindVertexArray(0);
+        mesh.gpuStatus = GPUStatus.SENT;
     }
 	
     private void deleteMeshFromGPU(Mesh mesh) {
-        if(mesh == null) {
+        if(mesh == null || mesh.gpuStatus == GPUStatus.UNSENT) {
             return;
         }
-        mesh.pendingGPUDelete = true;
+        mesh.gpuStatus = GPUStatus.PENDING_DELETE;
     }	
 	
 	public Chunk getChunkFromChunkCoords(int x, int z) {

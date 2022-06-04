@@ -12,7 +12,7 @@ public abstract class Mesh {
 	public ByteBuffer buffer;
 	public int quadCount;
 	public boolean visible;
-	public boolean pendingGPUDelete;
+	public GPUStatus gpuStatus = GPUStatus.UNSENT;
 	public int iFirst = -1, iCount = -1;
 	public int offset = -1;
 	public int pass;
@@ -31,5 +31,9 @@ public abstract class Mesh {
 	        assert buffer.limit() == bufferSize;
 	    }
 	    return bufferSize;
+	}
+	
+	public static enum GPUStatus {
+	    UNSENT, SENT, PENDING_DELETE
 	}
 }
