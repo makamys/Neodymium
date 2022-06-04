@@ -96,13 +96,14 @@ public class ChunkMesh extends Mesh {
     }
     
     @Override
-    public void onVisibilityChanged() {
-        if(visible) {
-            this.buffer = createBuffer(((NBTTagByteArray)nbtData).func_150292_c(), nameList);
-        } else {
-            usedRAM -= buffer.limit();
-            this.buffer = null;
-        }
+    public void prepareBuffer() {
+        this.buffer = createBuffer(((NBTTagByteArray)nbtData).func_150292_c(), nameList);
+    }
+    
+    @Override
+    public void destroyBuffer(){
+        usedRAM -= buffer.limit();
+        this.buffer = null;
     }
 
     private ByteBuffer createBuffer(byte[] data, List<String> stringTable) {

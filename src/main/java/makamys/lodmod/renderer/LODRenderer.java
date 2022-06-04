@@ -247,7 +247,7 @@ public class LODRenderer {
 	    
 	    glBindVertexArray(VAO);
         glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	    
+	        
         int[] deletedNum = new int[2];
         int deletedRAM = 0;
         
@@ -277,6 +277,8 @@ public class LODRenderer {
                     mesh.iFirst = mesh.offset = -1;
                     mesh.visible = false;
                     mesh.gpuStatus = GPUStatus.UNSENT;
+                    mesh.destroyBuffer();
+                    
                     it.remove();
                     deletedNum[i]++;
                     deletedRAM += mesh.bufferSize();
@@ -587,20 +589,24 @@ public class LODRenderer {
 		
 		if(mesh.visible != visible) {
 		    mesh.visible = visible;
-		    mesh.onVisibilityChanged();
-			if(!visible) {
-				deleteMeshFromGPU(mesh);
-			} else if(visible) {
-			    sendMeshToGPU(mesh);
-			}
+		    
+		    if(mesh.gpuStatus == GPUStatus.UNSENT) {
+		        sendMeshToGPU(mesh);
+		    }
 		}
+	}
+	
+	public void removeMesh(Mesh mesh) {
+	    deleteMeshFromGPU(mesh);
 	}
 	
 	private void sendMeshToGPU(Mesh mesh) {
         if(mesh == null) {
             return;
         }
-        if(mesh.gpuStatus == GPUStatus.UNSENT) {   
+        if(mesh.gpuStatus == GPUStatus.UNSENT) {
+            mesh.prepareBuffer();
+            
             glBindVertexArray(VAO);
             glBindBuffer(GL_ARRAY_BUFFER, VBO);
             

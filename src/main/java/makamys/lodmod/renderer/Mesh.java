@@ -19,7 +19,6 @@ public abstract class Mesh {
 	int x, y, z;
 	
 	public abstract int getStride();
-	public void onVisibilityChanged() {}
 	
 	public double distSq(double x2, double y2, double z2) {
 	    return Util.distSq(x, y, z, x2, y2, z2);
@@ -32,6 +31,9 @@ public abstract class Mesh {
 	    }
 	    return bufferSize;
 	}
+	
+	public void prepareBuffer() {}
+	public void destroyBuffer() {}
 	
 	public static enum GPUStatus {
 	    UNSENT, SENT, PENDING_DELETE

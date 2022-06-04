@@ -65,7 +65,7 @@ public class LODChunk {
 			        newChunkMesh.pass = i;
 			    }
 			    
-			    renderer.setMeshVisible(chunkMeshes[cy * 2 + i], false);
+			    renderer.removeMesh(chunkMeshes[cy * 2 + i]);
 			    chunkMeshes[cy * 2 + i].destroy();
 			}
 		    chunkMeshes[cy * 2 + i] = newChunkMesh;
