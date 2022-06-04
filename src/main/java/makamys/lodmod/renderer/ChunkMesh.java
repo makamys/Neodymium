@@ -174,6 +174,9 @@ public class ChunkMesh extends Mesh {
         return buffer;
     }
     
+    public void update() {
+    }
+    
     // Java is weird.
     public static short readShortAt(DataInputStream in, int offset) {
         try {

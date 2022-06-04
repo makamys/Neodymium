@@ -35,6 +35,8 @@ public abstract class Mesh {
 	public void prepareBuffer() {}
 	public void destroyBuffer() {}
 	
+	public void update() {}
+	
 	public static enum GPUStatus {
 	    UNSENT, SENT, PENDING_DELETE
 	}
