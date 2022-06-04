@@ -479,15 +479,8 @@ public class LODRenderer {
         int z = Math.floorDiv(wr.posZ, 16);
         LODChunk lodChunk = getLODChunk(x, z);
         
-        if(LODMod.hideUnderVanillaChunks) {
-        if(visible) {
-            lodChunk.hidden[y] = true;
-            lodChunkChanged(lodChunk);
-        } else {
-            lodChunk.hidden[y] = false;
-            lodChunkChanged(lodChunk);
-        }
-   
+        lodChunk.hidden[y] = LODMod.hideUnderVanillaChunks ? visible : !visible;
+        lodChunkChanged(lodChunk);
 	}
 	
 	public void onWorldRendererPost(WorldRenderer wr) {
