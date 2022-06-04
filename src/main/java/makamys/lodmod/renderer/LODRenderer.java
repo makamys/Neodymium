@@ -142,7 +142,11 @@ public class LODRenderer {
     
     private void sort() {
         Entity player = Minecraft.getMinecraft().renderViewEntity;
-        sentMeshes[1].sort(new MeshDistanceComparator(player.posX, player.posY, player.posZ));
+        for(List<Mesh> list : sentMeshes) {
+            list.sort(new MeshDistanceComparator(player.posX / 16, player.posY / 16, player.posZ / 16));
+        }
+    }
+    
     private void updateMeshes() {
         for(List<Mesh> list : sentMeshes) {
             for(Mesh mesh : list) {
