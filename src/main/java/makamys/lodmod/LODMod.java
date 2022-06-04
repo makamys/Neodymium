@@ -60,6 +60,7 @@ public class LODMod
 	public static boolean disableChunkMeshes;
 	public static boolean disableSimpleMeshes;
 	public static boolean optimizeChunkMeshes;
+	public static int maxMeshesPerFrame;
     
     private File configFile;
     
@@ -103,6 +104,7 @@ public class LODMod
 		disableChunkMeshes = config.getBoolean("disableChunkMeshes", "render", true, "");
 		disableSimpleMeshes = config.getBoolean("disableSimpleMeshes", "render", false, "");
 		optimizeChunkMeshes = config.getBoolean("optimizeChunkMeshes", "render", true, "");
+		maxMeshesPerFrame = config.getInt("maxMeshesPerFrame", "render", -1, -1, Integer.MAX_VALUE, "");
 		
         if(config.hasChanged()) {
             config.save();

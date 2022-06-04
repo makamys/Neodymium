@@ -164,7 +164,7 @@ public class LODRenderer {
             piFirst[i].limit(sentMeshes[i].size() + sentMeshes[i].size());
             piCount[i].limit(sentMeshes[i].size() + sentMeshes[i].size());
             for(Mesh mesh : sentMeshes[i]) {
-                if(mesh.visible) {
+                if(mesh.visible && (LODMod.maxMeshesPerFrame == -1 || renderedMeshes < LODMod.maxMeshesPerFrame)) {
                     renderedMeshes++;
                     piFirst[i].put(mesh.iFirst);
                     piCount[i].put(mesh.iCount);
