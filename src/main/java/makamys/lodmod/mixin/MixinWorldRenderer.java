@@ -45,10 +45,10 @@ abstract class MixinWorldRenderer implements IWorldRenderer {
     @Shadow
     private int glRenderList;
     
-    boolean lastDrawn;
-    
     @Shadow
     public boolean needsUpdate;
+    
+    boolean savedDrawnStatus;
     
     public List<ChunkMesh> chunkMeshes;
     
@@ -70,6 +70,8 @@ abstract class MixinWorldRenderer implements IWorldRenderer {
     
     @Inject(method = "updateRenderer", at = @At(value = "HEAD"))
     private void preUpdateRenderer(CallbackInfo ci) {
+        saveDrawnStatus();
+        
         if(LODMod.isActive()) {
             if(needsUpdate) {
                 if(chunkMeshes != null) {
@@ -83,8 +85,10 @@ abstract class MixinWorldRenderer implements IWorldRenderer {
         }
     }
     
-    @Inject(method = "updateRenderer", at = @At(value = "TAIL"))
+    @Inject(method = "updateRenderer", at = @At(value = "RETURN"))
     private void postUpdateRenderer(CallbackInfo ci) {
+        notifyIfDrawnStatusChanged();
+        
         if(LODMod.isActive()) {
             if(chunkMeshes != null) {
                 LODMod.renderer.onWorldRendererPost(WorldRenderer.class.cast(this));
@@ -150,11 +154,28 @@ abstract class MixinWorldRenderer implements IWorldRenderer {
         return chunkMeshes;
     }
     
-    public void myTick() {
-        boolean drawn = isInFrustum && (!skipRenderPass[0] || !skipRenderPass[1]);
-        if(drawn != lastDrawn) {
+    @Inject(method = "updateInFrustum", at = @At(value = "HEAD"))
+    private void preUpdateInFrustum(CallbackInfo ci) {
+        saveDrawnStatus();
+    }
+    
+    @Inject(method = "updateInFrustum", at = @At(value = "RETURN"))
+    private void postUpdateInFrustum(CallbackInfo ci) {
+        notifyIfDrawnStatusChanged();
+    }
+    
+    private void saveDrawnStatus() {
+        savedDrawnStatus = isDrawn();
+    }
+    
+    private void notifyIfDrawnStatusChanged() {
+        boolean drawn = isDrawn();
+        if(LODMod.isActive() && drawn != savedDrawnStatus) {
             LODMod.renderer.onWorldRendererChanged(WorldRenderer.class.cast(this), drawn);
         }
-        lastDrawn = drawn;
+    }
+    
+    private boolean isDrawn() {
+        return isInFrustum && (!skipRenderPass[0] || !skipRenderPass[1]);
     }
 }

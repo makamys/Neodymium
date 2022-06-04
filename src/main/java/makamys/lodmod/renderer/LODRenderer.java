@@ -115,12 +115,6 @@ public class LODRenderer {
         Minecraft.getMinecraft().entityRenderer.enableLightmap((double)alpha);
         
         if(hasInited) {
-            for(WorldRenderer wr : sortedWorldRenderers) {
-                if(wr != null) {
-                    ((IWorldRenderer)wr).myTick();
-                }
-            }
-            
             mainLoop();
             if(LODMod.debugEnabled) {
                 handleKeyboard();

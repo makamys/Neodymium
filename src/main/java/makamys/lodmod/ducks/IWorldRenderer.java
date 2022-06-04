@@ -9,5 +9,4 @@ import net.minecraft.client.renderer.WorldRenderer;
 
 public interface IWorldRenderer {
     public List<ChunkMesh> getChunkMeshes();
-    public void myTick();
 }
