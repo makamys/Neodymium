@@ -61,13 +61,13 @@ public class LODRenderer {
     public boolean renderWorld;
     public boolean rendererActive;
     
-    private static int BUFFER_SIZE = 1024 * 1024 * 1024;
     private static int MAX_MESHES = 100000;
     
-    private int VAO, VBO, shaderProgram;
+    private int VAO, shaderProgram;
     private IntBuffer[] piFirst = new IntBuffer[2];
     private IntBuffer[] piCount = new IntBuffer[2];
     private List<Mesh>[] sentMeshes = (List<Mesh>[])new ArrayList[] {new ArrayList<Mesh>(), new ArrayList<Mesh>()};
+    GPUMemoryManager mem;
     
     List<Chunk> myChunks = new ArrayList<Chunk>();
     List<LODChunk> pendingLODChunks = new ArrayList<>();
@@ -123,7 +123,7 @@ public class LODRenderer {
                 handleKeyboard();
             }
             if(lastGCTime == -1 || (System.currentTimeMillis() - lastGCTime) > gcInterval) {
-                runGC();
+                mem.runGC();
                 lastGCTime = System.currentTimeMillis();
             }
             if(lastSaveTime == -1 || (System.currentTimeMillis() - lastSaveTime) > saveInterval && LODMod.saveMeshes) {
@@ -263,51 +263,6 @@ public class LODRenderer {
         }
     }
     
-    private void runGC() {
-        nextMeshOffset = 0;
-        nextTri = 0;
-        
-        glBindVertexArray(VAO);
-        glBindBuffer(GL_ARRAY_BUFFER, VBO);
-            
-        int[] deletedNum = new int[2];
-        int deletedRAM = 0;
-        
-        long t0 = System.nanoTime();
-        
-        for(int i = 0; i < 2; i++) {
-            for(Iterator<Mesh> it = sentMeshes[i].iterator(); it.hasNext(); ) {
-                Mesh mesh = it.next();
-                if(mesh.gpuStatus == GPUStatus.SENT) {
-                    if(mesh.offset != nextMeshOffset) {
-                        glBufferSubData(GL_ARRAY_BUFFER, nextMeshOffset, mesh.buffer);
-                    }
-                    mesh.iFirst = nextTri;
-                    mesh.offset = nextMeshOffset;
-                    
-                    nextMeshOffset += mesh.bufferSize();
-                    nextTri += mesh.quadCount * 6;
-                } else if(mesh.gpuStatus == GPUStatus.PENDING_DELETE) {
-                    mesh.iFirst = mesh.offset = -1;
-                    mesh.visible = false;
-                    mesh.gpuStatus = GPUStatus.UNSENT;
-                    mesh.destroyBuffer();
-                    
-                    it.remove();
-                    deletedNum[i]++;
-                    deletedRAM += mesh.bufferSize();
-                }
-            }
-        }
-        
-        long t1 = System.nanoTime();
-        
-        System.out.println("Deleted " + deletedNum[0] + "+" + deletedNum[1] + " meshes in " + ((t1 - t0) / 1_000_000.0) + " ms, freeing up " + (deletedRAM / 1024 / 1024) + "MB of VRAM");
-        
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-        glBindVertexArray(0);
-    }
-    
     FloatBuffer modelView = BufferUtils.createFloatBuffer(16);
     FloatBuffer projBuf = BufferUtils.createFloatBuffer(16);
     IntBuffer viewportBuf = BufferUtils.createIntBuffer(16);
@@ -406,10 +361,9 @@ public class LODRenderer {
         VAO = glGenVertexArrays();
         glBindVertexArray(VAO);
         
-        VBO = glGenBuffers();
-        glBindBuffer(GL_ARRAY_BUFFER, VBO);
+        mem = new GPUMemoryManager();
         
-        glBufferData(GL_ARRAY_BUFFER, BUFFER_SIZE, GL_STATIC_DRAW);
+        glBindBuffer(GL_ARRAY_BUFFER, mem.VBO);
         
         int stride = 7 * 4;
         
@@ -475,7 +429,7 @@ public class LODRenderer {
         
         glDeleteProgram(shaderProgram);
         glDeleteVertexArrays(VAO);
-        glDeleteBuffers(VBO);
+        mem.destroy();
         
         SimpleChunkMesh.instances = 0;
         SimpleChunkMesh.usedRAM = 0;
@@ -595,10 +549,6 @@ public class LODRenderer {
         }
     }
     
-    private int nextTri;
-    private int nextMeshOffset;
-    private int nextMesh;
-    
     protected void setMeshVisible(Mesh mesh, boolean visible) {
         setMeshVisible(mesh, visible, false);
     }
@@ -610,48 +560,17 @@ public class LODRenderer {
             mesh.visible = visible;
             
             if(mesh.gpuStatus == GPUStatus.UNSENT) {
-                sendMeshToGPU(mesh);
+                mem.sendMeshToGPU(mesh);
+                sentMeshes[mesh.pass].add(mesh);
             }
         }
     }
     
     public void removeMesh(Mesh mesh) {
-        deleteMeshFromGPU(mesh);
+        mem.deleteMeshFromGPU(mesh);
+        sentMeshes[mesh.pass].remove(mesh);
         setMeshVisible(mesh, false);
-    }
-    
-    private void sendMeshToGPU(Mesh mesh) {
-        if(mesh == null) {
-            return;
-        }
-        if(mesh.gpuStatus == GPUStatus.UNSENT) {
-            mesh.prepareBuffer();
-            
-            glBindVertexArray(VAO);
-            glBindBuffer(GL_ARRAY_BUFFER, VBO);
-            
-            glBufferSubData(GL_ARRAY_BUFFER, nextMeshOffset, mesh.buffer);
-            mesh.iFirst = nextTri;
-            mesh.iCount = mesh.quadCount * 6;
-            mesh.offset = nextMeshOffset;
-            
-            nextTri += mesh.quadCount * 6;
-            nextMeshOffset += mesh.buffer.limit();
-            sentMeshes[mesh.pass].add(mesh);
-            
-            glBindBuffer(GL_ARRAY_BUFFER, 0);
-            glBindVertexArray(0);
-        }
-        
-        mesh.gpuStatus = GPUStatus.SENT;
-    }
-    
-    private void deleteMeshFromGPU(Mesh mesh) {
-        if(mesh == null || mesh.gpuStatus == GPUStatus.UNSENT) {
-            return;
-        }
-        mesh.gpuStatus = GPUStatus.PENDING_DELETE;
-    }   
+    } 
     
     public Chunk getChunkFromChunkCoords(int x, int z) {
         for(Chunk chunk : myChunks) {
@@ -672,13 +591,15 @@ public class LODRenderer {
     }
     
     public List<String> getDebugText() {
-        return Arrays.asList(
-                "VRAM: " + (nextMeshOffset / 1024 / 1024) + "MB / " + (BUFFER_SIZE / 1024 / 1024) + "MB",
+        List<String> text = new ArrayList<>();
+        text.addAll(mem.getDebugText());
+        text.addAll(Arrays.asList(
                 "Simple meshes: " + SimpleChunkMesh.instances + " (" + SimpleChunkMesh.usedRAM / 1024 / 1024 + "MB)",
                 "Full meshes: " + ChunkMesh.instances + " (" + ChunkMesh.usedRAM / 1024 / 1024 + "MB)",
                 "Total RAM used: " + ((SimpleChunkMesh.usedRAM + ChunkMesh.usedRAM) / 1024 / 1024) + " MB",
                 "Rendered: " + renderedMeshes
-        );
+        ));
+        return text;
     }
     
     public void onSave() {
