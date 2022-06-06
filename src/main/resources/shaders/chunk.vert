@@ -23,7 +23,7 @@ out vec2 FogStartEnd;
 
 void main()
 {
-    gl_Position = proj * modelView * vec4(aPos - playerPos, 1.0);
+    gl_Position = proj * modelView * (vec4(aPos - playerPos, 1.0) + vec4(0, 0.12, 0, 0));
 	TexCoord = aTexCoord;
 	BTexCoord = aBTexCoord;
 	DaColor = aDaColor;
