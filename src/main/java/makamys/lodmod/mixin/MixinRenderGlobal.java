@@ -26,7 +26,7 @@ abstract class MixinRenderGlobal {
     
     @Redirect(method = "renderSortedRenderers", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/RenderGlobal;renderAllRenderLists(ID)V"))
     private void redirectRenderAllRenderLists(RenderGlobal thiz, int p1, double p2) {
-        if(!LODMod.isActive() || (LODMod.isActive() && LODMod.renderer.renderWorld)) {
+        if(LODMod.shouldRenderVanillaWorld()) {
             thiz.renderAllRenderLists(p1, p2);
         }
     }

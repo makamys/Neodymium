@@ -58,8 +58,8 @@ public class LODRenderer {
     private boolean[] wasDown = new boolean[256];
     private int renderQuads = 0;
     
-    public boolean renderWorld = true;
-    public boolean renderLOD = true;
+    public boolean renderWorld;
+    public boolean rendererActive;
     
     private static int BUFFER_SIZE = 1024 * 1024 * 1024;
     private static int MAX_MESHES = 100000;
@@ -103,6 +103,9 @@ public class LODRenderer {
         if(shouldRenderInWorld(world)) {
             hasInited = init();
         }
+        
+        renderWorld = true;
+        rendererActive = true;
     }
     
     public void preRenderSortedRenderers(int renderPass, double alpha, WorldRenderer[] sortedWorldRenderers) {
@@ -116,7 +119,7 @@ public class LODRenderer {
         
         if(hasInited) {
             mainLoop();
-            if(LODMod.debugEnabled) {
+            if(LODMod.debugEnabled && Minecraft.getMinecraft().currentScreen == null) {
                 handleKeyboard();
             }
             if(lastGCTime == -1 || (System.currentTimeMillis() - lastGCTime) > gcInterval) {
@@ -128,7 +131,7 @@ public class LODRenderer {
                 lastSaveTime = System.currentTimeMillis();
             }
             
-            if(renderLOD) {
+            if(rendererActive && renderWorld) {
                 if(frameCount % LODMod.sortFrequency == 0) {
                     sort();
                 }
@@ -239,7 +242,7 @@ public class LODRenderer {
     
     private void handleKeyboard() {
         if(Keyboard.isKeyDown(Keyboard.KEY_F) && !wasDown[Keyboard.KEY_F]) {
-            renderLOD = !renderLOD;
+            rendererActive = !rendererActive;
         }
         if(Keyboard.isKeyDown(Keyboard.KEY_V) && !wasDown[Keyboard.KEY_V]) {
             renderWorld = !renderWorld;

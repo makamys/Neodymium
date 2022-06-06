@@ -220,4 +220,8 @@ public class LODMod
         
     }
 
+    public static boolean shouldRenderVanillaWorld() {
+        return !isActive() || (isActive() && renderer.renderWorld && !renderer.rendererActive);
+    }
+
 }

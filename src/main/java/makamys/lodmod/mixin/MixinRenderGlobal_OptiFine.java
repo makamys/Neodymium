@@ -17,7 +17,7 @@ abstract class MixinRenderGlobal_OptiFine {
     // for OptiFine's Fast Render option
     @Redirect(method = "renderSortedRenderersFast", at = @At(value = "INVOKE", target = "Lorg/lwjgl/opengl/GL11;glCallLists(Ljava/nio/IntBuffer;)V"), remap=false)
     private void redirectRenderAllRenderLists(IntBuffer buffer) {
-        if(!LODMod.isActive() || (LODMod.isActive() && LODMod.renderer.renderWorld)) {
+        if(LODMod.shouldRenderVanillaWorld()) {
             GL11.glCallLists(buffer);
         }
     }
