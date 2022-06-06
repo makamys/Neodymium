@@ -617,6 +617,7 @@ public class LODRenderer {
     
     public void removeMesh(Mesh mesh) {
         deleteMeshFromGPU(mesh);
+        setMeshVisible(mesh, false);
     }
     
     private void sendMeshToGPU(Mesh mesh) {
