@@ -7,15 +7,13 @@ import static org.lwjgl.opengl.GL15.glBufferData;
 import static org.lwjgl.opengl.GL15.glBufferSubData;
 import static org.lwjgl.opengl.GL15.glDeleteBuffers;
 import static org.lwjgl.opengl.GL15.glGenBuffers;
-import static org.lwjgl.opengl.GL30.glBindVertexArray;
-import static org.lwjgl.opengl.GL30.glGenVertexArrays;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
 import makamys.lodmod.renderer.Mesh.GPUStatus;
+import makamys.lodmod.util.GuiHelper;
 
 public class GPUMemoryManager {
     
@@ -117,6 +115,35 @@ public class GPUMemoryManager {
 
     public List<String> getDebugText() {
         return Arrays.asList("VRAM: " + (nextMeshOffset / 1024 / 1024) + "MB / " + (BUFFER_SIZE / 1024 / 1024) + "MB");
+    }
+
+    public void drawInfo() {
+        int scale = 10000;
+        int rowLength = 512;
+        int yOff = 20;
+        
+        int meshI = 0;
+        for(Mesh mesh : sentMeshes) {
+            
+            int o = mesh.offset / 10000;
+            int o2 = (mesh.offset + mesh.buffer.limit()) / 10000;
+            if(o / rowLength == o2 / rowLength) {
+                if(mesh.gpuStatus != Mesh.GPUStatus.PENDING_DELETE) {
+                    GuiHelper.drawRectangle(o % rowLength, o / rowLength + yOff, mesh.buffer.limit() / scale + 1, 1, meshI % 2 == 0 ? 0xFFFFFF : 0x808080);
+                }
+            } else {
+                for(int i = o; i < o2; i++) {
+                    int x = i % rowLength;
+                    int y = i / rowLength;
+                    if(mesh.gpuStatus != Mesh.GPUStatus.PENDING_DELETE) {
+                        GuiHelper.drawRectangle(x, y + yOff, 1, 1, 0xFFFFFF);
+                    }
+                }
+            }
+            meshI++;
+        }
+        GuiHelper.drawRectangle(0 % rowLength, 0 + yOff, 4, 4, 0x00FF00);
+        GuiHelper.drawRectangle((BUFFER_SIZE / scale) % rowLength, (BUFFER_SIZE / scale) / rowLength + yOff, 4, 4, 0xFF0000);
     }
     
 }

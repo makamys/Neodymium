@@ -193,6 +193,15 @@ public class LODMod
     }
     
     @SubscribeEvent
+    public void onRenderTick(TickEvent.RenderTickEvent event) {
+        if(event.phase == TickEvent.Phase.END) {
+            if(isActive()) {
+                renderer.onRenderTickEnd();
+            }
+        }
+    }
+    
+    @SubscribeEvent
     public void onRenderOverlay(RenderGameOverlayEvent event) {
         FontRenderer fontRenderer = RenderManager.instance.getFontRenderer();
         if(isActive() && event.type == ElementType.TEXT && fontRenderer != null && Minecraft.getMinecraft().gameSettings.showDebugInfo)

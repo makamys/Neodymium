@@ -43,6 +43,7 @@ import org.lwjgl.util.vector.Matrix4f;
 import makamys.lodmod.LODMod;
 import makamys.lodmod.ducks.IWorldRenderer;
 import makamys.lodmod.renderer.Mesh.GPUStatus;
+import makamys.lodmod.util.GuiHelper;
 import makamys.lodmod.util.Util;
 
 import static org.lwjgl.opengl.GL11.*;
@@ -60,6 +61,7 @@ public class LODRenderer {
     
     public boolean renderWorld;
     public boolean rendererActive;
+    private boolean showMemoryDebugger;
     
     private static int MAX_MESHES = 100000;
     
@@ -145,6 +147,14 @@ public class LODRenderer {
         frameCount++;
         
         Minecraft.getMinecraft().entityRenderer.disableLightmap((double)alpha);
+    }
+    
+    public void onRenderTickEnd() {
+        if(showMemoryDebugger && mem != null) {
+            GuiHelper.begin();
+            mem.drawInfo();
+            GuiHelper.end();
+        }
     }
     
     private void sort() {
@@ -250,7 +260,8 @@ public class LODRenderer {
         if(Keyboard.isKeyDown(Keyboard.KEY_R) && !wasDown[Keyboard.KEY_R]) {
             loadShader();
         }
-        if(Keyboard.isKeyDown(Keyboard.KEY_G) && !wasDown[Keyboard.KEY_G]) {
+        if(Keyboard.isKeyDown(Keyboard.KEY_M) && !wasDown[Keyboard.KEY_M]) {
+            showMemoryDebugger = !showMemoryDebugger;
             //LODChunk chunk = getLODChunk(9, -18);
             //setMeshVisible(chunk.chunkMeshes[7], false, true);
             //freezeMeshes = false;
