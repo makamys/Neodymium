@@ -1,19 +1,13 @@
 package makamys.lodmod.renderer;
 
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
-import java.io.EOFException;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.nio.ShortBuffer;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -21,6 +15,7 @@ import java.util.stream.Collectors;
 import org.lwjgl.BufferUtils;
 
 import makamys.lodmod.LODMod;
+import makamys.lodmod.MixinConfigPlugin;
 import makamys.lodmod.ducks.IWorldRenderer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.Tessellator;
@@ -30,7 +25,6 @@ import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.entity.Entity;
 import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagByteArray;
-import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 
 public class ChunkMesh extends Mesh {
@@ -67,6 +61,111 @@ public class ChunkMesh extends Mesh {
         
         this.nbtData = toNBT(quads, quadCount);
         instances++;
+    }
+    
+    private static int totalOriginalQuadCount = 0;
+    private static int totalSimplifiedQuadCount = 0;
+    
+    public static ChunkMesh fromTessellator(int pass, WorldRenderer wr, Tessellator t) {
+        if(t.vertexCount % 4 != 0) {
+            System.out.println("Error: Vertex count is not a multiple of 4");
+            return null;
+        }
+        
+        List<MeshQuad> quads = new ArrayList<>();
+        
+        int xOffset = wr.posX;
+        int yOffset = wr.posY;
+        int zOffset = wr.posZ;
+        
+        for(int quadI = 0; quadI < t.vertexCount / 4; quadI++) {
+            boolean fr = MixinConfigPlugin.isOptiFinePresent() && LODMod.ofFastRender;
+            MeshQuad quad = new MeshQuad(t.rawBuffer, quadI * 32, new ChunkMesh.Flags(t.hasTexture, t.hasBrightness, t.hasColor, t.hasNormals), fr ? xOffset : 0, fr ? yOffset : 0, fr ? zOffset : 0);
+            /*if(quad.bUs[0] == quad.bUs[1] && quad.bUs[1] == quad.bUs[2] && quad.bUs[2] == quad.bUs[3] && quad.bUs[3] == quad.bVs[0] && quad.bVs[0] == quad.bVs[1] && quad.bVs[1] == quad.bVs[2] && quad.bVs[2] == quad.bVs[3] && quad.bVs[3] == 0) {
+                quad.deleted = true;
+            }*/
+            if(quad.plane == quad.PLANE_XZ && !quad.isClockwiseXZ()) {
+                // water hack
+                quad.deleted = true;
+            }
+            quads.add(quad);
+        }
+        boolean optimize = LODMod.optimizeChunkMeshes;
+        if(optimize) {
+            ArrayList<ArrayList<MeshQuad>> quadsByPlaneDir = new ArrayList<>(); // XY, XZ, YZ
+            for(int i = 0; i < 3; i++) {
+                quadsByPlaneDir.add(new ArrayList<MeshQuad>());
+            }
+            for(MeshQuad quad : quads) {
+                if(quad.plane != MeshQuad.PLANE_NONE) {
+                    quadsByPlaneDir.get(quad.plane).add(quad);
+                }
+            }
+            for(int plane = 0; plane < 3; plane++) {
+                quadsByPlaneDir.get(plane).sort(MeshQuad.QuadPlaneComparator.quadPlaneComparators[plane]);
+            }
+            
+            for(int plane = 0; plane < 3; plane++) {
+                List<MeshQuad> planeDirQuads = quadsByPlaneDir.get(plane);
+                int planeStart = 0;
+                for(int quadI = 0; quadI < planeDirQuads.size(); quadI++) {
+                    MeshQuad quad = planeDirQuads.get(quadI);
+                    MeshQuad nextQuad = quadI == planeDirQuads.size() - 1 ? null : planeDirQuads.get(quadI + 1);
+                    if(!quad.onSamePlaneAs(nextQuad)) {
+                        simplifyPlane(planeDirQuads.subList(planeStart, quadI));
+                        planeStart = quadI + 1;
+                    }
+                }
+            }
+        }
+        
+        int quadCount = countValidQuads(quads);
+        
+        totalOriginalQuadCount += quads.size();
+        totalSimplifiedQuadCount += quadCount;
+        //System.out.println("simplified quads " + totalOriginalQuadCount + " -> " + totalSimplifiedQuadCount + " (ratio: " + ((float)totalSimplifiedQuadCount / (float)totalOriginalQuadCount) + ") totalMergeCountByPlane: " + Arrays.toString(totalMergeCountByPlane));
+        
+        LODMod.debugHookToChunkMeshEnd();
+        
+        if(quadCount > 0) {
+            return new ChunkMesh(
+                    (int)(xOffset / 16), (int)(yOffset / 16), (int)(zOffset / 16),
+                    new ChunkMesh.Flags(t.hasTexture, t.hasBrightness, t.hasColor, t.hasNormals),
+                    quadCount, quads, pass);
+        } else {
+            return null;
+        }
+    }
+    
+    private static void simplifyPlane(List<MeshQuad> planeQuads) {
+        MeshQuad lastQuad = null;
+        // Pass 1: merge quads to create rows
+        for(MeshQuad quad : planeQuads) {
+            if(lastQuad != null) {
+                lastQuad.tryToMerge(quad);
+            }
+            if(quad.isValid(quad)) {
+                lastQuad = quad;
+            }
+        }
+        
+        // Pass 2: merge rows to create rectangles
+        // TODO optimize?
+        for(int i = 0; i < planeQuads.size(); i++) {
+            for(int j = i + 1; j < planeQuads.size(); j++) {
+                planeQuads.get(i).tryToMerge(planeQuads.get(j));
+            }
+        }
+    }
+    
+    private static int countValidQuads(List<MeshQuad> quads) {
+        int quadCount = 0;
+        for(MeshQuad quad : quads) {
+            if(!quad.deleted) {
+                quadCount++;
+            }
+        }
+        return quadCount;
     }
 
     private NBTBase toNBT(List<MeshQuad> quads, int quadCount) {

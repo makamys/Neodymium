@@ -42,7 +42,6 @@ public class MixinConfigPlugin implements IMixinConfigPlugin {
         mixins.addAll(Arrays.asList("MixinChunkCache",
         "MixinEntityRenderer",
         "MixinRenderGlobal",
-        "MixinTessellator",
         "MixinWorldRenderer",
         "MixinRenderBlocks"));
         

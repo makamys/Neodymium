@@ -13,7 +13,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import makamys.lodmod.LODMod;
-import makamys.lodmod.ducks.ITessellator;
 import makamys.lodmod.ducks.IWorldRenderer;
 import makamys.lodmod.renderer.ChunkMesh;
 import makamys.lodmod.renderer.FarChunkCache;
@@ -101,7 +100,7 @@ abstract class MixinWorldRenderer implements IWorldRenderer {
     private void prePostRenderBlocks(int pass, EntityLivingBase entity, CallbackInfo ci) {
         if(LODMod.isActive() && !LODMod.disableChunkMeshes) {
             if(chunkMeshes != null) {
-                chunkMeshes.add(((ITessellator)Tessellator.instance).toChunkMesh(pass, WorldRenderer.class.cast(this)));
+                chunkMeshes.add(ChunkMesh.fromTessellator(pass, WorldRenderer.class.cast(this), Tessellator.instance));
             }
         }
     }
