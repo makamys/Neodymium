@@ -82,6 +82,11 @@ public class GPUMemoryManager {
         if(mesh == null) {
             return;
         }
+        
+        if(nextMeshOffset + mesh.buffer.limit() >= BUFFER_SIZE) {
+            return;
+        }
+        
         if(mesh.gpuStatus == GPUStatus.UNSENT) {
             mesh.prepareBuffer();
             
