@@ -38,7 +38,7 @@ public class LODRegion {
 			}
 		}
 	}
-	
+	/*
 	public LODRegion(int regionX, int regionZ, NBTTagCompound nbt) {
         this.regionX = regionX;
         this.regionZ = regionZ;
@@ -56,9 +56,9 @@ public class LODRegion {
             }
         }        
     }
-	
+	*/
 	public static LODRegion load(Path saveDir, int regionX, int regionZ) {
-	    if(!(LODMod.disableChunkMeshes || !LODMod.saveMeshes)) {
+	    /*if(!(LODMod.disableChunkMeshes || !LODMod.saveMeshes)) {
     	    File saveFile = getSavePath(saveDir, regionX, regionZ).toFile();
     	    if(saveFile.exists()) {
     	        try {
@@ -68,10 +68,10 @@ public class LODRegion {
                     e.printStackTrace();
                 }
     	    }
-	    }
+	    }*/
 	    return new LODRegion(regionX, regionZ);
 	}
-	
+	/*
 	private static Path getSavePath(Path saveDir, int regionX, int regionZ) {
 	    return saveDir.resolve("lod").resolve(regionX + "," + regionZ + ".lod");
 	}
@@ -127,7 +127,7 @@ public class LODRegion {
             e.printStackTrace();
         }
 	}
-	
+	*/
 	public LODChunk getChunkAbsolute(int chunkXAbs, int chunkZAbs) {
 		return getChunk(chunkXAbs - regionX * 32, chunkZAbs - regionZ * 32);
 	}
@@ -168,7 +168,7 @@ public class LODRegion {
 	}
 	
 	public void destroy(Path saveDir) {
-	    save(saveDir);
+	    //save(saveDir);
 	    for(int i = 0; i < 32; i++) {
             for(int j = 0; j < 32; j++) {
                 LODChunk chunk = data[i][j];

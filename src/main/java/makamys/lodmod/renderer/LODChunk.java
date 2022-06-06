@@ -29,7 +29,7 @@ public class LODChunk {
 		this.x = x;
 		this.z = z;
 	}
-	
+	/*
 	public LODChunk(NBTTagCompound nbt, List<String> spriteList) {
 	    this.x = nbt.getInteger("x");
 	    this.z = nbt.getInteger("z");
@@ -47,7 +47,7 @@ public class LODChunk {
             chunkMeshes[keyInt] = new ChunkMesh(x, keyInt / 2, z, new ChunkMesh.Flags(true, true, true, false), data.length / (2 + 4 * (3 + 2 + 2 + 4)), data, spriteList, keyInt % 2);
         }
 	}
-	
+	*/
 	@Override
 	public String toString() {
 		return "LODChunk(" + x + ", " + z + ")";
@@ -129,7 +129,7 @@ public class LODChunk {
             }
         }
     }
-	
+	/*
 	public NBTTagCompound saveToNBT(NBTTagCompound oldNbt, List<String> oldStringTable) {
 	    NBTTagCompound nbt = new NBTTagCompound();
 	    nbt.setInteger("x", x);
@@ -150,7 +150,7 @@ public class LODChunk {
 	    dirty = false;
 	    return nbt;
 	}
-	
+	*/
 	public void destroy() {
 	    for(SimpleChunkMesh scm: simpleMeshes) {
 	        if(scm != null) {
