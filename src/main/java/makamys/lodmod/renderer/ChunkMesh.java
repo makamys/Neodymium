@@ -170,7 +170,7 @@ public class ChunkMesh extends Mesh {
     private static void writeBufferQuad(Tessellator t, int offset, BufferWriter out, float offsetX, float offsetY, float offsetZ) throws IOException {
         for(int vertexI = 0; vertexI < 6; vertexI++) {
             
-            int vi = new int[]{0, 1, 3, 1, 2, 3}[vertexI];
+            int vi = new int[]{0, 1, 2, 0, 2, 3}[vertexI];
             
             int i = offset + vi * 8;
             
