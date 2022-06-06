@@ -216,10 +216,6 @@ public class LODMod
         fogEventWasPosted = true;
     }
 
-    public static void debugHookToChunkMeshEnd() {
-        
-    }
-
     public static boolean shouldRenderVanillaWorld() {
         return !isActive() || (isActive() && renderer.renderWorld && !renderer.rendererActive);
     }

@@ -53,9 +53,11 @@ public class Util {
     }
     
     public static byte[] byteBufferToArray(ByteBuffer buffer) {
-        byte[] dst = new byte[buffer.remaining()];
+        byte[] dst = new byte[buffer.limit()];
+        int pos = buffer.position();
+        buffer.position(0);
         buffer.get(dst);
-        buffer.flip();
+        buffer.position(pos);
         return dst;
     }
     
