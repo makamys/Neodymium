@@ -97,7 +97,7 @@ public class GPUMemoryManager {
     }
     
     public void sendMeshToGPU(Mesh mesh) {
-        if(mesh == null) {
+        if(mesh == null || mesh.buffer == null) {
             return;
         }
         
