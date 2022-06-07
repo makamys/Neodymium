@@ -166,7 +166,9 @@ public class LODChunk {
 	}
 	
 	public void receiveChunk(Chunk chunk) {
-	    putSimpleMeshes(SimpleChunkMesh.generateSimpleMeshes(chunk));
+	    if(!LODMod.disableSimpleMeshes) {
+	        putSimpleMeshes(SimpleChunkMesh.generateSimpleMeshes(chunk));
+	    }
 	}
 	
 	public boolean isFullyVisible() {
