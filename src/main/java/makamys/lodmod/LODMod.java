@@ -156,7 +156,7 @@ public class LODMod
     }
     
     public static boolean isActive() {
-        return renderer != null && renderer.hasInited;
+        return renderer != null && renderer.hasInited && !renderer.destroyPending;
     }
     
     private World getRendererWorld() {

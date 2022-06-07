@@ -55,6 +55,7 @@ import static org.lwjgl.opengl.GL30.*;
 public class LODRenderer {
     
     public boolean hasInited = false;
+    public boolean destroyPending;
     
     private boolean[] wasDown = new boolean[256];
     private int renderQuads = 0;
@@ -125,7 +126,7 @@ public class LODRenderer {
                 handleKeyboard();
             }
             if(frameCount % 2 == 0) {
-                mem.runGC();
+                mem.runGC(false);
             }
             lastGCTime = System.currentTimeMillis();
             if(lastSaveTime == -1 || (System.currentTimeMillis() - lastSaveTime) > saveInterval && LODMod.saveMeshes) {
@@ -150,6 +151,10 @@ public class LODRenderer {
     }
     
     public void onRenderTickEnd() {
+        if(destroyPending) {
+            LODMod.renderer = null;
+            return;
+        }
         if(showMemoryDebugger && mem != null) {
             GuiHelper.begin();
             mem.drawInfo();

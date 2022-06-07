@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
+import makamys.lodmod.LODMod;
 import makamys.lodmod.renderer.Mesh.GPUStatus;
 import makamys.lodmod.util.GuiHelper;
 
@@ -29,16 +30,18 @@ public class GPUMemoryManager {
         glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
     
-    public void runGC() {
+    public void runGC(boolean full) {
         glBindBuffer(GL_ARRAY_BUFFER, VBO);
         
         int moved = 0;
+        int timesReachedEnd = 0;
         int checksLeft = sentMeshes.size();
         
-        while(moved < 4 && checksLeft-- > 0 && !sentMeshes.isEmpty()) {
+        while((!full && (moved < 4 && checksLeft-- > 0)) || (full && timesReachedEnd < 2) && !sentMeshes.isEmpty()) {
             nextMesh++;
             if(nextMesh >= sentMeshes.size()) {
                 nextMesh = 0;
+                timesReachedEnd++;
             }
             Mesh mesh = sentMeshes.get(nextMesh);
             
@@ -89,8 +92,23 @@ public class GPUMemoryManager {
         }
     }
     
+    private int end() {
+        return (sentMeshes.isEmpty() ? 0 : sentMeshes.get(sentMeshes.size() - 1).getEnd());
+    }
+    
     public void sendMeshToGPU(Mesh mesh) {
         if(mesh == null) {
+            return;
+        }
+        
+        if(end() + mesh.bufferSize() >= BUFFER_SIZE) {
+            runGC(true);
+        }
+        
+        if(end() + mesh.bufferSize() >= BUFFER_SIZE) {
+            System.out.println("VRAM is full! Try increasing the allocated VRAM in the config, if possible. Reverting to vanilla renderer.");
+            LODMod.renderer.destroyPending = true;
+            // TODO restart renderer with more VRAM allocated when this happens.
             return;
         }
         
@@ -120,11 +138,6 @@ public class GPUMemoryManager {
             }
         }
         if(nextBase == -1) nextBase = 0;
-        
-        if(nextBase + size >= BUFFER_SIZE) {
-            return;
-        }
-        
         
         
         if(mesh.gpuStatus == GPUStatus.UNSENT) {
@@ -162,7 +175,7 @@ public class GPUMemoryManager {
     }
 
     public List<String> getDebugText() {
-        return Arrays.asList("VRAM: " + ((sentMeshes.isEmpty() ? 0 : sentMeshes.get(sentMeshes.size() - 1).getEnd()) / 1024 / 1024) + "MB / " + (BUFFER_SIZE / 1024 / 1024) + "MB");
+        return Arrays.asList("VRAM: " + (end() / 1024 / 1024) + "MB / " + (BUFFER_SIZE / 1024 / 1024) + "MB");
     }
 
     public void drawInfo() {
