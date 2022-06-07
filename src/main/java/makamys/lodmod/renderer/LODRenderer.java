@@ -124,7 +124,7 @@ public class LODRenderer {
             if(LODMod.debugEnabled && Minecraft.getMinecraft().currentScreen == null) {
                 handleKeyboard();
             }
-            if(lastGCTime == -1 || (System.currentTimeMillis() - lastGCTime) > gcInterval) {
+            if(lastGCTime == -1 || (System.currentTimeMillis() - lastGCTime) > 10) {
                 mem.runGC();
                 lastGCTime = System.currentTimeMillis();
             }

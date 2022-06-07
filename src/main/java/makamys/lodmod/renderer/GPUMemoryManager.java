@@ -1,12 +1,6 @@
 package makamys.lodmod.renderer;
 
-import static org.lwjgl.opengl.GL15.GL_ARRAY_BUFFER;
-import static org.lwjgl.opengl.GL15.GL_STATIC_DRAW;
-import static org.lwjgl.opengl.GL15.glBindBuffer;
-import static org.lwjgl.opengl.GL15.glBufferData;
-import static org.lwjgl.opengl.GL15.glBufferSubData;
-import static org.lwjgl.opengl.GL15.glDeleteBuffers;
-import static org.lwjgl.opengl.GL15.glGenBuffers;
+import static org.lwjgl.opengl.GL15.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -21,8 +15,6 @@ public class GPUMemoryManager {
     
     public int VBO;
     
-    private int nextTri;
-    private int nextMeshOffset;
     private int nextMesh;
     
     private List<Mesh> sentMeshes = new ArrayList<>();
@@ -32,15 +24,12 @@ public class GPUMemoryManager {
         
         glBindBuffer(GL_ARRAY_BUFFER, VBO);
         
-        glBufferData(GL_ARRAY_BUFFER, BUFFER_SIZE, GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, BUFFER_SIZE, GL_DYNAMIC_DRAW);
         
         glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
     
     public void runGC() {
-        nextMeshOffset = 0;
-        nextTri = 0;
-        
         glBindBuffer(GL_ARRAY_BUFFER, VBO);
             
         int deletedNum = 0;
@@ -48,24 +37,39 @@ public class GPUMemoryManager {
         
         long t0 = System.nanoTime();
         
-        for(Iterator<Mesh> it = sentMeshes.iterator(); it.hasNext(); ) {
-            Mesh mesh = it.next();
+        int moved = 0;
+        
+        Mesh startMesh = null;
+        
+        while(moved < 5 && !sentMeshes.isEmpty()) {
+            if(nextMesh >= sentMeshes.size()) {
+                nextMesh = 0;
+            }
+            Mesh mesh = sentMeshes.get(nextMesh);
+            
+            if(mesh == startMesh) {
+                break; // we have wrapped around
+            } else if(startMesh == null) {
+                startMesh = mesh;
+            }
+            
             if(mesh.gpuStatus == GPUStatus.SENT) {
-                if(mesh.offset != nextMeshOffset) {
-                    glBufferSubData(GL_ARRAY_BUFFER, nextMeshOffset, mesh.buffer);
+                int offset = nextMesh == 0 ? 0 : sentMeshes.get(nextMesh - 1).getEnd();
+                if(mesh.offset != offset) {
+                    glBufferSubData(GL_ARRAY_BUFFER, offset, mesh.buffer);
+                    moved++;
                 }
-                mesh.iFirst = nextTri;
-                mesh.offset = nextMeshOffset;
-                
-                nextMeshOffset += mesh.bufferSize();
-                nextTri += mesh.quadCount * 6;
+                mesh.iFirst = offset / mesh.getStride();
+                mesh.offset = offset;
+                nextMesh++;
             } else if(mesh.gpuStatus == GPUStatus.PENDING_DELETE) {
                 mesh.iFirst = mesh.offset = -1;
                 mesh.visible = false;
                 mesh.gpuStatus = GPUStatus.UNSENT;
                 mesh.destroyBuffer();
                 
-                it.remove();
+                sentMeshes.remove(nextMesh);
+                
                 deletedNum++;
                 deletedRAM += mesh.bufferSize();
             }
@@ -73,9 +77,22 @@ public class GPUMemoryManager {
         
         long t1 = System.nanoTime();
         
-        System.out.println("Deleted " + deletedNum + " meshes in " + ((t1 - t0) / 1_000_000.0) + " ms, freeing up " + (deletedRAM / 1024 / 1024) + "MB of VRAM");
+        //System.out.println("Deleted " + deletedNum + " meshes in " + ((t1 - t0) / 1_000_000.0) + " ms, freeing up " + (deletedRAM / 1024 / 1024) + "MB of VRAM");
         
         glBindBuffer(GL_ARRAY_BUFFER, 0);
+    }
+    
+    private int malloc(int size) {
+        int nextBase = 0;
+        if(!sentMeshes.isEmpty()) {
+            nextBase = sentMeshes.get(sentMeshes.size() - 1).getEnd();
+        }
+        
+        if(nextBase + size >= BUFFER_SIZE) {
+            return -1;
+        } else {
+            return nextBase;
+        }
     }
     
     public void sendMeshToGPU(Mesh mesh) {
@@ -83,7 +100,9 @@ public class GPUMemoryManager {
             return;
         }
         
-        if(nextMeshOffset + mesh.buffer.limit() >= BUFFER_SIZE) {
+        int nextMeshOffset = malloc(mesh.buffer.limit());
+        
+        if(nextMeshOffset == -1) {
             return;
         }
         
@@ -93,12 +112,10 @@ public class GPUMemoryManager {
             glBindBuffer(GL_ARRAY_BUFFER, VBO);
             
             glBufferSubData(GL_ARRAY_BUFFER, nextMeshOffset, mesh.buffer);
-            mesh.iFirst = nextTri;
+            mesh.iFirst = nextMeshOffset / mesh.getStride();
             mesh.iCount = mesh.quadCount * 6;
             mesh.offset = nextMeshOffset;
             
-            nextTri += mesh.quadCount * 6;
-            nextMeshOffset += mesh.buffer.limit();
             sentMeshes.add(mesh);
             
             glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -119,7 +136,7 @@ public class GPUMemoryManager {
     }
 
     public List<String> getDebugText() {
-        return Arrays.asList("VRAM: " + (nextMeshOffset / 1024 / 1024) + "MB / " + (BUFFER_SIZE / 1024 / 1024) + "MB");
+        return Arrays.asList("VRAM: " + (malloc(0) / 1024 / 1024) + "MB / " + (BUFFER_SIZE / 1024 / 1024) + "MB");
     }
 
     public void drawInfo() {
@@ -134,7 +151,7 @@ public class GPUMemoryManager {
             int o2 = (mesh.offset + mesh.buffer.limit()) / 10000;
             if(o / rowLength == o2 / rowLength) {
                 if(mesh.gpuStatus != Mesh.GPUStatus.PENDING_DELETE) {
-                    GuiHelper.drawRectangle(o % rowLength, o / rowLength + yOff, mesh.buffer.limit() / scale + 1, 1, meshI % 2 == 0 ? 0xFFFFFF : 0x808080);
+                    GuiHelper.drawRectangle(o % rowLength, o / rowLength + yOff, mesh.buffer.limit() / scale + 1, 1, meshI == nextMesh ? 0x00FF00 : 0xFFFFFF);
                 }
             } else {
                 for(int i = o; i < o2; i++) {

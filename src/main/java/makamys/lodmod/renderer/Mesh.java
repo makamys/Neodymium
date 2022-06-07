@@ -25,11 +25,11 @@ public abstract class Mesh {
 	}
 	
 	public int bufferSize() {
-	    int bufferSize = quadCount * 6 * getStride();
-	    if(buffer != null) {
-	        assert buffer.limit() == bufferSize;
-	    }
-	    return bufferSize;
+	    return buffer.limit();
+	}
+	
+	public int getEnd() {
+	    return offset + bufferSize();
 	}
 	
 	public void prepareBuffer() {}
