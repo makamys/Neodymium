@@ -38,10 +38,11 @@ public class GPUMemoryManager {
         long t0 = System.nanoTime();
         
         int moved = 0;
+        int checksLeft = sentMeshes.size();
         
         Mesh startMesh = null;
         
-        while(moved < 5 && !sentMeshes.isEmpty()) {
+        while(moved < 5 && checksLeft-- > 0 && !sentMeshes.isEmpty()) {
             if(nextMesh >= sentMeshes.size()) {
                 nextMesh = 0;
             }
