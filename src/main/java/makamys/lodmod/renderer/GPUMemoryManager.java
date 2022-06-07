@@ -40,19 +40,12 @@ public class GPUMemoryManager {
         int moved = 0;
         int checksLeft = sentMeshes.size();
         
-        Mesh startMesh = null;
-        
         while(moved < 1 && checksLeft-- > 0 && !sentMeshes.isEmpty()) {
+            nextMesh++;
             if(nextMesh >= sentMeshes.size()) {
                 nextMesh = 0;
             }
             Mesh mesh = sentMeshes.get(nextMesh);
-            
-            if(mesh == startMesh) {
-                break; // we have wrapped around
-            } else if(startMesh == null) {
-                startMesh = mesh;
-            }
             
             if(mesh.gpuStatus == GPUStatus.SENT) {
                 int offset = nextMesh == 0 ? 0 : sentMeshes.get(nextMesh - 1).getEnd();
@@ -62,7 +55,6 @@ public class GPUMemoryManager {
                 }
                 mesh.iFirst = offset / mesh.getStride();
                 mesh.offset = offset;
-                nextMesh++;
             } else if(mesh.gpuStatus == GPUStatus.PENDING_DELETE) {
                 mesh.iFirst = mesh.offset = -1;
                 mesh.visible = false;
@@ -73,6 +65,10 @@ public class GPUMemoryManager {
                 
                 deletedNum++;
                 deletedRAM += mesh.bufferSize();
+                
+                if(nextMesh > 0) {
+                    nextMesh--;
+                }
             }
         }
         
@@ -86,6 +82,14 @@ public class GPUMemoryManager {
     private int malloc(int size) {
         int nextBase = 0;
         if(!sentMeshes.isEmpty()) {
+            if(nextMesh < sentMeshes.size() - 1) {
+                Mesh next = sentMeshes.get(nextMesh);
+                Mesh nextnext = sentMeshes.get(nextMesh + 1);
+                if(nextnext.offset - next.getEnd() >= size) {
+                    return next.getEnd();
+                }
+            }
+            
             nextBase = sentMeshes.get(sentMeshes.size() - 1).getEnd();
         }
         
@@ -101,23 +105,48 @@ public class GPUMemoryManager {
             return;
         }
         
-        int nextMeshOffset = malloc(mesh.buffer.limit());
+        int size = mesh.bufferSize();
+        int insertIndex = -1;
         
-        if(nextMeshOffset == -1) {
+        int nextBase = -1;
+        if(!sentMeshes.isEmpty()) {
+            if(nextMesh < sentMeshes.size() - 1) {
+                Mesh next = sentMeshes.get(nextMesh);
+                Mesh nextnext = sentMeshes.get(nextMesh + 1);
+                if(nextnext.offset - next.getEnd() >= size) {
+                    nextBase = next.getEnd();
+                    insertIndex = nextMesh + 1;
+                }
+            }
+            
+            if(nextBase == -1) {
+                nextBase = sentMeshes.get(sentMeshes.size() - 1).getEnd();
+            }
+        }
+        if(nextBase == -1) nextBase = 0;
+        
+        if(nextBase + size >= BUFFER_SIZE) {
             return;
         }
+        
+        
         
         if(mesh.gpuStatus == GPUStatus.UNSENT) {
             mesh.prepareBuffer();
             
             glBindBuffer(GL_ARRAY_BUFFER, VBO);
             
-            glBufferSubData(GL_ARRAY_BUFFER, nextMeshOffset, mesh.buffer);
-            mesh.iFirst = nextMeshOffset / mesh.getStride();
+            glBufferSubData(GL_ARRAY_BUFFER, nextBase, mesh.buffer);
+            mesh.iFirst = nextBase / mesh.getStride();
             mesh.iCount = mesh.quadCount * 6;
-            mesh.offset = nextMeshOffset;
+            mesh.offset = nextBase;
             
-            sentMeshes.add(mesh);
+            if(insertIndex == -1) {
+                sentMeshes.add(mesh);
+            } else {
+                sentMeshes.add(insertIndex, mesh);
+                nextMesh = insertIndex;
+            }
             
             glBindBuffer(GL_ARRAY_BUFFER, 0);
         }
@@ -137,7 +166,7 @@ public class GPUMemoryManager {
     }
 
     public List<String> getDebugText() {
-        return Arrays.asList("VRAM: " + (malloc(0) / 1024 / 1024) + "MB / " + (BUFFER_SIZE / 1024 / 1024) + "MB");
+        return Arrays.asList("VRAM: " + ((sentMeshes.isEmpty() ? 0 : sentMeshes.get(sentMeshes.size() - 1).getEnd()) / 1024 / 1024) + "MB / " + (BUFFER_SIZE / 1024 / 1024) + "MB");
     }
 
     public void drawInfo() {
