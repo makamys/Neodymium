@@ -448,13 +448,16 @@ public class LODRenderer {
         ChunkMesh.usedRAM = 0;
     }
     
-    public void onWorldRendererChanged(WorldRenderer wr, boolean visible) {
+    public void onWorldRendererChanged(WorldRenderer wr, WorldRendererChange change) {
         int x = Math.floorDiv(wr.posX, 16);
         int y = Math.floorDiv(wr.posY, 16);
         int z = Math.floorDiv(wr.posZ, 16);
         LODChunk lodChunk = getLODChunk(x, z);
         
-        lodChunk.hidden[y] = LODMod.hideUnderVanillaChunks ? visible : !visible;
+        lodChunk.hidden[y] = change != WorldRendererChange.VISIBLE;
+        if(change == WorldRendererChange.DELETED) {
+            removeMesh(lodChunk.chunkMeshes[y]);
+        }
         lodChunkChanged(lodChunk);
     }
     
@@ -578,6 +581,8 @@ public class LODRenderer {
     }
     
     public void removeMesh(Mesh mesh) {
+        if(mesh == null) return;
+        
         mem.deleteMeshFromGPU(mesh);
         sentMeshes[mesh.pass].remove(mesh);
         setMeshVisible(mesh, false);
@@ -706,5 +711,9 @@ public class LODRenderer {
             }
         }
         
+    }
+    
+    public static enum WorldRendererChange {
+        VISIBLE, INVISIBLE, DELETED
     }
 }

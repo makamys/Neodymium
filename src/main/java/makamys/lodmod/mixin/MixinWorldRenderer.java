@@ -144,7 +144,7 @@ abstract class MixinWorldRenderer implements IWorldRenderer {
     @Inject(method = "setDontDraw", at = @At(value = "HEAD"))
     private void preSetDontDraw(CallbackInfo ci) {
         if(LODMod.isActive()) {
-            LODMod.renderer.onWorldRendererChanged(WorldRenderer.class.cast(this), false);
+            LODMod.renderer.onWorldRendererChanged(WorldRenderer.class.cast(this), LODRenderer.WorldRendererChange.DELETED);
         }
     }
     
@@ -170,7 +170,7 @@ abstract class MixinWorldRenderer implements IWorldRenderer {
     private void notifyIfDrawnStatusChanged() {
         boolean drawn = isDrawn();
         if(LODMod.isActive() && drawn != savedDrawnStatus) {
-            LODMod.renderer.onWorldRendererChanged(WorldRenderer.class.cast(this), drawn);
+            LODMod.renderer.onWorldRendererChanged(WorldRenderer.class.cast(this), drawn ? LODRenderer.WorldRendererChange.VISIBLE : LODRenderer.WorldRendererChange.INVISIBLE);
         }
     }
     
