@@ -177,7 +177,7 @@ public class GPUMemoryManager {
         for(Mesh mesh : sentMeshes) {
             
             int o = mesh.offset / 10000;
-            int o2 = (mesh.offset + mesh.buffer.limit()) / 10000;
+            int o2 = (mesh.offset + mesh.bufferSize()) / 10000;
             if(o / rowLength == o2 / rowLength) {
                 if(mesh.gpuStatus != Mesh.GPUStatus.PENDING_DELETE) {
                     GuiHelper.drawRectangle(o % rowLength, o / rowLength + yOff, mesh.buffer.limit() / scale + 1, 1, meshI == nextMesh ? 0x00FF00 : 0xFFFFFF);
