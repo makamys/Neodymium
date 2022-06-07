@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
 import java.nio.ByteBuffer;
+import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
@@ -62,9 +63,20 @@ public class Util {
     }
     
     public static int[] intBufferToArray(IntBuffer buffer) {
-        int[] dst = new int[buffer.remaining()];
+        int[] dst = new int[buffer.limit()];
+        int pos = buffer.position();
+        buffer.position(0);
         buffer.get(dst);
-        buffer.flip();
+        buffer.position(pos);
+        return dst;
+    }
+    
+    public static float[] floatBufferToArray(FloatBuffer buffer) {
+        float[] dst = new float[buffer.limit()];
+        int pos = buffer.position();
+        buffer.position(0);
+        buffer.get(dst);
+        buffer.position(pos);
         return dst;
     }
     
