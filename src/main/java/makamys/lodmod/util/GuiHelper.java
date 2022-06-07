@@ -26,7 +26,6 @@ public class GuiHelper {
     
     public static void drawRectangle(int x, int y, int w, int h, int color) {
         Tessellator tessellator = Tessellator.instance;
-        //GL11.glEnable(GL11.GL_BLEND);
         tessellator.startDrawingQuads();
         tessellator.setColorOpaque_I(color);
         tessellator.addVertex(x, y, 0);
@@ -35,6 +34,22 @@ public class GuiHelper {
         tessellator.addVertex(x+w, y, 0);
         
         tessellator.draw();
+    }
+    
+    public static void drawRectangle(int x, int y, int w, int h, int color, int opacity) {
+        GL11.glEnable(GL11.GL_BLEND);
+        
+        Tessellator tessellator = Tessellator.instance;
+        tessellator.startDrawingQuads();
+        tessellator.setColorRGBA_I(color, opacity);
+        tessellator.addVertex(x, y, 0);
+        tessellator.addVertex(x, y+h, 0);
+        tessellator.addVertex(x+w, y+h, 0);
+        tessellator.addVertex(x+w, y, 0);
+        
+        tessellator.draw();
+        
+        GL11.glDisable(GL11.GL_BLEND);
     }
     
     public static void end() {

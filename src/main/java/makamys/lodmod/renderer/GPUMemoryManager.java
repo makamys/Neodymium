@@ -145,6 +145,9 @@ public class GPUMemoryManager {
         int rowLength = 512;
         int yOff = 20;
         
+        int height = (BUFFER_SIZE / scale) / rowLength;
+        GuiHelper.drawRectangle(0, yOff, rowLength, height, 0x000000, 50);
+        
         int meshI = 0;
         for(Mesh mesh : sentMeshes) {
             
