@@ -420,7 +420,7 @@ public class LODRenderer {
             int fragmentShader;
             fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
             
-            glShaderSource(fragmentShader, Util.readFile("shaders/chunk.frag"));
+            glShaderSource(fragmentShader, Util.readFile(LODMod.enableFog ? "shaders/chunk_fog.frag" : "shaders/chunk.frag"));
             glCompileShader(fragmentShader);
             
             if(glGetShaderi(fragmentShader, GL_COMPILE_STATUS) == 0) {

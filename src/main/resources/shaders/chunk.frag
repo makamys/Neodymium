@@ -21,23 +21,5 @@ void main()
 	
 	vec4 rasterColor = ((texColor * colorMult) * lightyColor);
 	
-	// TODO reimplement fog in a way that's not a performance hog
-	/*float s = FogStartEnd.x;
-	float e = FogStartEnd.y;
-	
-	vec4 ndcPos;
-	ndcPos.xy = ((2.0 * gl_FragCoord.xy) - (2.0 * Viewport.xy)) / (Viewport.zw) - 1;
-	ndcPos.z = (2.0 * gl_FragCoord.z - gl_DepthRange.near - gl_DepthRange.far) /
-		(gl_DepthRange.far - gl_DepthRange.near);
-	ndcPos.w = 1.0;
-
-	vec4 clipPos = ndcPos / gl_FragCoord.w;
-	vec4 eyePos = ProjInv * clipPos;
-	
-	float z = length(eyePos);
-	float f = (e - z) / (e - s);
-	f = clamp(f, 0, 1);
-	FragColor = mix(FogColor, rasterColor, f);*/
-	
 	FragColor = rasterColor;
 }

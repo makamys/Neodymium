@@ -71,6 +71,7 @@ public class LODMod
     public static boolean fogEventWasPosted;
     
     public static boolean ofFastRender;
+    public static boolean enableFog;
     
     @EventHandler
     public void preInit(FMLPreInitializationEvent event)
@@ -113,6 +114,7 @@ public class LODMod
 		sortFrequency = config.getInt("sortFrequency", "render", 1, 1, Integer.MAX_VALUE, "");
 		gcRate = config.getInt("gcRate", "render", 1, 1, Integer.MAX_VALUE, "Maximum number of meshes to relocate each frame.");
 		VRAMSize = config.getInt("VRAMSize", "render", 1, 1, Integer.MAX_VALUE, "VRAM buffer size.");
+		enableFog = config.getBoolean("enableFog", "render", true, "");
 		
         if(config.hasChanged()) {
             config.save();
