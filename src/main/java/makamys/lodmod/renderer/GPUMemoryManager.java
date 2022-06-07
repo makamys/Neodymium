@@ -42,7 +42,7 @@ public class GPUMemoryManager {
         
         Mesh startMesh = null;
         
-        while(moved < 5 && checksLeft-- > 0 && !sentMeshes.isEmpty()) {
+        while(moved < 1 && checksLeft-- > 0 && !sentMeshes.isEmpty()) {
             if(nextMesh >= sentMeshes.size()) {
                 nextMesh = 0;
             }

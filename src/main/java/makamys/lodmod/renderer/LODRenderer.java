@@ -124,10 +124,10 @@ public class LODRenderer {
             if(LODMod.debugEnabled && Minecraft.getMinecraft().currentScreen == null) {
                 handleKeyboard();
             }
-            if(lastGCTime == -1 || (System.currentTimeMillis() - lastGCTime) > 10) {
+            if(frameCount % 2 == 0) {
                 mem.runGC();
-                lastGCTime = System.currentTimeMillis();
             }
+            lastGCTime = System.currentTimeMillis();
             if(lastSaveTime == -1 || (System.currentTimeMillis() - lastSaveTime) > saveInterval && LODMod.saveMeshes) {
                 onSave();
                 lastSaveTime = System.currentTimeMillis();
