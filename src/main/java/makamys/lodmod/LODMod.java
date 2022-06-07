@@ -113,7 +113,7 @@ public class LODMod
 		maxMeshesPerFrame = config.getInt("maxMeshesPerFrame", "render", -1, -1, Integer.MAX_VALUE, "");
 		sortFrequency = config.getInt("sortFrequency", "render", 1, 1, Integer.MAX_VALUE, "");
 		gcRate = config.getInt("gcRate", "render", 1, 1, Integer.MAX_VALUE, "Maximum number of meshes to relocate each frame.");
-		VRAMSize = config.getInt("VRAMSize", "render", 1, 1, Integer.MAX_VALUE, "VRAM buffer size.");
+		VRAMSize = config.getInt("VRAMSize", "render", 1024, 1, Integer.MAX_VALUE, "VRAM buffer size (MB).");
 		enableFog = config.getBoolean("enableFog", "render", true, "");
 		
         if(config.hasChanged()) {

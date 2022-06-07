@@ -12,7 +12,7 @@ import makamys.lodmod.util.GuiHelper;
 
 public class GPUMemoryManager {
     
-    private static int BUFFER_SIZE = 1024 * 1024 * 1024;
+    private int bufferSize;
     
     public int VBO;
     
@@ -23,9 +23,11 @@ public class GPUMemoryManager {
     public GPUMemoryManager() {
         VBO = glGenBuffers();
         
+        bufferSize = LODMod.VRAMSize * 1024 * 1024;
+        
         glBindBuffer(GL_ARRAY_BUFFER, VBO);
         
-        glBufferData(GL_ARRAY_BUFFER, BUFFER_SIZE, GL_DYNAMIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, bufferSize, GL_DYNAMIC_DRAW);
         
         glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
@@ -85,7 +87,7 @@ public class GPUMemoryManager {
             nextBase = sentMeshes.get(sentMeshes.size() - 1).getEnd();
         }
         
-        if(nextBase + size >= BUFFER_SIZE) {
+        if(nextBase + size >= bufferSize) {
             return -1;
         } else {
             return nextBase;
@@ -101,11 +103,11 @@ public class GPUMemoryManager {
             return;
         }
         
-        if(end() + mesh.bufferSize() >= BUFFER_SIZE) {
+        if(end() + mesh.bufferSize() >= bufferSize) {
             runGC(true);
         }
         
-        if(end() + mesh.bufferSize() >= BUFFER_SIZE) {
+        if(end() + mesh.bufferSize() >= bufferSize) {
             System.out.println("VRAM is full! Try increasing the allocated VRAM in the config, if possible. Reverting to vanilla renderer.");
             LODMod.renderer.destroyPending = true;
             // TODO restart renderer with more VRAM allocated when this happens.
@@ -175,7 +177,7 @@ public class GPUMemoryManager {
     }
 
     public List<String> getDebugText() {
-        return Arrays.asList("VRAM: " + (end() / 1024 / 1024) + "MB / " + (BUFFER_SIZE / 1024 / 1024) + "MB");
+        return Arrays.asList("VRAM: " + (end() / 1024 / 1024) + "MB / " + (bufferSize / 1024 / 1024) + "MB");
     }
 
     public void drawInfo() {
@@ -183,7 +185,7 @@ public class GPUMemoryManager {
         int rowLength = 512;
         int yOff = 20;
         
-        int height = (BUFFER_SIZE / scale) / rowLength;
+        int height = (bufferSize / scale) / rowLength;
         GuiHelper.drawRectangle(0, yOff, rowLength, height, 0x000000, 50);
         
         int meshI = 0;
@@ -207,7 +209,7 @@ public class GPUMemoryManager {
             meshI++;
         }
         GuiHelper.drawRectangle(0 % rowLength, 0 + yOff, 4, 4, 0x00FF00);
-        GuiHelper.drawRectangle((BUFFER_SIZE / scale) % rowLength, (BUFFER_SIZE / scale) / rowLength + yOff, 4, 4, 0xFF0000);
+        GuiHelper.drawRectangle((bufferSize / scale) % rowLength, (bufferSize / scale) / rowLength + yOff, 4, 4, 0xFF0000);
     }
     
 }
