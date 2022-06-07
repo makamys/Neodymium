@@ -251,6 +251,11 @@ public class ChunkMesh extends Mesh {
         }
         instances--;
     }
+    
+    @Override
+    public void destroyBuffer() {
+        destroy();
+    }
 
     private ByteBuffer createBuffer(byte[] data, List<String> stringTable) {
         if(!(flags.hasTexture && flags.hasColor && flags.hasBrightness && !flags.hasNormals)) {
