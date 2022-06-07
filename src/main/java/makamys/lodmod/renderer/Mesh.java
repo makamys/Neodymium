@@ -25,7 +25,7 @@ public abstract class Mesh {
 	}
 	
 	public int bufferSize() {
-	    return buffer.limit();
+	    return buffer == null ? 0 : buffer.limit();
 	}
 	
 	public int getEnd() {

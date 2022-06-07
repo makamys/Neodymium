@@ -248,8 +248,9 @@ public class ChunkMesh extends Mesh {
     void destroy() {
         if(buffer != null) {
             usedRAM -= buffer.limit();
+            instances--;
+            buffer = null;
         }
-        instances--;
     }
     
     @Override

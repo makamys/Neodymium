@@ -31,11 +31,6 @@ public class GPUMemoryManager {
     
     public void runGC() {
         glBindBuffer(GL_ARRAY_BUFFER, VBO);
-            
-        int deletedNum = 0;
-        int deletedRAM = 0;
-        
-        long t0 = System.nanoTime();
         
         int moved = 0;
         int checksLeft = sentMeshes.size();
@@ -59,22 +54,16 @@ public class GPUMemoryManager {
                 mesh.iFirst = mesh.offset = -1;
                 mesh.visible = false;
                 mesh.gpuStatus = GPUStatus.UNSENT;
-                mesh.destroyBuffer();
                 
                 sentMeshes.remove(nextMesh);
                 
-                deletedNum++;
-                deletedRAM += mesh.bufferSize();
+                mesh.destroyBuffer();
                 
                 if(nextMesh > 0) {
                     nextMesh--;
                 }
             }
         }
-        
-        long t1 = System.nanoTime();
-        
-        //System.out.println("Deleted " + deletedNum + " meshes in " + ((t1 - t0) / 1_000_000.0) + " ms, freeing up " + (deletedRAM / 1024 / 1024) + "MB of VRAM");
         
         glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
@@ -112,8 +101,15 @@ public class GPUMemoryManager {
         if(!sentMeshes.isEmpty()) {
             if(nextMesh < sentMeshes.size() - 1) {
                 Mesh next = sentMeshes.get(nextMesh);
-                Mesh nextnext = sentMeshes.get(nextMesh + 1);
-                if(nextnext.offset - next.getEnd() >= size) {
+                Mesh nextnext = null;
+                for(int i = nextMesh + 1; i < sentMeshes.size(); i++) {
+                    Mesh m = sentMeshes.get(i);
+                    if(m.gpuStatus == Mesh.GPUStatus.SENT) {
+                        nextnext = m;
+                        break;
+                    }
+                }
+                if(nextnext != null && nextnext.offset - next.getEnd() >= size) {
                     nextBase = next.getEnd();
                     insertIndex = nextMesh + 1;
                 }
