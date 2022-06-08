@@ -21,7 +21,7 @@ public class LODChunk {
 	SimpleChunkMesh[] simpleMeshes = new SimpleChunkMesh[2];
 	ChunkMesh[] chunkMeshes = new ChunkMesh[32];
 	
-	public boolean[] hidden = new boolean[16];
+	public boolean[] isSectionVisible = new boolean[16];
 	
 	LODRenderer renderer = LODMod.renderer;
 	
@@ -173,16 +173,12 @@ public class LODChunk {
 	
 	public boolean isFullyVisible() {
 	    if(!visible) return false;
-	    for(boolean b : hidden) {
-	        if(b) {
+	    for(boolean b : isSectionVisible) {
+	        if(!b) {
 	            return false;
 	        }
 	    }
 	    return true;
-	}
-	
-	public boolean isSubchunkVisible(int y) {
-	    return !hidden[y];
 	}
 	
 }

@@ -459,7 +459,7 @@ public class LODRenderer {
         int z = Math.floorDiv(wr.posZ, 16);
         LODChunk lodChunk = getLODChunk(x, z);
         
-        lodChunk.hidden[y] = change != WorldRendererChange.VISIBLE;
+        lodChunk.isSectionVisible[y] = change == WorldRendererChange.VISIBLE;
         if(change == WorldRendererChange.DELETED) {
             removeMesh(lodChunk.chunkMeshes[y]);
         }
@@ -469,10 +469,14 @@ public class LODRenderer {
     public void onWorldRendererPost(WorldRenderer wr) {
         if(LODMod.disableChunkMeshes) return;
         
-        if(Minecraft.getMinecraft().theWorld.getChunkFromChunkCoords(Math.floorDiv(wr.posX, 16), Math.floorDiv(wr.posZ, 16)).isChunkLoaded) {
-            LODChunk lodChunk = getLODChunk(Math.floorDiv(wr.posX, 16), Math.floorDiv(wr.posZ, 16));
-            lodChunk.hidden[Math.floorDiv(wr.posY, 16)] = !((IWorldRenderer)wr).isDrawn();
-            lodChunk.putChunkMeshes(Math.floorDiv(wr.posY, 16), ((IWorldRenderer)wr).getChunkMeshes());
+        int x = Math.floorDiv(wr.posX, 16);
+        int y = Math.floorDiv(wr.posY, 16);
+        int z = Math.floorDiv(wr.posZ, 16);
+        
+        if(Minecraft.getMinecraft().theWorld.getChunkFromChunkCoords(x, z).isChunkLoaded) {
+            LODChunk lodChunk = getLODChunk(x, z);
+            lodChunk.isSectionVisible[y] = ((IWorldRenderer)wr).isDrawn();
+            lodChunk.putChunkMeshes(y, ((IWorldRenderer)wr).getChunkMeshes());
         }
     }
     
@@ -555,7 +559,7 @@ public class LODRenderer {
             for(int pass = 0; pass < 2; pass++) {
                 ChunkMesh cm = lodChunk.chunkMeshes[y * 2 + pass];
                 if(cm != null) {
-                    if(lodChunk.isSubchunkVisible(y) && newLOD == 2) {
+                    if(lodChunk.isSectionVisible[y] && newLOD == 2) {
                         if(!cm.visible) {
                             setMeshVisible(cm, true);
                         }
