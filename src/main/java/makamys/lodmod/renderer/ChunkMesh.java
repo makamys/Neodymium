@@ -250,6 +250,10 @@ public class ChunkMesh extends Mesh {
             usedRAM -= buffer.limit();
             instances--;
             buffer = null;
+            
+            if(gpuStatus == Mesh.GPUStatus.SENT) {
+                gpuStatus = Mesh.GPUStatus.PENDING_DELETE;
+            }
         }
     }
     

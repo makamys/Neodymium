@@ -9,6 +9,7 @@ import net.minecraft.nbt.NBTBase;
 
 public abstract class Mesh {
 	
+    /** Can be null, unless gpuStatus is SENT */
 	public ByteBuffer buffer;
 	public int quadCount;
 	public boolean visible;
