@@ -471,6 +471,7 @@ public class LODRenderer {
         
         if(Minecraft.getMinecraft().theWorld.getChunkFromChunkCoords(Math.floorDiv(wr.posX, 16), Math.floorDiv(wr.posZ, 16)).isChunkLoaded) {
             LODChunk lodChunk = getLODChunk(Math.floorDiv(wr.posX, 16), Math.floorDiv(wr.posZ, 16));
+            lodChunk.hidden[Math.floorDiv(wr.posY, 16)] = !((IWorldRenderer)wr).isDrawn();
             lodChunk.putChunkMeshes(Math.floorDiv(wr.posY, 16), ((IWorldRenderer)wr).getChunkMeshes());
         }
     }

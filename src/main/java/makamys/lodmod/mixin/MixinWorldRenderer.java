@@ -174,7 +174,8 @@ abstract class MixinWorldRenderer implements IWorldRenderer {
         }
     }
     
-    private boolean isDrawn() {
+    @Override
+    public boolean isDrawn() {
         return isInFrustum && (!skipRenderPass[0] || !skipRenderPass[1]);
     }
 }
