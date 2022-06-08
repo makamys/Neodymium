@@ -122,7 +122,7 @@ public class LODRenderer {
         
         if(hasInited) {
             mainLoop();
-            if(LODMod.debugEnabled && Minecraft.getMinecraft().currentScreen == null) {
+            if(Minecraft.getMinecraft().currentScreen == null) {
                 handleKeyboard();
             }
             if(frameCount % 2 == 0) {
@@ -256,24 +256,25 @@ public class LODRenderer {
     }
     
     private void handleKeyboard() {
-        if(Keyboard.isKeyDown(Keyboard.KEY_F) && !wasDown[Keyboard.KEY_F]) {
-            rendererActive = !rendererActive;
+        if(LODMod.debugPrefix == 0 || (LODMod.debugPrefix != -1 && Keyboard.isKeyDown(LODMod.debugPrefix))) {
+            if(Keyboard.isKeyDown(Keyboard.KEY_F) && !wasDown[Keyboard.KEY_F]) {
+                rendererActive = !rendererActive;
+            }
+            if(Keyboard.isKeyDown(Keyboard.KEY_V) && !wasDown[Keyboard.KEY_V]) {
+                renderWorld = !renderWorld;
+            }
+            if(Keyboard.isKeyDown(Keyboard.KEY_R) && !wasDown[Keyboard.KEY_R]) {
+                loadShader();
+            }
+            if(Keyboard.isKeyDown(Keyboard.KEY_M) && !wasDown[Keyboard.KEY_M]) {
+                showMemoryDebugger = !showMemoryDebugger;
+                //LODChunk chunk = getLODChunk(9, -18);
+                //setMeshVisible(chunk.chunkMeshes[7], false, true);
+                //freezeMeshes = false;
+                //chunk.chunkMeshes[7].quadCount = 256;
+                //setMeshVisible(chunk.chunkMeshes[7], true, true);
+            }
         }
-        if(Keyboard.isKeyDown(Keyboard.KEY_V) && !wasDown[Keyboard.KEY_V]) {
-            renderWorld = !renderWorld;
-        }
-        if(Keyboard.isKeyDown(Keyboard.KEY_R) && !wasDown[Keyboard.KEY_R]) {
-            loadShader();
-        }
-        if(Keyboard.isKeyDown(Keyboard.KEY_M) && !wasDown[Keyboard.KEY_M]) {
-            showMemoryDebugger = !showMemoryDebugger;
-            //LODChunk chunk = getLODChunk(9, -18);
-            //setMeshVisible(chunk.chunkMeshes[7], false, true);
-            //freezeMeshes = false;
-            //chunk.chunkMeshes[7].quadCount = 256;
-            //setMeshVisible(chunk.chunkMeshes[7], true, true);
-        }
-        
         for(int i = 0; i < 256; i++) {
             wasDown[i] = Keyboard.isKeyDown(i);
         }

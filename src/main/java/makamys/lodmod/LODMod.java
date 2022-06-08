@@ -23,6 +23,7 @@ import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.GL11;
 
 import cpw.mods.fml.common.FMLCommonHandler;
@@ -48,7 +49,6 @@ public class LODMod
     public static LODRenderer renderer;
     
     public static boolean enabled;
-    public static boolean debugEnabled;
     public static int chunkLoadsPerTick;
     public static List<Class> blockClassBlacklist;
     public static double fogStart;
@@ -65,6 +65,7 @@ public class LODMod
 	public static int sortFrequency;
 	public static int gcRate;
 	public static int VRAMSize;
+	public static int debugPrefix;
     
     private File configFile;
     
@@ -100,7 +101,6 @@ public class LODMod
         fogEnd = config.get("Fog", "fogEnd", "0.8").getDouble();
         farPlaneDistanceMultiplier = config.get("Fog", "farPlaneDistanceMultiplier", "1.0").getDouble();
         
-		debugEnabled = config.get("Debug", "enabled", false).getBoolean();
 		maxSimpleMeshHeight = (float)config.get("Debug", "maxSimpleMeshHeight", 1000.0).getDouble();
 		
 		forceVanillaBiomeTemperature = config.get("Simple mesh generation", "forceVanillaBiomeTemperature", true).getBoolean();
@@ -115,6 +115,7 @@ public class LODMod
 		gcRate = config.getInt("gcRate", "render", 1, 1, Integer.MAX_VALUE, "Maximum number of meshes to relocate each frame.");
 		VRAMSize = config.getInt("VRAMSize", "render", 1024, 1, Integer.MAX_VALUE, "VRAM buffer size (MB).");
 		enableFog = config.getBoolean("enableFog", "render", true, "");
+		debugPrefix = config.getInt("debugPrefix", "debug", Keyboard.KEY_F4, -1, Integer.MAX_VALUE, "This key has to be held down while pressing the debug keybinds. LWJGL keycode. Setting this to 0 will make the keybinds usable without holding anything else down. Setting this to -1 will disable debug keybinds entirely.");
 		
         if(config.hasChanged()) {
             config.save();
