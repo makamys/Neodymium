@@ -20,6 +20,7 @@ out vec4 Viewport;
 out mat4 ProjInv;
 out vec4 FogColor;
 out vec2 FogStartEnd;
+out float FogFactor;
 
 void main()
 {
@@ -30,5 +31,14 @@ void main()
 	Viewport = viewport;
 	ProjInv = projInv;
 	FogColor = fogColor;
+	
+	float s = fogStartEnd.x;
+	float e = fogStartEnd.y;
+	vec4 eyePos = (modelView * (vec4(aPos - playerPos, 1.0) + vec4(0, 0.12, 0, 0)));
+	
+	float fogFactor = clamp((e - length(eyePos)) / (e - s), 0, 1);
+	
+	FogFactor = fogFactor;
+	
 	FogStartEnd = fogStartEnd;
 }
