@@ -63,6 +63,7 @@ import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.util.vector.Matrix4f;
 
+import makamys.neodymium.Config;
 import makamys.neodymium.Neodymium;
 import makamys.neodymium.ducks.IWorldRenderer;
 import makamys.neodymium.renderer.Mesh.GPUStatus;
@@ -162,13 +163,13 @@ public class NeoRenderer {
                 mem.runGC(false);
             }
             lastGCTime = System.currentTimeMillis();
-            if(lastSaveTime == -1 || (System.currentTimeMillis() - lastSaveTime) > saveInterval && Neodymium.saveMeshes) {
+            if(lastSaveTime == -1 || (System.currentTimeMillis() - lastSaveTime) > saveInterval && Config.saveMeshes) {
                 onSave();
                 lastSaveTime = System.currentTimeMillis();
             }
             
             if(rendererActive && renderWorld) {
-                if(frameCount % Neodymium.sortFrequency == 0) {
+                if(frameCount % Config.sortFrequency == 0) {
                     sort();
                 }
                 
@@ -215,7 +216,7 @@ public class NeoRenderer {
             piFirst[i].limit(sentMeshes[i].size());
             piCount[i].limit(sentMeshes[i].size());
             for(Mesh mesh : sentMeshes[i]) {
-                if(mesh.visible && (Neodymium.maxMeshesPerFrame == -1 || renderedMeshes < Neodymium.maxMeshesPerFrame)) {
+                if(mesh.visible && (Config.maxMeshesPerFrame == -1 || renderedMeshes < Config.maxMeshesPerFrame)) {
                     renderedMeshes++;
                     piFirst[i].put(mesh.iFirst);
                     piCount[i].put(mesh.iCount);
@@ -277,19 +278,19 @@ public class NeoRenderer {
     }
     
     public float getFarPlaneDistanceMultiplier() {
-        return (float)Neodymium.farPlaneDistanceMultiplier;
+        return (float)Config.farPlaneDistanceMultiplier;
     }
     
     public void afterSetupFog(int mode, float alpha, float farPlaneDistance) {
         EntityLivingBase entity = Minecraft.getMinecraft().renderViewEntity;
         if(Neodymium.fogEventWasPosted && !Minecraft.getMinecraft().theWorld.provider.doesXZShowFog((int)entity.posX, (int)entity.posZ)) {
-            GL11.glFogf(GL11.GL_FOG_START, mode < 0 ? 0 : farPlaneDistance * (float)Neodymium.fogStart);
-            GL11.glFogf(GL11.GL_FOG_END, mode < 0 ? farPlaneDistance/4 : farPlaneDistance * (float)Neodymium.fogEnd);
+            GL11.glFogf(GL11.GL_FOG_START, mode < 0 ? 0 : farPlaneDistance * (float)Config.fogStart);
+            GL11.glFogf(GL11.GL_FOG_END, mode < 0 ? farPlaneDistance/4 : farPlaneDistance * (float)Config.fogEnd);
         }
     }
     
     private void handleKeyboard() {
-        if(Neodymium.debugPrefix == 0 || (Neodymium.debugPrefix != -1 && Keyboard.isKeyDown(Neodymium.debugPrefix))) {
+        if(Config.debugPrefix == 0 || (Config.debugPrefix != -1 && Keyboard.isKeyDown(Config.debugPrefix))) {
             if(Keyboard.isKeyDown(Keyboard.KEY_F) && !wasDown[Keyboard.KEY_F]) {
                 rendererActive = !rendererActive;
             }
@@ -454,7 +455,7 @@ public class NeoRenderer {
             int fragmentShader;
             fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
             
-            glShaderSource(fragmentShader, Util.readFile(Neodymium.enableFog ? "shaders/chunk_fog.frag" : "shaders/chunk.frag"));
+            glShaderSource(fragmentShader, Util.readFile(Config.enableFog ? "shaders/chunk_fog.frag" : "shaders/chunk.frag"));
             glCompileShader(fragmentShader);
             
             if(glGetShaderi(fragmentShader, GL_COMPILE_STATUS) == 0) {
@@ -501,7 +502,7 @@ public class NeoRenderer {
     }
     
     public void onWorldRendererPost(WorldRenderer wr) {
-        if(Neodymium.disableChunkMeshes) return;
+        if(Config.disableChunkMeshes) return;
         
         int x = Math.floorDiv(wr.posX, 16);
         int y = Math.floorDiv(wr.posY, 16);
@@ -536,7 +537,7 @@ public class NeoRenderer {
     }
     
     public synchronized void serverTick() {
-        int chunkLoadsRemaining = Neodymium.chunkLoadsPerTick;
+        int chunkLoadsRemaining = Config.chunkLoadsPerTick;
         while(!serverChunkLoadQueue.isEmpty() && chunkLoadsRemaining-- > 0) {
             ChunkCoordIntPair coords = serverChunkLoadQueue.remove(0);
             ChunkProviderServer chunkProviderServer = Minecraft.getMinecraft().getIntegratedServer().worldServerForDimension(world.provider.dimensionId).theChunkProviderServer;
@@ -575,7 +576,7 @@ public class NeoRenderer {
     }
     
     public void lodChunkChanged(NeoChunk lodChunk) {
-        int newLOD = (!lodChunk.hasChunkMeshes() && lodChunk.lod == 2) ? (Neodymium.disableSimpleMeshes ? 0 : 1) : lodChunk.lod;
+        int newLOD = (!lodChunk.hasChunkMeshes() && lodChunk.lod == 2) ? (Config.disableSimpleMeshes ? 0 : 1) : lodChunk.lod;
         for(SimpleChunkMesh sm : lodChunk.simpleMeshes) {
             if(sm != null) {
                 if(lodChunk.isFullyVisible() && newLOD == 1) {

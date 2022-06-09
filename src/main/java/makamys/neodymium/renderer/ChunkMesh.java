@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
 
 import org.lwjgl.BufferUtils;
 
+import makamys.neodymium.Config;
 import makamys.neodymium.MixinConfigPlugin;
 import makamys.neodymium.Neodymium;
 import makamys.neodymium.ducks.IWorldRenderer;
@@ -84,7 +85,7 @@ public class ChunkMesh extends Mesh {
         int tessellatorYOffset = fr ? yOffset : 0;
         int tessellatorZOffset = fr ? zOffset : 0;
         
-        boolean optimize = Neodymium.optimizeChunkMeshes;
+        boolean optimize = Config.optimizeChunkMeshes;
         
         ChunkMesh.Flags flags = new ChunkMesh.Flags(t.hasTexture, t.hasBrightness, t.hasColor, t.hasNormals);
         

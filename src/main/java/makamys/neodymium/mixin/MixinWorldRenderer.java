@@ -11,6 +11,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import makamys.neodymium.Config;
 import makamys.neodymium.Neodymium;
 import makamys.neodymium.ducks.IWorldRenderer;
 import makamys.neodymium.renderer.ChunkMesh;
@@ -97,7 +98,7 @@ abstract class MixinWorldRenderer implements IWorldRenderer {
     
     @Inject(method = "postRenderBlocks", at = @At(value = "HEAD"))
     private void prePostRenderBlocks(int pass, EntityLivingBase entity, CallbackInfo ci) {
-        if(Neodymium.isActive() && !Neodymium.disableChunkMeshes) {
+        if(Neodymium.isActive() && !Config.disableChunkMeshes) {
             if(chunkMeshes != null) {
                 chunkMeshes.add(ChunkMesh.fromTessellator(pass, WorldRenderer.class.cast(this), Tessellator.instance));
             }

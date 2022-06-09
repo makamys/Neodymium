@@ -2,6 +2,7 @@ package makamys.neodymium.renderer;
 
 import java.util.List;
 
+import makamys.neodymium.Config;
 import makamys.neodymium.Neodymium;
 import net.minecraft.entity.Entity;
 import net.minecraft.world.chunk.Chunk;
@@ -101,7 +102,7 @@ public class NeoChunk {
 	
 	public void tick(Entity player) {
 		double distSq = distSq(player);
-		if(Neodymium.disableSimpleMeshes || distSq < Math.pow((Neodymium.renderer.renderRange / 2) * 16, 2)) {
+		if(Config.disableSimpleMeshes || distSq < Math.pow((Neodymium.renderer.renderRange / 2) * 16, 2)) {
 		    setLOD(2);
 		} else if(distSq < Math.pow((Neodymium.renderer.renderRange) * 16, 2)) {
 		    setLOD(1);
@@ -164,7 +165,7 @@ public class NeoChunk {
 	}
 	
 	public void receiveChunk(Chunk chunk) {
-	    if(!Neodymium.disableSimpleMeshes) {
+	    if(!Config.disableSimpleMeshes) {
 	        putSimpleMeshes(SimpleChunkMesh.generateSimpleMeshes(chunk));
 	    }
 	}

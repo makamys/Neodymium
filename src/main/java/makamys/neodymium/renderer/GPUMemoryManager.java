@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import makamys.neodymium.Config;
 import makamys.neodymium.Neodymium;
 import makamys.neodymium.renderer.Mesh.GPUStatus;
 import makamys.neodymium.util.GuiHelper;
@@ -30,7 +31,7 @@ public class GPUMemoryManager {
     public GPUMemoryManager() {
         VBO = glGenBuffers();
         
-        bufferSize = Neodymium.VRAMSize * 1024 * 1024;
+        bufferSize = Config.VRAMSize * 1024 * 1024;
         
         glBindBuffer(GL_ARRAY_BUFFER, VBO);
         
