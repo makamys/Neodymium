@@ -27,6 +27,7 @@ import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.world.ChunkCache;
 import net.minecraft.world.World;
 
+/** Inserts hooks in WorldRenderer to listen for changes, and to grab the tessellator data right before rendering. */
 @Mixin(WorldRenderer.class)
 abstract class MixinWorldRenderer implements IWorldRenderer {
     

@@ -11,6 +11,7 @@ import makamys.neodymium.Neodymium;
 import net.minecraft.client.renderer.RenderBlocks;
 import net.minecraft.client.renderer.RenderGlobal;
 
+/** Blocks vanilla chunk rendering while NeoRenderer is active. (OptiFine compat) */
 @Mixin(RenderGlobal.class)
 abstract class MixinRenderGlobal_OptiFine {
     

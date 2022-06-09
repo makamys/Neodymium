@@ -1,4 +1,4 @@
-package makamys.neodymium.mixin;
+package makamys.neodymium.mixin.unused.lod;
 
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -14,6 +14,7 @@ import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
 
+/** Unused remnant from LODMod. Disables a wall being drawn on the edges of chunks facing unloaded chunks. */
 @Mixin(RenderBlocks.class)
 abstract class MixinRenderBlocks {
     

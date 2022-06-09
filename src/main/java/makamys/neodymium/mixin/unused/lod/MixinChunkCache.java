@@ -1,4 +1,4 @@
-package makamys.neodymium.mixin;
+package makamys.neodymium.mixin.unused.lod;
 
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -11,6 +11,7 @@ import net.minecraft.world.ChunkCache;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
 
+/** Unused remnant from LODMod. Handles reusage of Chunks when a LOD chunk becomes loaded. */
 @Mixin(ChunkCache.class)
 abstract class MixinChunkCache {
     

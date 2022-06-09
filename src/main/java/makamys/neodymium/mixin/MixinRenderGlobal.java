@@ -18,6 +18,7 @@ import net.minecraft.client.renderer.RenderGlobal;
 import net.minecraft.client.renderer.WorldRenderer;
 import net.minecraft.entity.Entity;
 
+/** Blocks vanilla chunk rendering while NeoRenderer is active. */
 @Mixin(RenderGlobal.class)
 abstract class MixinRenderGlobal { 
     

@@ -39,11 +39,9 @@ public class MixinConfigPlugin implements IMixinConfigPlugin {
     @Override
     public List<String> getMixins() {
         List<String> mixins = new ArrayList<>();
-        mixins.addAll(Arrays.asList("MixinChunkCache",
-        "MixinEntityRenderer",
+        mixins.addAll(Arrays.asList(
         "MixinRenderGlobal",
-        "MixinWorldRenderer",
-        "MixinRenderBlocks"));
+        "MixinWorldRenderer"));
         
         if (isOptiFinePresent()) {
             System.out.println("Detected OptiFine");

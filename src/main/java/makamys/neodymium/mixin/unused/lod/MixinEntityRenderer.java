@@ -1,4 +1,4 @@
-package makamys.neodymium.mixin;
+package makamys.neodymium.mixin.unused.lod;
 
 import org.lwjgl.opengl.GL11;
 import org.spongepowered.asm.mixin.Mixin;
@@ -13,6 +13,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.EntityRenderer;
 import net.minecraft.entity.EntityLivingBase;
 
+/** Unused remnant from LODMod. Handles changing fog distance. */
 @Mixin(EntityRenderer.class)
 abstract class MixinEntityRenderer {
     
