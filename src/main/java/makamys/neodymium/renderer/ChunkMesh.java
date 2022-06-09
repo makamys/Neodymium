@@ -1,4 +1,4 @@
-package makamys.lodmod.renderer;
+package makamys.neodymium.renderer;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
@@ -14,10 +14,10 @@ import java.util.stream.Collectors;
 
 import org.lwjgl.BufferUtils;
 
-import makamys.lodmod.LODMod;
-import makamys.lodmod.MixinConfigPlugin;
-import makamys.lodmod.ducks.IWorldRenderer;
-import makamys.lodmod.util.BufferWriter;
+import makamys.neodymium.LODMod;
+import makamys.neodymium.MixinConfigPlugin;
+import makamys.neodymium.ducks.IWorldRenderer;
+import makamys.neodymium.util.BufferWriter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.WorldRenderer;

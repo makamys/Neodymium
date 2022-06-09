@@ -1,4 +1,4 @@
-package makamys.lodmod.renderer;
+package makamys.neodymium.renderer;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -6,8 +6,8 @@ import java.util.Comparator;
 import java.util.Locale;
 import java.util.Map;
 
-import makamys.lodmod.renderer.MeshQuad.QuadPlaneComparator;
-import makamys.lodmod.util.SpriteUtil;
+import makamys.neodymium.renderer.MeshQuad.QuadPlaneComparator;
+import makamys.neodymium.util.SpriteUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.renderer.texture.TextureMap;

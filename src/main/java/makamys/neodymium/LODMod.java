@@ -1,4 +1,4 @@
-package makamys.lodmod;
+package makamys.neodymium;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
@@ -35,8 +35,8 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import makamys.lodmod.renderer.LODRenderer;
-import makamys.lodmod.util.SpriteUtil;
+import makamys.neodymium.renderer.LODRenderer;
+import makamys.neodymium.util.SpriteUtil;
 
 @Mod(modid = LODMod.MODID, version = LODMod.VERSION)
 public class LODMod

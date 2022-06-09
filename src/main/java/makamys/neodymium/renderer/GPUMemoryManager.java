@@ -1,4 +1,4 @@
-package makamys.lodmod.renderer;
+package makamys.neodymium.renderer;
 
 import static org.lwjgl.opengl.GL15.*;
 import java.util.ArrayList;
@@ -6,9 +6,9 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
-import makamys.lodmod.LODMod;
-import makamys.lodmod.renderer.Mesh.GPUStatus;
-import makamys.lodmod.util.GuiHelper;
+import makamys.neodymium.LODMod;
+import makamys.neodymium.renderer.Mesh.GPUStatus;
+import makamys.neodymium.util.GuiHelper;
 
 public class GPUMemoryManager {
     

@@ -1,4 +1,4 @@
-package makamys.lodmod.renderer;
+package makamys.neodymium.renderer;
 
 import java.io.BufferedOutputStream;
 import java.io.DataOutputStream;
@@ -12,7 +12,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import makamys.lodmod.LODMod;
+import makamys.neodymium.LODMod;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.entity.Entity;

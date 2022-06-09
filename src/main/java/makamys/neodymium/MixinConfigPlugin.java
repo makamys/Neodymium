@@ -1,4 +1,4 @@
-package makamys.lodmod;
+package makamys.neodymium;
 
 import java.util.ArrayList;
 import java.util.Arrays;

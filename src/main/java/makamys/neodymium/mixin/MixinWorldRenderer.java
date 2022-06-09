@@ -1,4 +1,4 @@
-package makamys.lodmod.mixin;
+package makamys.neodymium.mixin;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,12 +12,12 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import makamys.lodmod.LODMod;
-import makamys.lodmod.ducks.IWorldRenderer;
-import makamys.lodmod.renderer.ChunkMesh;
-import makamys.lodmod.renderer.FarChunkCache;
-import makamys.lodmod.renderer.FarWorldRenderer;
-import makamys.lodmod.renderer.LODRenderer;
+import makamys.neodymium.LODMod;
+import makamys.neodymium.ducks.IWorldRenderer;
+import makamys.neodymium.renderer.ChunkMesh;
+import makamys.neodymium.renderer.FarChunkCache;
+import makamys.neodymium.renderer.FarWorldRenderer;
+import makamys.neodymium.renderer.LODRenderer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.WorldRenderer;

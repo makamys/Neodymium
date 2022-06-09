@@ -1,12 +1,12 @@
-package makamys.lodmod.mixin;
+package makamys.neodymium.mixin;
 
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
-import makamys.lodmod.LODMod;
-import makamys.lodmod.renderer.FarChunkCache;
-import makamys.lodmod.renderer.LODRenderer;
+import makamys.neodymium.LODMod;
+import makamys.neodymium.renderer.FarChunkCache;
+import makamys.neodymium.renderer.LODRenderer;
 import net.minecraft.world.ChunkCache;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;

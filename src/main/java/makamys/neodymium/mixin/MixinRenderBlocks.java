@@ -1,4 +1,4 @@
-package makamys.lodmod.mixin;
+package makamys.neodymium.mixin;
 
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -6,8 +6,8 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import makamys.lodmod.LODMod;
-import makamys.lodmod.renderer.FarChunkCache;
+import makamys.neodymium.LODMod;
+import makamys.neodymium.renderer.FarChunkCache;
 import net.minecraft.block.Block;
 import net.minecraft.client.renderer.RenderBlocks;
 import net.minecraft.world.IBlockAccess;

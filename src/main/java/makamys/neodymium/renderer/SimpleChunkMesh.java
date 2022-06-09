@@ -1,4 +1,4 @@
-package makamys.lodmod.renderer;
+package makamys.neodymium.renderer;
 
 import static org.lwjgl.opengl.GL11.GL_FLOAT;
 import static org.lwjgl.opengl.GL15.GL_ARRAY_BUFFER;
@@ -16,8 +16,8 @@ import java.util.List;
 
 import org.lwjgl.BufferUtils;
 
-import makamys.lodmod.LODMod;
-import makamys.lodmod.util.MCUtil;
+import makamys.neodymium.LODMod;
+import makamys.neodymium.util.MCUtil;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockGrass;
 import net.minecraft.block.BlockLeaves;

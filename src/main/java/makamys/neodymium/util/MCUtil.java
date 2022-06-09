@@ -1,4 +1,4 @@
-package makamys.lodmod.util;
+package makamys.neodymium.util;
 
 import net.minecraft.world.biome.BiomeGenBase;
 

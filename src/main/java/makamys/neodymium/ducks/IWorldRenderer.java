@@ -1,10 +1,10 @@
-package makamys.lodmod.ducks;
+package makamys.neodymium.ducks;
 
 import java.util.List;
 
 import org.spongepowered.asm.mixin.Mixin;
 
-import makamys.lodmod.renderer.ChunkMesh;
+import makamys.neodymium.renderer.ChunkMesh;
 import net.minecraft.client.renderer.WorldRenderer;
 
 public interface IWorldRenderer {

@@ -1,4 +1,4 @@
-package makamys.lodmod.util;
+package makamys.neodymium.util;
 
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;

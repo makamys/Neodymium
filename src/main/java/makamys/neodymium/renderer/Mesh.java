@@ -1,9 +1,9 @@
-package makamys.lodmod.renderer;
+package makamys.neodymium.renderer;
 
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 
-import makamys.lodmod.util.Util;
+import makamys.neodymium.util.Util;
 import net.minecraft.entity.Entity;
 import net.minecraft.nbt.NBTBase;
 

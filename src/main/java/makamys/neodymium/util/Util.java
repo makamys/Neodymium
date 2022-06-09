@@ -1,4 +1,4 @@
-package makamys.lodmod.util;
+package makamys.neodymium.util;
 
 import java.io.File;
 import java.io.IOException;

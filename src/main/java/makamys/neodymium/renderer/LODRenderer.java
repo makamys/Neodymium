@@ -1,4 +1,4 @@
-package makamys.lodmod.renderer;
+package makamys.neodymium.renderer;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
@@ -40,11 +40,11 @@ import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.util.vector.Matrix4f;
 
-import makamys.lodmod.LODMod;
-import makamys.lodmod.ducks.IWorldRenderer;
-import makamys.lodmod.renderer.Mesh.GPUStatus;
-import makamys.lodmod.util.GuiHelper;
-import makamys.lodmod.util.Util;
+import makamys.neodymium.LODMod;
+import makamys.neodymium.ducks.IWorldRenderer;
+import makamys.neodymium.renderer.Mesh.GPUStatus;
+import makamys.neodymium.util.GuiHelper;
+import makamys.neodymium.util.Util;
 
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL14.*;

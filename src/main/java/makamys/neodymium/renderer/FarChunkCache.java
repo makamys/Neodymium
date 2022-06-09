@@ -1,4 +1,4 @@
-package makamys.lodmod.renderer;
+package makamys.neodymium.renderer;
 
 import net.minecraft.world.ChunkCache;
 import net.minecraft.world.World;

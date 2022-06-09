@@ -1,4 +1,4 @@
-package makamys.lodmod.util;
+package makamys.neodymium.util;
 
 import java.util.HashMap;
 import java.util.List;

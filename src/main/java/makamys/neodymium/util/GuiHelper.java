@@ -1,4 +1,4 @@
-package makamys.lodmod.util;
+package makamys.neodymium.util;
 
 import org.lwjgl.opengl.GL11;
 

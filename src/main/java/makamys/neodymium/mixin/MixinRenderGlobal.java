@@ -1,4 +1,4 @@
-package makamys.lodmod.mixin;
+package makamys.neodymium.mixin;
 
 import java.nio.IntBuffer;
 
@@ -12,7 +12,7 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import makamys.lodmod.LODMod;
+import makamys.neodymium.LODMod;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderGlobal;
 import net.minecraft.client.renderer.WorldRenderer;

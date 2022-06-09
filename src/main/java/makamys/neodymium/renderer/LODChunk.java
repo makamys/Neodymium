@@ -1,8 +1,8 @@
-package makamys.lodmod.renderer;
+package makamys.neodymium.renderer;
 
 import java.util.List;
 
-import makamys.lodmod.LODMod;
+import makamys.neodymium.LODMod;
 import net.minecraft.entity.Entity;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagEnd;
