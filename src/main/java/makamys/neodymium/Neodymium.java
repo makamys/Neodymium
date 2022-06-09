@@ -108,7 +108,7 @@ public class Neodymium
     	    if(Config.hotswap) {
     	        if(Config.reloadIfChanged()) {
     	            if(renderer != null) {
-    	                renderer.loadShader();
+    	                renderer.reloadShader();
     	            }
     	        }
     	    }

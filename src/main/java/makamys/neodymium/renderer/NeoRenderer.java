@@ -298,7 +298,7 @@ public class NeoRenderer {
                 renderWorld = !renderWorld;
             }
             if(Keyboard.isKeyDown(Keyboard.KEY_R) && !wasDown[Keyboard.KEY_R]) {
-                loadShader();
+                reloadShader();
             }
             if(Keyboard.isKeyDown(Keyboard.KEY_M) && !wasDown[Keyboard.KEY_M]) {
                 showMemoryDebugger = !showMemoryDebugger;
@@ -407,7 +407,7 @@ public class NeoRenderer {
     public boolean init() {
         Map<String, TextureAtlasSprite> uploadedSprites = ((TextureMap)Minecraft.getMinecraft().getTextureManager().getTexture(TextureMap.locationBlocksTexture)).mapUploadedSprites;
         
-        loadShader();
+        reloadShader();
         
         VAO = glGenVertexArrays();
         glBindVertexArray(VAO);
@@ -441,7 +441,7 @@ public class NeoRenderer {
         return true;
     }
     
-       public void loadShader() {
+       public void reloadShader() {
             int vertexShader;
             vertexShader = glCreateShader(GL_VERTEX_SHADER);
             
