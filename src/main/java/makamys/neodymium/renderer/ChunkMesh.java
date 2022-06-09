@@ -61,8 +61,7 @@ public class ChunkMesh extends Mesh {
         this.quadCount = quadCount;
         this.pass = pass;
         
-        NBTBase nbtData = toNBT(quads, quadCount);
-        buffer = createBuffer(((NBTTagByteArray)nbtData).func_150292_c(), nameList);
+        buffer = createBuffer(quads, quadCount);
         usedRAM += buffer.limit();
         instances++;
     }
@@ -89,18 +88,18 @@ public class ChunkMesh extends Mesh {
         
         ChunkMesh.Flags flags = new ChunkMesh.Flags(t.hasTexture, t.hasBrightness, t.hasColor, t.hasNormals);
         
-        if(optimize) {
+        if(true) {
             List<MeshQuad> quads = new ArrayList<>();
             
             for(int quadI = 0; quadI < t.vertexCount / 4; quadI++) {
-                MeshQuad quad = new MeshQuad(t.rawBuffer, quadI * 32, flags, tessellatorXOffset, tessellatorYOffset, tessellatorZOffset);
+                MeshQuad quad = new MeshQuad(t.rawBuffer, quadI * 32, flags, wr.posX, wr.posY, wr.posZ);
                 //if(quad.bUs[0] == quad.bUs[1] && quad.bUs[1] == quad.bUs[2] && quad.bUs[2] == quad.bUs[3] && quad.bUs[3] == quad.bVs[0] && quad.bVs[0] == quad.bVs[1] && quad.bVs[1] == quad.bVs[2] && quad.bVs[2] == quad.bVs[3] && quad.bVs[3] == 0) {
                 //    quad.deleted = true;
                 //}
-                if(quad.plane == quad.PLANE_XZ && !quad.isClockwiseXZ()) {
+                /*if(quad.plane == quad.PLANE_XZ && !quad.isClockwiseXZ()) {
                     // water hack
                     quad.deleted = true;
-                }
+                }*/
                 quads.add(quad);
             }
             
@@ -196,6 +195,8 @@ public class ChunkMesh extends Mesh {
             int color = t.rawBuffer[i + 5];
             out.writeInt(color);
             
+            //System.out.println("[" + vertexI + "] x: " + x + ", y: " + y + " z: " + z + ", u: " + u + ", v: " + v + ", b: " + brightness + ", c: " + color);
+            
             i += 8;
         }
     }
@@ -231,20 +232,21 @@ public class ChunkMesh extends Mesh {
         return quadCount;
     }
 
-    private NBTBase toNBT(List<? extends MeshQuad> quads, int quadCount) {
-        ByteArrayOutputStream byteOut = new ByteArrayOutputStream(quadCount * (2 + 4 * (3 + 2 + 2 + 4)));
-        DataOutputStream out = new DataOutputStream(byteOut);
-        try {
-            for(int pass = 0; pass <= 9; pass++){
-                for(MeshQuad quad : quads) {
-                    quad.writeToDisk(out, pass);
-                }
-            }
-        } catch(IOException e) {}
+    private ByteBuffer createBuffer(List<? extends MeshQuad> quads, int quadCount) {
+        ByteBuffer buffer = BufferUtils.createByteBuffer(quadCount * 6 * 7 * 4);
+        BufferWriter out = new BufferWriter(buffer);
         
-        NBTTagByteArray arr = new NBTTagByteArray(byteOut.toByteArray());
-        usedRAM += arr.func_150292_c().length;
-        return arr;
+        try {
+            for(MeshQuad quad : quads) {
+                quad.writeToBuffer(out);
+            }
+        } catch(IOException e) {
+            e.printStackTrace();
+        }
+        
+        
+        buffer.flip();
+        return buffer;
     }
     
     void destroy() {
@@ -262,74 +264,6 @@ public class ChunkMesh extends Mesh {
     @Override
     public void destroyBuffer() {
         destroy();
-    }
-
-    private ByteBuffer createBuffer(byte[] data, List<String> stringTable) {
-        if(!(flags.hasTexture && flags.hasColor && flags.hasBrightness && !flags.hasNormals)) {
-            // for simplicity's sake we just assume this setup
-            System.out.println("invalid mesh properties, expected a chunk");
-            return null;
-        }
-        int coordsOffset = quadCount * 2;
-        int textureOffset = quadCount * (2 + 4 + 4 + 4);
-        int brightnessOffset = quadCount * (2 + 4 + 4 + 4 + 4 + 4);
-        int colorOffset = quadCount * (2 + 4 + 4 + 4 + 4 + 4 + 4 + 4);
-        
-        ByteBuffer buffer = BufferUtils.createByteBuffer(quadCount * 6 * getStride());
-        FloatBuffer floatBuffer = buffer.asFloatBuffer();
-        ShortBuffer shortBuffer = buffer.asShortBuffer();
-        IntBuffer intBuffer = buffer.asIntBuffer();
-        
-        try {
-            for(int quadI = 0; quadI < quadCount; quadI++) {
-                short spriteIndex = readShortAt(data, quadI * 2);
-                String spriteName = stringTable.get(spriteIndex);
-                
-                TextureAtlasSprite tas = ((TextureMap)Minecraft.getMinecraft().getTextureManager().getTexture(TextureMap.locationBlocksTexture)).getAtlasSprite(spriteName);
-                
-                for (int vertexNum = 0; vertexNum < 6; vertexNum++) {
-                    int vi = new int[]{0, 1, 3, 1, 2, 3}[vertexNum];
-                    int vertexI = 4 * quadI + vi;
-                    int offset = vertexI * getStride();
-                    int simpleX = Byte.toUnsignedInt(data[coordsOffset + 0 * 4 * quadCount + 4 * quadI + vi]);
-                    if(simpleX == 255) simpleX = 256;
-                    int simpleY = Byte.toUnsignedInt(data[coordsOffset + 1 * 4 * quadCount + 4 * quadI + vi]);
-                    if(simpleY == 255) simpleY = 256;
-                    int simpleZ = Byte.toUnsignedInt(data[coordsOffset + 2 * 4 * quadCount + 4 * quadI + vi]);
-                    if(simpleZ == 255) simpleZ = 256;
-                    floatBuffer.put(x * 16 + simpleX / 16f); // x
-                    floatBuffer.put(y * 16 + simpleY / 16f); // y
-                    floatBuffer.put(z * 16 + simpleZ / 16f); // z
-                    
-                    byte relU = data[textureOffset + 0 * 4 * quadCount + 4 * quadI + vi];
-                    byte relV = data[textureOffset + 1 * 4 * quadCount + 4 * quadI + vi];
-                    
-                    floatBuffer.put(tas.getMinU() + (tas.getMaxU() - tas.getMinU()) * (relU / 16f)); // u
-                    floatBuffer.put(tas.getMinV() + (tas.getMaxV() - tas.getMinV()) * (relV / 16f)); // v
-                    
-                    shortBuffer.position(floatBuffer.position() * 2);
-                    
-                    shortBuffer.put((short)Byte.toUnsignedInt(data[brightnessOffset + 0 * 4 * quadCount + 4 * quadI + vi])); // bU
-                    shortBuffer.put((short)Byte.toUnsignedInt(data[brightnessOffset + 1 * 4 * quadCount + 4 * quadI + vi])); // bV
-                    
-                    intBuffer.position(shortBuffer.position() / 2);
-                    
-                    int integet = readIntAt(data, colorOffset + 4 * 4 * quadI + 4 * vi);
-                    intBuffer.put(integet); // c
-                    
-                    floatBuffer.position(intBuffer.position());
-                }
-            }
-        } catch(Exception e) {
-            e.printStackTrace();
-        }
-        
-        buffer.position(floatBuffer.position() * 4);
-        buffer.flip();
-        
-        usedRAM += buffer.limit();
-        
-        return buffer;
     }
     
     public void update() {
