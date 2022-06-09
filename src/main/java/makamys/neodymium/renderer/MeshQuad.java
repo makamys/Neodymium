@@ -14,6 +14,15 @@ import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.util.EnumFacing;
 
+/*
+ * This is what a quad looks like.
+ * 
+ *  2--1
+ *  |  |
+ *  3--0
+ * 
+ */
+
 public class MeshQuad {
     public float[] xs = new float[4];
     public float[] ys = new float[4];
@@ -35,6 +44,9 @@ public class MeshQuad {
     public int offset;
     public ChunkMesh.Flags flags;
     
+    // 0: quads glued together on edge 0-1 or 2-3 ("row length")
+    // 1: quads glued together on edge 1-2 or 3-0 ("column length")
+    private int[] quadCountByDirection = {1, 1}; 
     public static int[] totalMergeCountByPlane = new int[3];
     
     private MeshQuad mergeReference;
@@ -161,6 +173,13 @@ public class MeshQuad {
                     if(verticesTouching[i]) {
                         copyVertexFrom(o, i, i);
                     }
+                }
+                
+                if((verticesTouching[0] && verticesTouching[1]) || (verticesTouching[2] && verticesTouching[3])) {
+                    quadCountByDirection[0] += o.quadCountByDirection[0];
+                }
+                if((verticesTouching[1] && verticesTouching[2]) || (verticesTouching[3] && verticesTouching[0])) {
+                    quadCountByDirection[1] += o.quadCountByDirection[1];
                 }
                 
                 totalMergeCountByPlane[plane.ordinal() - 1]++;
