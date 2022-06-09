@@ -199,7 +199,7 @@ public class NeoRenderer {
     private void sort() {
         Entity player = Minecraft.getMinecraft().renderViewEntity;
         for(List<Mesh> list : sentMeshes) {
-            list.sort(new MeshDistanceComparator(player.posX / 16, player.posY / 16, player.posZ / 16));
+            list.sort(new MeshDistanceComparator(Math.floor(player.posX / 16.0), Math.floor(player.posY / 16.0), Math.floor(player.posZ / 16.0)));
         }
     }
     
