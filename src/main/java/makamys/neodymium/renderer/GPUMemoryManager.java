@@ -16,6 +16,8 @@ import makamys.neodymium.Config;
 import makamys.neodymium.Neodymium;
 import makamys.neodymium.renderer.Mesh.GPUStatus;
 import makamys.neodymium.util.GuiHelper;
+import makamys.neodymium.util.MCUtil;
+import net.minecraft.util.EnumChatFormatting;
 
 /** Manages dynamic memory allocation inside a fixed buffer on the GPU. */
 public class GPUMemoryManager {
@@ -116,7 +118,7 @@ public class GPUMemoryManager {
         }
         
         if(end() + mesh.bufferSize() >= bufferSize) {
-            System.out.println("VRAM is full! Try increasing the allocated VRAM in the config, if possible. Reverting to vanilla renderer.");
+            MCUtil.showChatMessage("" + "[" + EnumChatFormatting.LIGHT_PURPLE + Neodymium.MODID + EnumChatFormatting.RESET + "/" + EnumChatFormatting.RED + "ERROR" + EnumChatFormatting.RESET + "] VRAM is full! Reverting to vanilla renderer. Try increasing the VRAM buffer size in the config, if possible.");
             Neodymium.renderer.destroyPending = true;
             // TODO restart renderer with more VRAM allocated when this happens.
             return;

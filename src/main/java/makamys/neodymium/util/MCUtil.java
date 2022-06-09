@@ -1,5 +1,10 @@
 package makamys.neodymium.util;
 
+import static makamys.neodymium.Neodymium.LOGGER;
+
+import net.minecraft.client.Minecraft;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.util.ChatComponentText;
 import net.minecraft.world.biome.BiomeGenBase;
 
 public class MCUtil {
@@ -14,6 +19,17 @@ public class MCUtil {
         else
         {
             return biome.temperature;
+        }
+    }
+    
+    public static void showChatMessage(String text) {
+        EntityPlayer player = Minecraft.getMinecraft().thePlayer;
+        
+        if(player != null) {
+            ChatComponentText cc = new ChatComponentText(text);
+            player.addChatComponentMessage(cc);
+        } else {
+            LOGGER.info(text);
         }
     }
     
