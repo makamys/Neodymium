@@ -10,6 +10,7 @@ import makamys.neodymium.Neodymium;
 import makamys.neodymium.renderer.Mesh.GPUStatus;
 import makamys.neodymium.util.GuiHelper;
 
+/** Manages dynamic memory allocation inside a fixed buffer on the GPU. */
 public class GPUMemoryManager {
     
     private int bufferSize;

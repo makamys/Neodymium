@@ -7,6 +7,7 @@ import makamys.neodymium.util.Util;
 import net.minecraft.entity.Entity;
 import net.minecraft.nbt.NBTBase;
 
+/** A generic mesh that can be sent to the GPU for rendering. */
 public abstract class Mesh {
 	
     /** Can be null, unless gpuStatus is SENT */

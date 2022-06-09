@@ -28,6 +28,7 @@ import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagByteArray;
 import net.minecraft.tileentity.TileEntity;
 
+/** A mesh for a 16x16x16 region of the world. */
 public class ChunkMesh extends Mesh {
     
     Flags flags;
