@@ -31,8 +31,7 @@ public class MeshQuad {
     // TODO normals?
     public boolean deleted;
     
-    public static final int PLANE_NONE = -1, PLANE_XY = 0, PLANE_XZ = 1, PLANE_YZ = 2;
-    public int plane = PLANE_NONE;
+    public Plane plane;
     public int offset;
     public ChunkMesh.Flags flags;
     
@@ -77,13 +76,13 @@ public class MeshQuad {
         updateMinMaxXYZ();
         
         if(ys[0] == ys[1] && ys[1] == ys[2] && ys[2] == ys[3]) {
-            plane = PLANE_XZ;
+            plane = Plane.XZ;
         } else if(xs[0] == xs[1] && xs[1] == xs[2] && xs[2] == xs[3]) {
-            plane = PLANE_YZ;
+            plane = Plane.YZ;
         } else if(zs[0] == zs[1] && zs[1] == zs[2] && zs[2] == zs[3]) {
-            plane = PLANE_XY;
+            plane = Plane.XY;
         } else {
-            plane = PLANE_NONE;
+            plane = Plane.NONE;
         }
     }
     
@@ -122,8 +121,8 @@ public class MeshQuad {
         
         for(int i = 1; i < 4; i++) {
             double relX = xs[i] - xs[0];
-            double relY = xs[i] - xs[0];
-            double relZ = xs[i] - xs[0];
+            double relY = ys[i] - ys[0];
+            double relZ = zs[i] - zs[0];
             
             if(o.xs[i] != o.xs[0] + relX || o.ys[i] != o.ys[0] + relY || o.zs[i] != o.zs[0] + relZ) {
                 return false;
@@ -158,7 +157,7 @@ public class MeshQuad {
                     }
                 }
                 
-                totalMergeCountByPlane[plane]++;
+                totalMergeCountByPlane[plane.ordinal() - 1]++;
                 
                 o.deleted = true;
             }
@@ -173,6 +172,8 @@ public class MeshQuad {
         vs[dest] = o.vs[src];
         bs[dest] = o.bs[src];
         cs[dest] = o.cs[src];
+        
+        updateMinMaxXYZ(); // TODO isn't doing this a waste? I should get rid of the min/maxXYZ variables entirely.
     }
     
     private void updateMinMaxXYZ() {
@@ -197,9 +198,9 @@ public class MeshQuad {
     
     public boolean onSamePlaneAs(MeshQuad o) {
         return isValid(this) && isValid(o) && plane == o.plane &&
-            ((plane == PLANE_XY && minZ == o.minZ) ||
-                    (plane == PLANE_XZ && minY == o.minY) ||
-                    (plane == PLANE_YZ && minX == o.minX));
+            ((plane == Plane.XY && minZ == o.minZ) ||
+                    (plane == Plane.XZ && minY == o.minY) ||
+                    (plane == Plane.YZ && minX == o.minX));
     }
     
     // this should be static..
@@ -214,6 +215,7 @@ public class MeshQuad {
     @Override
     public String toString() {
         return String.format(Locale.ENGLISH, "%s(%.1f, %.1f, %.1f -- %.1f, %.1f, %.1f)", deleted ? "XXX " : "", minX, minY, minZ, maxX, maxY, maxZ);
+        //return String.format(Locale.ENGLISH, "%s[(%.1f, %.1f, %.1f), (%.1f, %.1f, %.1f), (%.1f, %.1f, %.1f), (%.1f, %.1f, %.1f)]", deleted ? "XXX " : "", xs[0], ys[0], zs[0], xs[1], ys[1], zs[1], xs[2], ys[2], zs[2], xs[3], ys[3], zs[3]);
     }
     
     public static class QuadPlaneComparator implements Comparator<MeshQuad> {
@@ -254,5 +256,12 @@ public class MeshQuad {
                 }
             }
         }
+    }
+    
+    public static enum Plane {
+        NONE,
+        XY,
+        XZ,
+        YZ
     }
 }

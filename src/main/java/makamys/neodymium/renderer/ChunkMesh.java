@@ -108,8 +108,8 @@ public class ChunkMesh extends Mesh {
                 quadsByPlaneDir.add(new ArrayList<MeshQuad>());
             }
             for(MeshQuad quad : quads) {
-                if(quad.plane != MeshQuad.PLANE_NONE) {
-                    quadsByPlaneDir.get(quad.plane).add(quad);
+                if(quad.plane != MeshQuad.Plane.NONE) {
+                    quadsByPlaneDir.get(quad.plane.ordinal() - 1).add(quad);
                 }
             }
             for(int plane = 0; plane < 3; plane++) {
@@ -238,7 +238,9 @@ public class ChunkMesh extends Mesh {
         
         try {
             for(MeshQuad quad : quads) {
-                quad.writeToBuffer(out);
+                if(quad.isValid(quad)) {
+                    quad.writeToBuffer(out);
+                }
             }
         } catch(IOException e) {
             e.printStackTrace();
