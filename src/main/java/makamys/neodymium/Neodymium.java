@@ -38,9 +38,9 @@ import net.minecraftforge.event.world.WorldEvent;
 public class Neodymium
 {
     public static final String MODID = "neodymium";
-    public static final String VERSION = "0.0";
+    public static final String VERSION = "@VERSION@";
     
-    public static final Logger LOGGER = LogManager.getLogger("neodymium");
+    public static final Logger LOGGER = LogManager.getLogger(MODID);
     
     public static NeoRenderer renderer;
     
