@@ -7,7 +7,7 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import makamys.neodymium.Neodymium;
-import makamys.neodymium.renderer.FarChunkCache;
+import makamys.neodymium.renderer.lod.FarChunkCache;
 import net.minecraft.block.Block;
 import net.minecraft.client.renderer.RenderBlocks;
 import net.minecraft.world.IBlockAccess;

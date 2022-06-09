@@ -5,8 +5,8 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
 import makamys.neodymium.Neodymium;
-import makamys.neodymium.renderer.FarChunkCache;
 import makamys.neodymium.renderer.NeoRenderer;
+import makamys.neodymium.renderer.lod.FarChunkCache;
 import net.minecraft.world.ChunkCache;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
