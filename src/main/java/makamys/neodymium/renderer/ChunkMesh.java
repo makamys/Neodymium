@@ -85,7 +85,7 @@ public class ChunkMesh extends Mesh {
         int tessellatorYOffset = fr ? yOffset : 0;
         int tessellatorZOffset = fr ? zOffset : 0;
         
-        boolean optimize = Config.optimizeChunkMeshes;
+        boolean optimize = Config.simplifyChunkMeshes;
         
         ChunkMesh.Flags flags = new ChunkMesh.Flags(t.hasTexture, t.hasBrightness, t.hasColor, t.hasNormals);
         

@@ -455,7 +455,7 @@ public class NeoRenderer {
             int fragmentShader;
             fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
             
-            glShaderSource(fragmentShader, Util.readFile(Config.enableFog ? "shaders/chunk_fog.frag" : "shaders/chunk.frag"));
+            glShaderSource(fragmentShader, Util.readFile(Config.renderFog ? "shaders/chunk_fog.frag" : "shaders/chunk.frag"));
             glCompileShader(fragmentShader);
             
             if(glGetShaderi(fragmentShader, GL_COMPILE_STATUS) == 0) {

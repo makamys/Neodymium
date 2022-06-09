@@ -13,14 +13,14 @@ import net.minecraftforge.common.config.Configuration;
 public class Config {
 
     public static boolean enabled;
-    public static boolean optimizeChunkMeshes;
+    public static boolean simplifyChunkMeshes;
     public static int maxMeshesPerFrame;
     public static int sortFrequency;
     public static int gcRate;
     public static int VRAMSize;
     public static int debugPrefix;
     public static int debugInfoStartY;
-    public static boolean enableFog;
+    public static boolean renderFog;
     
     // Unused LOD stuff
     public static int chunkLoadsPerTick = 64;
@@ -40,14 +40,16 @@ public class Config {
         Configuration config = new Configuration(configFile);
         
         config.load();
-        enabled = config.get("General", "enabled", true).getBoolean();
+        enabled = config.getBoolean("enabled", "general", true, "Set this to false to fully disable the mod (this can be useful to compare it with the vanilla renderer)");
         
-        optimizeChunkMeshes = config.getBoolean("optimizeChunkMeshes", "render", true, "");
-        maxMeshesPerFrame = config.getInt("maxMeshesPerFrame", "render", -1, -1, Integer.MAX_VALUE, "");
-        sortFrequency = config.getInt("sortFrequency", "render", 1, 1, Integer.MAX_VALUE, "");
-        gcRate = config.getInt("gcRate", "render", 1, 1, Integer.MAX_VALUE, "Maximum number of meshes to relocate each frame.");
-        VRAMSize = config.getInt("VRAMSize", "render", 1024, 1, Integer.MAX_VALUE, "VRAM buffer size (MB).");
-        enableFog = config.getBoolean("enableFog", "render", true, "");
+        simplifyChunkMeshes = config.getBoolean("simplifyChunkMeshes", "render", false, "Simplify chunk meshes so they are made of less vertices. Proof of concept, produces very janky results.");
+        
+        maxMeshesPerFrame = config.getInt("maxMeshesPerFrame", "debug", -1, -1, Integer.MAX_VALUE, "");
+        
+        sortFrequency = config.getInt("sortFrequency", "render", 1, 1, Integer.MAX_VALUE, "Interval (in frames) between the sorting of meshes.");
+        gcRate = config.getInt("gcRate", "render", 1, 1, Integer.MAX_VALUE, "Maximum number of meshes to relocate each frame. Setting this to a higher value will make it harder for the VRAM to get full (which causes a lag spike when it happens), but slightly reduces framerate. The VRAM debugger can be used to find the right value.");
+        VRAMSize = config.getInt("VRAMSize", "render", 1024, 1, Integer.MAX_VALUE, "VRAM buffer size (MB). 512 seems to be a good value on Normal render distance. Increase this if you encounter warnings about the VRAM getting full. Does not affect RAM usage.");
+        renderFog = config.getBoolean("drawFog", "render", true, "Render frog? Disable this to increase framerate.");
         debugPrefix = config.getInt("debugPrefix", "debug", Keyboard.KEY_F4, -1, Integer.MAX_VALUE, "This key has to be held down while pressing the debug keybinds. LWJGL keycode. Setting this to 0 will make the keybinds usable without holding anything else down. Setting this to -1 will disable debug keybinds entirely.");
         debugInfoStartY = config.getInt("debugInfoStartY", "debug", 80, -1, Integer.MAX_VALUE, "The Y position of the first line of the debug info in the F3 overlay. Set this to -1 to disable showing that info.");
         
