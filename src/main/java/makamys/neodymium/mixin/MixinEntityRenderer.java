@@ -8,7 +8,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import makamys.neodymium.LODMod;
+import makamys.neodymium.Neodymium;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.EntityRenderer;
 import net.minecraft.entity.EntityLivingBase;
@@ -21,15 +21,15 @@ abstract class MixinEntityRenderer {
     
     @Inject(method = "setupCameraTransform", at = @At(value = "FIELD", target = "Lnet/minecraft/client/renderer/EntityRenderer;farPlaneDistance:F", shift = At.Shift.AFTER, ordinal = 1))
     private void onConstructed(CallbackInfo ci) {
-        if(LODMod.isActive()) {
-            farPlaneDistance *= LODMod.renderer.getFarPlaneDistanceMultiplier();
+        if(Neodymium.isActive()) {
+            farPlaneDistance *= Neodymium.renderer.getFarPlaneDistanceMultiplier();
         }
     }
     
     @Inject(method = "setupFog", at = @At(value = "RETURN"))
     private void afterSetupFog(int mode, float alpha, CallbackInfo ci) {
-        if(LODMod.isActive()) {
-            LODMod.renderer.afterSetupFog(mode, alpha, farPlaneDistance);
+        if(Neodymium.isActive()) {
+            Neodymium.renderer.afterSetupFog(mode, alpha, farPlaneDistance);
         }
     }
 }

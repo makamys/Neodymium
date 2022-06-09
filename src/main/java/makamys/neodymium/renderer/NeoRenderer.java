@@ -40,7 +40,7 @@ import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.util.vector.Matrix4f;
 
-import makamys.neodymium.LODMod;
+import makamys.neodymium.Neodymium;
 import makamys.neodymium.ducks.IWorldRenderer;
 import makamys.neodymium.renderer.Mesh.GPUStatus;
 import makamys.neodymium.util.GuiHelper;
@@ -52,7 +52,7 @@ import static org.lwjgl.opengl.GL15.*;
 import static org.lwjgl.opengl.GL20.*;
 import static org.lwjgl.opengl.GL30.*;
 
-public class LODRenderer {
+public class NeoRenderer {
     
     public boolean hasInited = false;
     public boolean destroyPending;
@@ -73,10 +73,10 @@ public class LODRenderer {
     GPUMemoryManager mem;
     
     List<Chunk> myChunks = new ArrayList<Chunk>();
-    List<LODChunk> pendingLODChunks = new ArrayList<>();
+    List<NeoChunk> pendingLODChunks = new ArrayList<>();
     
     private boolean hasServerInited = false;
-    private Map<ChunkCoordIntPair, LODRegion> loadedRegionsMap = new HashMap<>();
+    private Map<ChunkCoordIntPair, NeoRegion> loadedRegionsMap = new HashMap<>();
     
     public World world;
     
@@ -101,7 +101,7 @@ public class LODRenderer {
     
     private boolean freezeMeshes;
     
-    public LODRenderer(World world){
+    public NeoRenderer(World world){
         this.world = world;
         if(shouldRenderInWorld(world)) {
             hasInited = init();
@@ -114,7 +114,7 @@ public class LODRenderer {
     public void preRenderSortedRenderers(int renderPass, double alpha, WorldRenderer[] sortedWorldRenderers) {
         if(renderPass != 0) return;
         
-        LODMod.fogEventWasPosted = false;
+        Neodymium.fogEventWasPosted = false;
         
         renderedMeshes = 0;
         
@@ -129,13 +129,13 @@ public class LODRenderer {
                 mem.runGC(false);
             }
             lastGCTime = System.currentTimeMillis();
-            if(lastSaveTime == -1 || (System.currentTimeMillis() - lastSaveTime) > saveInterval && LODMod.saveMeshes) {
+            if(lastSaveTime == -1 || (System.currentTimeMillis() - lastSaveTime) > saveInterval && Neodymium.saveMeshes) {
                 onSave();
                 lastSaveTime = System.currentTimeMillis();
             }
             
             if(rendererActive && renderWorld) {
-                if(frameCount % LODMod.sortFrequency == 0) {
+                if(frameCount % Neodymium.sortFrequency == 0) {
                     sort();
                 }
                 
@@ -152,7 +152,7 @@ public class LODRenderer {
     
     public void onRenderTickEnd() {
         if(destroyPending) {
-            LODMod.renderer = null;
+            Neodymium.renderer = null;
             return;
         }
         if(showMemoryDebugger && mem != null) {
@@ -182,7 +182,7 @@ public class LODRenderer {
             piFirst[i].limit(sentMeshes[i].size());
             piCount[i].limit(sentMeshes[i].size());
             for(Mesh mesh : sentMeshes[i]) {
-                if(mesh.visible && (LODMod.maxMeshesPerFrame == -1 || renderedMeshes < LODMod.maxMeshesPerFrame)) {
+                if(mesh.visible && (Neodymium.maxMeshesPerFrame == -1 || renderedMeshes < Neodymium.maxMeshesPerFrame)) {
                     renderedMeshes++;
                     piFirst[i].put(mesh.iFirst);
                     piCount[i].put(mesh.iCount);
@@ -195,7 +195,7 @@ public class LODRenderer {
     
     private void mainLoop() {
         while(!farChunks.isEmpty()) {
-            LODChunk lodChunk = receiveFarChunk(farChunks.remove());
+            NeoChunk lodChunk = receiveFarChunk(farChunks.remove());
             sendChunkToGPU(lodChunk);
         }
         
@@ -229,7 +229,7 @@ public class LODRenderer {
                 lastSortZ = player.posZ;
                 for(Iterator<ChunkCoordIntPair> it = loadedRegionsMap.keySet().iterator(); it.hasNext();) {
                     ChunkCoordIntPair k = it.next();
-                    LODRegion v = loadedRegionsMap.get(k);
+                    NeoRegion v = loadedRegionsMap.get(k);
                     
                     if(v.distanceTaxicab(player) > renderRange * 16 + 16 * 16) {
                         System.out.println("unloading " + v);
@@ -244,19 +244,19 @@ public class LODRenderer {
     }
     
     public float getFarPlaneDistanceMultiplier() {
-        return (float)LODMod.farPlaneDistanceMultiplier;
+        return (float)Neodymium.farPlaneDistanceMultiplier;
     }
     
     public void afterSetupFog(int mode, float alpha, float farPlaneDistance) {
         EntityLivingBase entity = Minecraft.getMinecraft().renderViewEntity;
-        if(LODMod.fogEventWasPosted && !Minecraft.getMinecraft().theWorld.provider.doesXZShowFog((int)entity.posX, (int)entity.posZ)) {
-            GL11.glFogf(GL11.GL_FOG_START, mode < 0 ? 0 : farPlaneDistance * (float)LODMod.fogStart);
-            GL11.glFogf(GL11.GL_FOG_END, mode < 0 ? farPlaneDistance/4 : farPlaneDistance * (float)LODMod.fogEnd);
+        if(Neodymium.fogEventWasPosted && !Minecraft.getMinecraft().theWorld.provider.doesXZShowFog((int)entity.posX, (int)entity.posZ)) {
+            GL11.glFogf(GL11.GL_FOG_START, mode < 0 ? 0 : farPlaneDistance * (float)Neodymium.fogStart);
+            GL11.glFogf(GL11.GL_FOG_END, mode < 0 ? farPlaneDistance/4 : farPlaneDistance * (float)Neodymium.fogEnd);
         }
     }
     
     private void handleKeyboard() {
-        if(LODMod.debugPrefix == 0 || (LODMod.debugPrefix != -1 && Keyboard.isKeyDown(LODMod.debugPrefix))) {
+        if(Neodymium.debugPrefix == 0 || (Neodymium.debugPrefix != -1 && Keyboard.isKeyDown(Neodymium.debugPrefix))) {
             if(Keyboard.isKeyDown(Keyboard.KEY_F) && !wasDown[Keyboard.KEY_F]) {
                 rendererActive = !rendererActive;
             }
@@ -421,7 +421,7 @@ public class LODRenderer {
             int fragmentShader;
             fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
             
-            glShaderSource(fragmentShader, Util.readFile(LODMod.enableFog ? "shaders/chunk_fog.frag" : "shaders/chunk.frag"));
+            glShaderSource(fragmentShader, Util.readFile(Neodymium.enableFog ? "shaders/chunk_fog.frag" : "shaders/chunk.frag"));
             glCompileShader(fragmentShader);
             
             if(glGetShaderi(fragmentShader, GL_COMPILE_STATUS) == 0) {
@@ -458,7 +458,7 @@ public class LODRenderer {
         int x = Math.floorDiv(wr.posX, 16);
         int y = Math.floorDiv(wr.posY, 16);
         int z = Math.floorDiv(wr.posZ, 16);
-        LODChunk lodChunk = getLODChunk(x, z);
+        NeoChunk lodChunk = getLODChunk(x, z);
         
         lodChunk.isSectionVisible[y] = change == WorldRendererChange.VISIBLE;
         if(change == WorldRendererChange.DELETED) {
@@ -468,14 +468,14 @@ public class LODRenderer {
     }
     
     public void onWorldRendererPost(WorldRenderer wr) {
-        if(LODMod.disableChunkMeshes) return;
+        if(Neodymium.disableChunkMeshes) return;
         
         int x = Math.floorDiv(wr.posX, 16);
         int y = Math.floorDiv(wr.posY, 16);
         int z = Math.floorDiv(wr.posZ, 16);
         
         if(Minecraft.getMinecraft().theWorld.getChunkFromChunkCoords(x, z).isChunkLoaded) {
-            LODChunk lodChunk = getLODChunk(x, z);
+            NeoChunk lodChunk = getLODChunk(x, z);
             lodChunk.isSectionVisible[y] = ((IWorldRenderer)wr).isDrawn();
             lodChunk.putChunkMeshes(y, ((IWorldRenderer)wr).getChunkMeshes());
         }
@@ -489,12 +489,12 @@ public class LODRenderer {
         serverChunkLoadQueue.addAll(coords);
     }
     
-    private LODChunk receiveFarChunk(Chunk chunk) {
-        LODRegion region = getRegionContaining(chunk.xPosition, chunk.zPosition);
+    private NeoChunk receiveFarChunk(Chunk chunk) {
+        NeoRegion region = getRegionContaining(chunk.xPosition, chunk.zPosition);
         return region.putChunk(chunk);
     }
     
-    private LODChunk getLODChunk(int chunkX, int chunkZ) {
+    private NeoChunk getLODChunk(int chunkX, int chunkZ) {
         return getRegionContaining(chunkX, chunkZ).getChunkAbsolute(chunkX, chunkZ);
     }
     
@@ -503,7 +503,7 @@ public class LODRenderer {
     }
     
     public synchronized void serverTick() {
-        int chunkLoadsRemaining = LODMod.chunkLoadsPerTick;
+        int chunkLoadsRemaining = Neodymium.chunkLoadsPerTick;
         while(!serverChunkLoadQueue.isEmpty() && chunkLoadsRemaining-- > 0) {
             ChunkCoordIntPair coords = serverChunkLoadQueue.remove(0);
             ChunkProviderServer chunkProviderServer = Minecraft.getMinecraft().getIntegratedServer().worldServerForDimension(world.provider.dimensionId).theChunkProviderServer;
@@ -513,36 +513,36 @@ public class LODRenderer {
         }
     }
     
-    private LODRegion getRegionContaining(int chunkX, int chunkZ) {
+    private NeoRegion getRegionContaining(int chunkX, int chunkZ) {
         ChunkCoordIntPair key = new ChunkCoordIntPair(Math.floorDiv(chunkX , 32), Math.floorDiv(chunkZ, 32));
-        LODRegion region = loadedRegionsMap.get(key);
+        NeoRegion region = loadedRegionsMap.get(key);
         if(region == null) {
-            region = LODRegion.load(getSaveDir(), Math.floorDiv(chunkX , 32), Math.floorDiv(chunkZ , 32));
+            region = NeoRegion.load(getSaveDir(), Math.floorDiv(chunkX , 32), Math.floorDiv(chunkZ , 32));
             loadedRegionsMap.put(key, region);
         }
         return region;
     }
     
-    private void sendChunkToGPU(LODChunk lodChunk) {
+    private void sendChunkToGPU(NeoChunk lodChunk) {
         Entity player = Minecraft.getMinecraft().renderViewEntity;
         
         lodChunk.tick(player);
         setVisible(lodChunk, true, true);
     }
     
-    public void setVisible(LODChunk chunk, boolean visible) {
+    public void setVisible(NeoChunk chunk, boolean visible) {
         setVisible(chunk, visible, false);
     }
     
-    public void setVisible(LODChunk lodChunk, boolean visible, boolean forceCheck) {
+    public void setVisible(NeoChunk lodChunk, boolean visible, boolean forceCheck) {
         if(!forceCheck && visible == lodChunk.visible) return;
         
         lodChunk.visible = visible;
         lodChunkChanged(lodChunk);
     }
     
-    public void lodChunkChanged(LODChunk lodChunk) {
-        int newLOD = (!lodChunk.hasChunkMeshes() && lodChunk.lod == 2) ? (LODMod.disableSimpleMeshes ? 0 : 1) : lodChunk.lod;
+    public void lodChunkChanged(NeoChunk lodChunk) {
+        int newLOD = (!lodChunk.hasChunkMeshes() && lodChunk.lod == 2) ? (Neodymium.disableSimpleMeshes ? 0 : 1) : lodChunk.lod;
         for(SimpleChunkMesh sm : lodChunk.simpleMeshes) {
             if(sm != null) {
                 if(lodChunk.isFullyVisible() && newLOD == 1) {
@@ -641,14 +641,14 @@ public class LODRenderer {
     }
     
     private Path getSaveDir(){
-        return Minecraft.getMinecraft().mcDataDir.toPath().resolve("lodmod").resolve(Minecraft.getMinecraft().getIntegratedServer().getFolderName());
+        return Minecraft.getMinecraft().mcDataDir.toPath().resolve("neodymium").resolve(Minecraft.getMinecraft().getIntegratedServer().getFolderName());
     }
     
     private boolean shouldRenderInWorld(World world) {
         return world != null && !world.provider.isHellWorld;
     }
     
-    public static class LODChunkComparator implements Comparator<LODChunk> {
+    public static class LODChunkComparator implements Comparator<NeoChunk> {
         Entity player;
         
         public LODChunkComparator(Entity player) {
@@ -656,13 +656,13 @@ public class LODRenderer {
         }
         
         @Override
-        public int compare(LODChunk p1, LODChunk p2) {
+        public int compare(NeoChunk p1, NeoChunk p2) {
             int distSq1 = distSq(p1);
             int distSq2 = distSq(p2);
             return distSq1 < distSq2 ? -1 : distSq1 > distSq2 ? 1 : 0;
         }
         
-        int distSq(LODChunk p) {
+        int distSq(NeoChunk p) {
             return (int)(
                     Math.pow(((p.x * 16) - player.chunkCoordX), 2) +
                     Math.pow(((p.z * 16) - player.chunkCoordZ), 2)

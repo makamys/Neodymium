@@ -6,7 +6,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
-import makamys.neodymium.LODMod;
+import makamys.neodymium.Neodymium;
 import makamys.neodymium.renderer.Mesh.GPUStatus;
 import makamys.neodymium.util.GuiHelper;
 
@@ -23,7 +23,7 @@ public class GPUMemoryManager {
     public GPUMemoryManager() {
         VBO = glGenBuffers();
         
-        bufferSize = LODMod.VRAMSize * 1024 * 1024;
+        bufferSize = Neodymium.VRAMSize * 1024 * 1024;
         
         glBindBuffer(GL_ARRAY_BUFFER, VBO);
         
@@ -109,7 +109,7 @@ public class GPUMemoryManager {
         
         if(end() + mesh.bufferSize() >= bufferSize) {
             System.out.println("VRAM is full! Try increasing the allocated VRAM in the config, if possible. Reverting to vanilla renderer.");
-            LODMod.renderer.destroyPending = true;
+            Neodymium.renderer.destroyPending = true;
             // TODO restart renderer with more VRAM allocated when this happens.
             return;
         }

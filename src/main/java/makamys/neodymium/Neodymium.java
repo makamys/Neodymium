@@ -35,18 +35,18 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import makamys.neodymium.renderer.LODRenderer;
+import makamys.neodymium.renderer.NeoRenderer;
 import makamys.neodymium.util.SpriteUtil;
 
-@Mod(modid = LODMod.MODID, version = LODMod.VERSION)
-public class LODMod
+@Mod(modid = Neodymium.MODID, version = Neodymium.VERSION)
+public class Neodymium
 {
-    public static final String MODID = "lodmod";
+    public static final String MODID = "neodymium";
     public static final String VERSION = "0.0";
     
-    public static final Logger LOGGER = LogManager.getLogger("lodmod");
+    public static final Logger LOGGER = LogManager.getLogger("neodymium");
     
-    public static LODRenderer renderer;
+    public static NeoRenderer renderer;
     
     public static boolean enabled;
     public static int chunkLoadsPerTick;
@@ -141,7 +141,7 @@ public class LODMod
             renderer = null;
         }
     	if(enabled && newWorld != null) {
-            renderer = new LODRenderer(newWorld);
+            renderer = new NeoRenderer(newWorld);
         }
     }
     

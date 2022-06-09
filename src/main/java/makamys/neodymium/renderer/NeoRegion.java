@@ -12,7 +12,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import makamys.neodymium.LODMod;
+import makamys.neodymium.Neodymium;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.entity.Entity;
@@ -22,19 +22,19 @@ import net.minecraft.nbt.NBTTagList;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraftforge.common.util.Constants.NBT;
 
-public class LODRegion {
+public class NeoRegion {
 	
-	private LODChunk[][] data = new LODChunk[32][32];
+	private NeoChunk[][] data = new NeoChunk[32][32];
 	
 	int regionX, regionZ;
 	
-	public LODRegion(int regionX, int regionZ) {
+	public NeoRegion(int regionX, int regionZ) {
 		this.regionX = regionX;
 		this.regionZ = regionZ;
 		
 		for(int i = 0; i < 32; i++) {
 			for(int j = 0; j < 32; j++) {
-				data[i][j] = new LODChunk(regionX * 32 + i, regionZ * 32 + j);
+				data[i][j] = new NeoChunk(regionX * 32 + i, regionZ * 32 + j);
 			}
 		}
 	}
@@ -51,14 +51,14 @@ public class LODRegion {
             for(int j = 0; j < 32; j++) {
                 data[i][j] = new LODChunk(list.getCompoundTagAt(idx++), stringTable);
                 if(data[i][j].hasChunkMeshes()) {
-                    LODMod.renderer.setVisible(data[i][j], true);
+                    Neodymium.renderer.setVisible(data[i][j], true);
                 }
             }
         }        
     }
 	*/
-	public static LODRegion load(Path saveDir, int regionX, int regionZ) {
-	    /*if(!(LODMod.disableChunkMeshes || !LODMod.saveMeshes)) {
+	public static NeoRegion load(Path saveDir, int regionX, int regionZ) {
+	    /*if(!(.disableChunkMeshes || !.saveMeshes)) {
     	    File saveFile = getSavePath(saveDir, regionX, regionZ).toFile();
     	    if(saveFile.exists()) {
     	        try {
@@ -69,7 +69,7 @@ public class LODRegion {
                 }
     	    }
 	    }*/
-	    return new LODRegion(regionX, regionZ);
+	    return new NeoRegion(regionX, regionZ);
 	}
 	/*
 	private static Path getSavePath(Path saveDir, int regionX, int regionZ) {
@@ -77,7 +77,7 @@ public class LODRegion {
 	}
 	
 	public void save(Path saveDir) {
-	    if(LODMod.disableChunkMeshes || !LODMod.saveMeshes) return;
+	    if(.disableChunkMeshes || !.saveMeshes) return;
 	    
 	    try {
 	        File saveFile = getSavePath(saveDir, regionX, regionZ).toFile();
@@ -128,11 +128,11 @@ public class LODRegion {
         }
 	}
 	*/
-	public LODChunk getChunkAbsolute(int chunkXAbs, int chunkZAbs) {
+	public NeoChunk getChunkAbsolute(int chunkXAbs, int chunkZAbs) {
 		return getChunk(chunkXAbs - regionX * 32, chunkZAbs - regionZ * 32);
 	}
 	
-	public LODChunk getChunk(int x, int z) {
+	public NeoChunk getChunk(int x, int z) {
 		if(x >= 0 && x < 32 && z >= 0 && z < 32) {
 			return data[x][z];
 		} else {
@@ -140,7 +140,7 @@ public class LODRegion {
 		}
 	}
 	
-	public LODChunk putChunk(Chunk chunk) {
+	public NeoChunk putChunk(Chunk chunk) {
 		int relX = chunk.xPosition - regionX * 32;
 		int relZ = chunk.zPosition - regionZ * 32;
 		
@@ -155,7 +155,7 @@ public class LODRegion {
 	    int visibleChunks = 0;
 		for(int i = 0; i < 32; i++) {
 			for(int j = 0; j < 32; j++) {
-				LODChunk chunk = data[i][j];
+				NeoChunk chunk = data[i][j];
 				if(chunk != null) {
 					chunk.tick(player);
 					if(chunk.visible) {
@@ -171,7 +171,7 @@ public class LODRegion {
 	    //save(saveDir);
 	    for(int i = 0; i < 32; i++) {
             for(int j = 0; j < 32; j++) {
-                LODChunk chunk = data[i][j];
+                NeoChunk chunk = data[i][j];
                 if(chunk != null) {
                     chunk.destroy();
                 }

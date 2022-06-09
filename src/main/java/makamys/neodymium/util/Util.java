@@ -15,11 +15,11 @@ import net.minecraft.launchwrapper.Launch;
 
 public class Util {
     
-    private static boolean allowResourceOverrides = Boolean.parseBoolean(System.getProperty("lodmod.allowResourceOverrides", "false"));
+    private static boolean allowResourceOverrides = Boolean.parseBoolean(System.getProperty("neodymium.allowResourceOverrides", "false"));
     
     public static Path getResourcePath(String relPath) {
         if(allowResourceOverrides) {
-            File overrideFile = new File(new File(Launch.minecraftHome, "lodmod/resources"), relPath);
+            File overrideFile = new File(new File(Launch.minecraftHome, "neodymium/resources"), relPath);
             if(overrideFile.exists()) {
                 return overrideFile.toPath();
             }

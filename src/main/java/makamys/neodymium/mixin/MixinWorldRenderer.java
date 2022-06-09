@@ -12,12 +12,12 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import makamys.neodymium.LODMod;
+import makamys.neodymium.Neodymium;
 import makamys.neodymium.ducks.IWorldRenderer;
 import makamys.neodymium.renderer.ChunkMesh;
 import makamys.neodymium.renderer.FarChunkCache;
 import makamys.neodymium.renderer.FarWorldRenderer;
-import makamys.neodymium.renderer.LODRenderer;
+import makamys.neodymium.renderer.NeoRenderer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.WorldRenderer;
@@ -71,7 +71,7 @@ abstract class MixinWorldRenderer implements IWorldRenderer {
     private void preUpdateRenderer(CallbackInfo ci) {
         saveDrawnStatus();
         
-        if(LODMod.isActive()) {
+        if(Neodymium.isActive()) {
             if(needsUpdate) {
                 if(chunkMeshes != null) {
                     chunkMeshes.clear();
@@ -88,9 +88,9 @@ abstract class MixinWorldRenderer implements IWorldRenderer {
     private void postUpdateRenderer(CallbackInfo ci) {
         notifyIfDrawnStatusChanged();
         
-        if(LODMod.isActive()) {
+        if(Neodymium.isActive()) {
             if(chunkMeshes != null) {
-                LODMod.renderer.onWorldRendererPost(WorldRenderer.class.cast(this));
+                Neodymium.renderer.onWorldRendererPost(WorldRenderer.class.cast(this));
                 chunkMeshes.clear();
             }
         }
@@ -98,7 +98,7 @@ abstract class MixinWorldRenderer implements IWorldRenderer {
     
     @Inject(method = "postRenderBlocks", at = @At(value = "HEAD"))
     private void prePostRenderBlocks(int pass, EntityLivingBase entity, CallbackInfo ci) {
-        if(LODMod.isActive() && !LODMod.disableChunkMeshes) {
+        if(Neodymium.isActive() && !Neodymium.disableChunkMeshes) {
             if(chunkMeshes != null) {
                 chunkMeshes.add(ChunkMesh.fromTessellator(pass, WorldRenderer.class.cast(this), Tessellator.instance));
             }
@@ -143,8 +143,8 @@ abstract class MixinWorldRenderer implements IWorldRenderer {
     
     @Inject(method = "setDontDraw", at = @At(value = "HEAD"))
     private void preSetDontDraw(CallbackInfo ci) {
-        if(LODMod.isActive()) {
-            LODMod.renderer.onWorldRendererChanged(WorldRenderer.class.cast(this), LODRenderer.WorldRendererChange.DELETED);
+        if(Neodymium.isActive()) {
+            Neodymium.renderer.onWorldRendererChanged(WorldRenderer.class.cast(this), NeoRenderer.WorldRendererChange.DELETED);
         }
     }
     
@@ -169,8 +169,8 @@ abstract class MixinWorldRenderer implements IWorldRenderer {
     
     private void notifyIfDrawnStatusChanged() {
         boolean drawn = isDrawn();
-        if(LODMod.isActive() && drawn != savedDrawnStatus) {
-            LODMod.renderer.onWorldRendererChanged(WorldRenderer.class.cast(this), drawn ? LODRenderer.WorldRendererChange.VISIBLE : LODRenderer.WorldRendererChange.INVISIBLE);
+        if(Neodymium.isActive() && drawn != savedDrawnStatus) {
+            Neodymium.renderer.onWorldRendererChanged(WorldRenderer.class.cast(this), drawn ? NeoRenderer.WorldRendererChange.VISIBLE : NeoRenderer.WorldRendererChange.INVISIBLE);
         }
     }
     

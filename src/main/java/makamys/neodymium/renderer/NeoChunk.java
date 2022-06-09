@@ -2,14 +2,14 @@ package makamys.neodymium.renderer;
 
 import java.util.List;
 
-import makamys.neodymium.LODMod;
+import makamys.neodymium.Neodymium;
 import net.minecraft.entity.Entity;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagEnd;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.world.chunk.Chunk;
 
-public class LODChunk {
+public class NeoChunk {
 	
 	int x, z;
 	public boolean needsChunk = true;
@@ -23,9 +23,9 @@ public class LODChunk {
 	
 	public boolean[] isSectionVisible = new boolean[16];
 	
-	LODRenderer renderer = LODMod.renderer;
+	NeoRenderer renderer = Neodymium.renderer;
 	
-	public LODChunk(int x, int z) {
+	public NeoChunk(int x, int z) {
 		this.x = x;
 		this.z = z;
 	}
@@ -70,7 +70,7 @@ public class LODChunk {
 			}
 		    chunkMeshes[cy * 2 + i] = newChunkMesh;
 		}
-		LODMod.renderer.lodChunkChanged(this);
+		Neodymium.renderer.lodChunkChanged(this);
 		dirty = true;
 		discardedMesh = false;
 	}
@@ -89,7 +89,7 @@ public class LODChunk {
             }
             simpleMeshes[i] = newSimpleMesh;
         }
-	    LODMod.renderer.lodChunkChanged(this);
+	    Neodymium.renderer.lodChunkChanged(this);
 	}
 	
 	public boolean hasChunkMeshes() {
@@ -103,9 +103,9 @@ public class LODChunk {
 	
 	public void tick(Entity player) {
 		double distSq = distSq(player);
-		if(LODMod.disableSimpleMeshes || distSq < Math.pow((LODMod.renderer.renderRange / 2) * 16, 2)) {
+		if(Neodymium.disableSimpleMeshes || distSq < Math.pow((Neodymium.renderer.renderRange / 2) * 16, 2)) {
 		    setLOD(2);
-		} else if(distSq < Math.pow((LODMod.renderer.renderRange) * 16, 2)) {
+		} else if(distSq < Math.pow((Neodymium.renderer.renderRange) * 16, 2)) {
 		    setLOD(1);
 		} else {
 		    setLOD(0);
@@ -116,7 +116,7 @@ public class LODChunk {
         if(lod == this.lod) return;
         
         this.lod = lod;
-        LODMod.renderer.lodChunkChanged(this);
+        Neodymium.renderer.lodChunkChanged(this);
         if(!dirty) {
             if(lod < 2) {
                 for(int i = 0; i < chunkMeshes.length; i++) {
@@ -144,7 +144,7 @@ public class LODChunk {
 	        }
 	    } else if(oldNbt != null && discardedMesh && lod == 2) {
 	        loadChunkMeshesNBT(chunkMeshesCompound, oldStringTable);
-	        LODMod.renderer.lodChunkChanged(this);
+	        Neodymium.renderer.lodChunkChanged(this);
 	    }
 	    nbt.setTag("chunkMeshes", chunkMeshesCompound);
 	    dirty = false;
@@ -162,11 +162,11 @@ public class LODChunk {
 	            cm.destroy();
 	        }
 	    }
-	    LODMod.renderer.setVisible(this, false);
+	    Neodymium.renderer.setVisible(this, false);
 	}
 	
 	public void receiveChunk(Chunk chunk) {
-	    if(!LODMod.disableSimpleMeshes) {
+	    if(!Neodymium.disableSimpleMeshes) {
 	        putSimpleMeshes(SimpleChunkMesh.generateSimpleMeshes(chunk));
 	    }
 	}
