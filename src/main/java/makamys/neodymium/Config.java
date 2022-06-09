@@ -62,7 +62,7 @@ public class Config {
         simplifyChunkMeshes = config.getBoolean("simplifyChunkMeshes", "render", false, "Simplify chunk meshes so they are made of less vertices. Proof of concept, produces very janky results.");
         
         sortFrequency = config.getInt("sortFrequency", "render", 1, 1, Integer.MAX_VALUE, "Interval (in frames) between the sorting of meshes. Increasing this might increase framerate, but increase the likelyhood of graphical artifacts when moving quickly.");
-        gcRate = config.getInt("gcRate", "render", 1, 1, Integer.MAX_VALUE, "Maximum number of meshes to relocate in the buffer each frame. Setting this to a higher value will make it harder for the VRAM to get full (which causes a lag spike when it happens), but slightly reduces framerate. The VRAM debugger can be used to find the right value.");
+        gcRate = config.getInt("gcRate", "render", 1, 1, Integer.MAX_VALUE, "Maximum number of meshes to relocate in the buffer each frame. Setting this to a higher value will make it harder for the VRAM to get full (which causes a lag spike when it happens), but slightly reduces overall framerate. Examining the VRAM debugger can help find the right value.");
         VRAMSize = config.getInt("VRAMSize", "render", 1024, 1, Integer.MAX_VALUE, "VRAM buffer size (MB). 512 seems to be a good value on Normal render distance. Increase this if you encounter warnings about the VRAM getting full. Does not affect RAM usage.");
         renderFog = config.getBoolean("renderFog", "render", true, "Render frog? Disabling this might increase framerate.");
         
