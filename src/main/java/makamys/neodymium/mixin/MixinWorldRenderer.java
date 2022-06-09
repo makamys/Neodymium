@@ -10,7 +10,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import makamys.neodymium.Neodymium;
 import makamys.neodymium.ducks.IWorldRenderer;
@@ -18,7 +17,6 @@ import makamys.neodymium.renderer.ChunkMesh;
 import makamys.neodymium.renderer.NeoRenderer;
 import makamys.neodymium.renderer.lod.FarChunkCache;
 import makamys.neodymium.renderer.lod.FarWorldRenderer;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.WorldRenderer;
 import net.minecraft.client.renderer.entity.RenderItem;

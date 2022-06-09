@@ -14,8 +14,8 @@ import java.util.stream.Collectors;
 
 import org.lwjgl.BufferUtils;
 
-import makamys.neodymium.Neodymium;
 import makamys.neodymium.MixinConfigPlugin;
+import makamys.neodymium.Neodymium;
 import makamys.neodymium.ducks.IWorldRenderer;
 import makamys.neodymium.util.BufferWriter;
 import net.minecraft.client.Minecraft;

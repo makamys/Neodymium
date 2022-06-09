@@ -6,7 +6,6 @@ import java.util.Comparator;
 import java.util.Locale;
 import java.util.Map;
 
-import makamys.neodymium.renderer.MeshQuad.QuadPlaneComparator;
 import makamys.neodymium.util.SpriteUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;

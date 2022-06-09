@@ -4,9 +4,6 @@ import java.util.List;
 
 import makamys.neodymium.Neodymium;
 import net.minecraft.entity.Entity;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagEnd;
-import net.minecraft.nbt.NBTTagList;
 import net.minecraft.world.chunk.Chunk;
 
 /** A container for the meshes that compose a chunk (16x256x16 region). It keeps track of which meshes should be made visible and which ones should not. */

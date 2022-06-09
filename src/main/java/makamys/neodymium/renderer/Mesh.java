@@ -1,11 +1,8 @@
 package makamys.neodymium.renderer;
 
 import java.nio.ByteBuffer;
-import java.nio.IntBuffer;
 
 import makamys.neodymium.util.Util;
-import net.minecraft.entity.Entity;
-import net.minecraft.nbt.NBTBase;
 
 /** A generic mesh that can be sent to the GPU for rendering. */
 public abstract class Mesh {
