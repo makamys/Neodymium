@@ -51,7 +51,6 @@ public class Neodymium
     @EventHandler
     public void preInit(FMLPreInitializationEvent event)
     {
-        Config.configFile = event.getSuggestedConfigurationFile();
         Config.reloadConfig();
     }
     
@@ -106,6 +105,14 @@ public class Neodymium
     @SubscribeEvent
     public void onClientTick(TickEvent.ClientTickEvent event) {
     	if(event.phase == TickEvent.Phase.START) {
+    	    if(Config.hotswap) {
+    	        if(Config.reloadIfChanged()) {
+    	            if(renderer != null) {
+    	                renderer.loadShader();
+    	            }
+    	        }
+    	    }
+    	    
     		EntityPlayer player = Minecraft.getMinecraft().thePlayer;
     		World world = player != null ? player.worldObj : null;
         	if(world != getRendererWorld()) {

@@ -441,7 +441,7 @@ public class NeoRenderer {
         return true;
     }
     
-       private void loadShader() {
+       public void loadShader() {
             int vertexShader;
             vertexShader = glCreateShader(GL_VERTEX_SHADER);
             
