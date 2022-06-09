@@ -66,6 +66,7 @@ public class Neodymium
 	public static int gcRate;
 	public static int VRAMSize;
 	public static int debugPrefix;
+	public static int debugInfoStartY;
     
     private File configFile;
     
@@ -116,6 +117,7 @@ public class Neodymium
 		VRAMSize = config.getInt("VRAMSize", "render", 1024, 1, Integer.MAX_VALUE, "VRAM buffer size (MB).");
 		enableFog = config.getBoolean("enableFog", "render", true, "");
 		debugPrefix = config.getInt("debugPrefix", "debug", Keyboard.KEY_F4, -1, Integer.MAX_VALUE, "This key has to be held down while pressing the debug keybinds. LWJGL keycode. Setting this to 0 will make the keybinds usable without holding anything else down. Setting this to -1 will disable debug keybinds entirely.");
+		debugInfoStartY = config.getInt("debugInfoStartY", "debug", 80, -1, Integer.MAX_VALUE, "The Y position of the first line of the debug info in the F3 overlay. Set this to -1 to disable showing that info.");
 		
         if(config.hasChanged()) {
             config.save();
@@ -211,7 +213,7 @@ public class Neodymium
     @SubscribeEvent
     public void onRenderOverlay(RenderGameOverlayEvent event) {
         FontRenderer fontRenderer = RenderManager.instance.getFontRenderer();
-        if(isActive() && event.type == ElementType.TEXT && fontRenderer != null && Minecraft.getMinecraft().gameSettings.showDebugInfo)
+        if(isActive() && event.type == ElementType.TEXT && fontRenderer != null && Minecraft.getMinecraft().gameSettings.showDebugInfo && (Neodymium.debugInfoStartY != -1))
         {
             Minecraft mc = Minecraft.getMinecraft();
             ScaledResolution scaledresolution = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight);
@@ -220,7 +222,7 @@ public class Neodymium
             
             int yOffset = 0;
             for(String s : renderer.getDebugText()) {
-                fontRenderer.drawStringWithShadow(s, w - fontRenderer.getStringWidth(s) - 10, 80 + yOffset, 0xFFFFFF);
+                fontRenderer.drawStringWithShadow(s, w - fontRenderer.getStringWidth(s) - 10, Neodymium.debugInfoStartY + yOffset, 0xFFFFFF);
                 yOffset += 10;
             }
         }
