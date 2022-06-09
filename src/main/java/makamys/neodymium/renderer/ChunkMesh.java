@@ -123,7 +123,7 @@ public class ChunkMesh extends Mesh {
                     MeshQuad quad = planeDirQuads.get(quadI);
                     MeshQuad nextQuad = quadI == planeDirQuads.size() - 1 ? null : planeDirQuads.get(quadI + 1);
                     if(!quad.onSamePlaneAs(nextQuad)) {
-                        simplifyPlane(planeDirQuads.subList(planeStart, quadI));
+                        simplifyPlane(planeDirQuads.subList(planeStart, quadI + 1));
                         planeStart = quadI + 1;
                     }
                 }
