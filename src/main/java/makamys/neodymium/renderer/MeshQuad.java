@@ -37,6 +37,8 @@ public class MeshQuad {
     
     public static int[] totalMergeCountByPlane = new int[3];
     
+    private MeshQuad mergeReference;
+    
     private int minPositive(int a, int b) {
         if(a == -1) {
             return b;
@@ -116,8 +118,12 @@ public class MeshQuad {
         }
     }
     
-    private boolean isTranslatedCopyOf(MeshQuad o) {
-        if(!isValid(this) || !isValid(o) || plane != o.plane) return false;
+    private boolean isTranslatedCopyOf(MeshQuad o, boolean checkValid) {
+        if((!isValid(this) && checkValid) || !isValid(o) || plane != o.plane) return false;
+        
+        if(mergeReference != null) {
+            return mergeReference.isTranslatedCopyOf(o, false);
+        }
         
         for(int i = 1; i < 4; i++) {
             double relX = xs[i] - xs[0];
@@ -139,7 +145,7 @@ public class MeshQuad {
     }
     
     public void tryToMerge(MeshQuad o) {
-        if(isTranslatedCopyOf(o)) {
+        if(isTranslatedCopyOf(o, true)) {
             int numVerticesTouching = 0;
             boolean[] verticesTouching = new boolean[4];
             for(int i = 0; i < 4; i++) {
@@ -158,6 +164,8 @@ public class MeshQuad {
                 }
                 
                 totalMergeCountByPlane[plane.ordinal() - 1]++;
+                
+                mergeReference = o;
                 
                 o.deleted = true;
             }
