@@ -323,6 +323,8 @@ public class NeoRenderer {
     Matrix4f projMatrix = new Matrix4f();
     
     private void render(double alpha) {
+        if(shaderProgram == 0) return;
+        
         GL11.glPushAttrib(GL11.GL_ENABLE_BIT);
         GL11.glDisable(GL11.GL_TEXTURE_2D);
         
@@ -442,6 +444,8 @@ public class NeoRenderer {
     }
     
        public void reloadShader() {
+            boolean errors = false;
+           
             int vertexShader;
             vertexShader = glCreateShader(GL_VERTEX_SHADER);
             
@@ -450,6 +454,7 @@ public class NeoRenderer {
             
             if(glGetShaderi(vertexShader, GL_COMPILE_STATUS) == 0) {
                 System.out.println("Error compiling vertex shader: " + glGetShaderInfoLog(vertexShader, 256));
+                errors = true;
             }
             
             int fragmentShader;
@@ -460,15 +465,21 @@ public class NeoRenderer {
             
             if(glGetShaderi(fragmentShader, GL_COMPILE_STATUS) == 0) {
                 System.out.println("Error compiling fragment shader: " + glGetShaderInfoLog(fragmentShader, 256));
+                errors = true;
             }
             
-            shaderProgram = glCreateProgram();
-            glAttachShader(shaderProgram, vertexShader);
-            glAttachShader(shaderProgram, fragmentShader);
-            glLinkProgram(shaderProgram);
+            int newShaderProgram = glCreateProgram();
+            glAttachShader(newShaderProgram, vertexShader);
+            glAttachShader(newShaderProgram, fragmentShader);
+            glLinkProgram(newShaderProgram);
             
-            if(glGetProgrami(shaderProgram, GL_LINK_STATUS) == 0) {
-                System.out.println("Error linking shader: " + glGetShaderInfoLog(shaderProgram, 256));
+            if(glGetProgrami(newShaderProgram, GL_LINK_STATUS) == 0) {
+                System.out.println("Error linking shader: " + glGetShaderInfoLog(newShaderProgram, 256));
+                errors = true;
+            }
+            
+            if(!errors) {
+                shaderProgram = newShaderProgram;
             }
             
             glDeleteShader(vertexShader);
