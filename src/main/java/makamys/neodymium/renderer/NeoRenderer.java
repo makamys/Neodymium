@@ -393,6 +393,7 @@ public class NeoRenderer {
         
         glBindVertexArray(VAO);
         GL11.glDisable(GL11.GL_BLEND);
+        
         if(Config.wireframe) {
             GL11.glPolygonMode(GL11.GL_FRONT_AND_BACK, GL11.GL_LINE);
         }
@@ -400,9 +401,17 @@ public class NeoRenderer {
         if(Config.wireframe) {
             GL11.glPolygonMode(GL11.GL_FRONT_AND_BACK, GL11.GL_FILL);
         }
+        
         GL11.glEnable(GL11.GL_BLEND);
         GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+        
+        if(Config.wireframe) {
+            GL11.glPolygonMode(GL11.GL_FRONT_AND_BACK, GL11.GL_LINE);
+        }
         glMultiDrawArrays(GL_TRIANGLES, piFirst[1], piCount[1]);
+        if(Config.wireframe) {
+            GL11.glPolygonMode(GL11.GL_FRONT_AND_BACK, GL11.GL_FILL);
+        }
         
         glBindVertexArray(0);
         glUseProgram(0);
