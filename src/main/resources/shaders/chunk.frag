@@ -23,7 +23,7 @@ void main()
 	if(true){
 		//FragColor = vec4(1, 1, 1, 1);
 		//FragColor = vec4((SPos.x), (SPos.y), 0, 1);
-		FragColor = vec4(SPos.x>0.5?1:0,0, 0, 1);
+		FragColor = vec4(SPos.xy, 0, 1);
 		//FragColor = vec4(abs(TexCoord.x - ProvokingTexCoord.x) * 100.0, abs(TexCoord.y - ProvokingTexCoord.y) * 100.0, 0, 1);
 		//FragColor = vec4((TexCoord.xy - ProvokingTexCoord.xy) * 100.0, 0, 1);
 	} else {
@@ -34,9 +34,9 @@ void main()
 	float goodTexCoordU = ProvokingTexCoord.x + (((TexCoord.x - ProvokingTexCoord.x) / SPos.z) * relU);
 	float goodTexCoordV = ProvokingTexCoord.y + (((TexCoord.y - ProvokingTexCoord.y) / SPos.w) * relV);
 	
-	//vec2 goodTexCoord = vec2(goodTexCoordU, goodTexCoordV);
+	vec2 goodTexCoord = vec2(goodTexCoordU, goodTexCoordV);
 	
-	vec2 goodTexCoord = ProvokingTexCoord + vec2(SPos.x / 3.0, SPos.y) * (1.0/16.0);
+	//vec2 goodTexCoord = ProvokingTexCoord + vec2(SPos.x / 3.0, SPos.y) * (1.0/16.0);
 	
 	vec4 texColor = texture(atlas, goodTexCoord);
 	//vec4 texColor = texture(atlas, TexCoord);

@@ -200,10 +200,10 @@ public class MeshQuad {
                     }
                 }
                 
-                if((verticesTouching[1] && verticesTouching[2]) || (verticesTouching[3] && verticesTouching[0])) {
+                if((verticesTouching[0] && verticesTouching[1]) || (verticesTouching[2] && verticesTouching[3])) {
                     quadCountByDirection[0] += o.quadCountByDirection[0];
                 }
-                if((verticesTouching[0] && verticesTouching[1]) || (verticesTouching[2] && verticesTouching[3])) {
+                if((verticesTouching[1] && verticesTouching[2]) || (verticesTouching[3] && verticesTouching[0])) {
                     quadCountByDirection[1] += o.quadCountByDirection[1];
                 }
                 
