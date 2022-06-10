@@ -17,17 +17,17 @@ import net.minecraft.util.EnumFacing;
 /*
  * This is what a quad looks like.
  * 
- *  2--1
+ *  0--1
  *  |  |
- *  3--0
+ *  3--2
  * 
  * We can glue quads together, forming a "quad squadron", or "squadron" for short.
  * In the fragment shader we need to know which quad of the squadron we are operating on.
  * For this reason, we store the "squadron X" and "squadron Y" coordinates in the vertices.
  * Their values at vertex 0: (0, 0)
- * Their values at vertex 1: (0, squadron height)
+ * Their values at vertex 1: (sqadron width, 0)
  * Their values at vertex 2: (squadron width, squadron height)
- * Their values at vertex 3: (squadron width, 0)
+ * Their values at vertex 3: (0, squadron height)
  */
 
 public class MeshQuad {
@@ -51,8 +51,8 @@ public class MeshQuad {
     public int offset;
     public ChunkMesh.Flags flags;
     
-    // 0: quads glued together on edge 0-1 or 2-3 ("squadron row length")
-    // 1: quads glued together on edge 1-2 or 3-0 ("squadron column length")
+    // 0: quads glued together on edge 1-2 or 3-0 ("squadron row length")
+    // 1: quads glued together on edge 0-1 or 2-3 ("squadron column length")
     private int[] quadCountByDirection = {1, 1}; 
     public static int[] totalMergeCountByPlane = new int[3];
     
@@ -109,7 +109,8 @@ public class MeshQuad {
     
     public void writeToBuffer(BufferWriter out) throws IOException {
         for(int vertexI = 0; vertexI < 6; vertexI++) {
-            int vi = new int[]{0, 1, 2, 0, 2, 3}[vertexI];
+            int vi = new int[]{0, 1, 2, 2, 3, 0}[vertexI];
+            int tvi = vertexI % 3;
             
             float x = xs[vi];
             float y = ys[vi];
@@ -133,10 +134,10 @@ public class MeshQuad {
             
             out.writeInt(c);
             
-            out.writeByte(vi < 2 ? (byte)0 : (byte)quadCountByDirection[0]); // squadron x
-            out.writeByte((vi == 0 || vi == 3) ? (byte)0 : (byte)quadCountByDirection[1]); // quad z
-            out.writeByte(vi < 2 ? (byte)0 : 1); // which squadron corner x
-            out.writeByte((vi == 0 || vi == 3) ? (byte)0 : 1); // which squadron corner z
+            out.writeByte(tvi == 2 ? (byte)0 : (byte)quadCountByDirection[0]); // squadron x
+            out.writeByte(tvi != 0 ? (byte)0 : (byte)quadCountByDirection[1]); // squadron z
+            out.writeByte(tvi == 2 ? (byte)0 : 1); // which corner x
+            out.writeByte(tvi != 0 ? (byte)0 : 1); // which corner z
             
             assert out.position() % getStride() == 0;
             
@@ -199,10 +200,10 @@ public class MeshQuad {
                     }
                 }
                 
-                if((verticesTouching[0] && verticesTouching[1]) || (verticesTouching[2] && verticesTouching[3])) {
+                if((verticesTouching[1] && verticesTouching[2]) || (verticesTouching[3] && verticesTouching[0])) {
                     quadCountByDirection[0] += o.quadCountByDirection[0];
                 }
-                if((verticesTouching[1] && verticesTouching[2]) || (verticesTouching[3] && verticesTouching[0])) {
+                if((verticesTouching[0] && verticesTouching[1]) || (verticesTouching[2] && verticesTouching[3])) {
                     quadCountByDirection[1] += o.quadCountByDirection[1];
                 }
                 
