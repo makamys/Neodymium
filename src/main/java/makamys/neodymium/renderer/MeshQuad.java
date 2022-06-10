@@ -51,6 +51,9 @@ public class MeshQuad {
     public int offset;
     public ChunkMesh.Flags flags;
     
+    // positive U direction is parallel to edge 0-1
+    public boolean uDirectionIs01;
+    
     // 0: quads glued together on edge 1-2 or 3-0 ("squadron row length")
     // 1: quads glued together on edge 0-1 or 2-3 ("squadron column length")
     private int[] quadCountByDirection = {1, 1}; 
@@ -94,6 +97,8 @@ public class MeshQuad {
     public MeshQuad(int[] rawBuffer, int offset, ChunkMesh.Flags flags, int offsetX, int offsetY, int offsetZ) {
         read(rawBuffer, offset, offsetX, offsetY, offsetZ);
         
+        uDirectionIs01 = us[0] != us[1];
+        
         updateMinMaxXYZ();
         
         if(ys[0] == ys[1] && ys[1] == ys[2] && ys[2] == ys[3]) {
@@ -108,9 +113,11 @@ public class MeshQuad {
     }
     
     public void writeToBuffer(BufferWriter out) throws IOException {
+        int[] vertexI_to_vi = new int[]{3, 0, 1, 1, 2, 3};
         for(int vertexI = 0; vertexI < 6; vertexI++) {
-            int vi = new int[]{0, 1, 2, 2, 3, 0}[vertexI];
-            int tvi = vertexI % 3;
+            int vi = vertexI_to_vi[vertexI];
+            int ti = vertexI / 3;
+            int provokingI = vertexI_to_vi[ti * 3 + 2];
             
             float x = xs[vi];
             float y = ys[vi];
@@ -134,14 +141,22 @@ public class MeshQuad {
             
             out.writeInt(c);
             
-            out.writeByte(tvi == 2 ? (byte)0 : (byte)quadCountByDirection[0]); // squadron x
-            out.writeByte(tvi != 0 ? (byte)0 : (byte)quadCountByDirection[1]); // squadron z
-            out.writeByte(tvi == 2 ? (byte)0 : 1); // which corner x
-            out.writeByte(tvi != 0 ? (byte)0 : 1); // which corner z
+            out.writeByte(us[vi] == us[provokingI] ? 0 : (byte)quadCountByUVDirection(false));
+            out.writeByte(vs[vi] == vs[provokingI] ? 0 : (byte)quadCountByUVDirection(true));
+            out.writeByte(us[vi] == us[provokingI] ? (byte)0 : 1);
+            out.writeByte(vs[vi] == vs[provokingI] ? (byte)0 : 1);
             
             assert out.position() % getStride() == 0;
             
             //System.out.println("[" + vertexI + "] x: " + x + ", y: " + y + " z: " + z + ", u: " + u + ", v: " + v + ", b: " + b + ", c: " + c);
+        }
+    }
+    
+    public int quadCountByUVDirection(boolean v) {
+        if(v) {
+            return quadCountByDirection[uDirectionIs01 ? 0 : 1];
+        } else {
+            return quadCountByDirection[uDirectionIs01 ? 1 : 0];
         }
     }
     

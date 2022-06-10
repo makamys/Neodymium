@@ -402,7 +402,7 @@ public class NeoRenderer {
         }
         GL11.glEnable(GL11.GL_BLEND);
         GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-        //glMultiDrawArrays(GL_TRIANGLES, piFirst[1], piCount[1]);
+        glMultiDrawArrays(GL_TRIANGLES, piFirst[1], piCount[1]);
         
         glBindVertexArray(0);
         glUseProgram(0);

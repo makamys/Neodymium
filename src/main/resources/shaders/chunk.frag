@@ -16,14 +16,15 @@ uniform sampler2D lightTex;
 
 void main()
 {
-	float relU = SPos.x;
-	float relV = SPos.y;
+	float relU = mod(SPos.x, 1.0);
+	float relV = mod(SPos.y, 1.0);
 	
 	//if(true||relU > 1 || relV > 1){
-	if(true){
+	if(false){
 		//FragColor = vec4(1, 1, 1, 1);
 		//FragColor = vec4((SPos.x), (SPos.y), 0, 1);
-		FragColor = vec4(SPos.xy, 0, 1);
+		//FragColor = vec4(SPos.xy, 0, 1);
+		FragColor = vec4(relU, relV, 0, 1);
 		//FragColor = vec4(abs(TexCoord.x - ProvokingTexCoord.x) * 100.0, abs(TexCoord.y - ProvokingTexCoord.y) * 100.0, 0, 1);
 		//FragColor = vec4((TexCoord.xy - ProvokingTexCoord.xy) * 100.0, 0, 1);
 	} else {
@@ -40,17 +41,17 @@ void main()
 	
 	vec4 texColor = texture(atlas, goodTexCoord);
 	//vec4 texColor = texture(atlas, TexCoord);
-	/*vec4 colorMult = Color/256.0;
+	vec4 colorMult = Color/256.0;
 	
 	vec4 lightyColor = texture(lightTex, (BTexCoord + 8.0) / 256.0);
 	
 	vec4 rasterColor = ((texColor * colorMult) * lightyColor);
 	
-	FragColor = rasterColor;*/
+	FragColor = rasterColor;
 	
 	//FragColor = vec4(SPos.z, 1, 1, 1);
 	
-	FragColor = texColor;
+	//FragColor = texColor;
 	//FragColor = vec4(relU, relV, 0, 1);
 	
 	}
