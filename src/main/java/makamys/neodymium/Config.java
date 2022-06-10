@@ -37,6 +37,7 @@ public class Config {
     public static int debugPrefix;
     public static int debugInfoStartY;
     public static boolean renderFog;
+    public static boolean wireframe;
     
     // Unused LOD stuff
     public static int chunkLoadsPerTick = 64;
@@ -80,6 +81,7 @@ public class Config {
         maxMeshesPerFrame = config.getInt("maxMeshesPerFrame", "debug", -1, -1, Integer.MAX_VALUE, "");
         debugPrefix = config.getInt("debugPrefix", "debug", Keyboard.KEY_F4, -1, Integer.MAX_VALUE, "This key has to be held down while pressing the debug keybinds. LWJGL keycode. Setting this to 0 will make the keybinds usable without holding anything else down. Setting this to -1 will disable debug keybinds entirely.");
         debugInfoStartY = config.getInt("debugInfoStartY", "debug", 80, -1, Integer.MAX_VALUE, "The Y position of the first line of the debug info in the F3 overlay. Set this to -1 to disable showing that info.");
+        wireframe = config.getBoolean("wireframe", "debug", false, "");
         
         if(config.hasChanged()) {
             config.save();
