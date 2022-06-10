@@ -10,6 +10,7 @@ import static makamys.neodymium.Neodymium.MODID;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileSystems;
+import java.nio.file.Files;
 import java.nio.file.WatchEvent;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
@@ -53,6 +54,16 @@ public class Config {
     private static WatchService watcher;
     
     public static void reloadConfig() {
+        try {
+            if(Files.size(configFile.toPath()) == 0) {
+                // Sometimes the watcher fires twice, and the first time the file is empty.
+                // I don't know why. This is the workaround.
+                return;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        
         Configuration config = new Configuration(configFile);
         
         config.load();
