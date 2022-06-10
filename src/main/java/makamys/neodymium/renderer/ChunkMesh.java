@@ -233,7 +233,7 @@ public class ChunkMesh extends Mesh {
     }
 
     private ByteBuffer createBuffer(List<? extends MeshQuad> quads, int quadCount) {
-        ByteBuffer buffer = BufferUtils.createByteBuffer(quadCount * 6 * 7 * 4);
+        ByteBuffer buffer = BufferUtils.createByteBuffer(quadCount * 6 * MeshQuad.getStride());
         BufferWriter out = new BufferWriter(buffer);
         
         try {
@@ -301,7 +301,7 @@ public class ChunkMesh extends Mesh {
     }
     
     public int getStride() {
-        return (3 * 4 + (flags.hasTexture ? 8 : 0) + (flags.hasBrightness ? 4 : 0) + (flags.hasColor ? 4 : 0) + (flags.hasNormals ? 4 : 0));
+        return MeshQuad.getStride();
     }
     
     static void saveChunks(List<Integer> coords) {

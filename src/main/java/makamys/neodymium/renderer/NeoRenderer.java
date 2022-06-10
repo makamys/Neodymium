@@ -9,6 +9,7 @@ import static org.lwjgl.opengl.GL11.GL_PROJECTION_MATRIX;
 import static org.lwjgl.opengl.GL11.GL_SHORT;
 import static org.lwjgl.opengl.GL11.GL_TRIANGLES;
 import static org.lwjgl.opengl.GL11.GL_UNSIGNED_BYTE;
+import static org.lwjgl.opengl.GL11.GL_UNSIGNED_INT;
 import static org.lwjgl.opengl.GL11.GL_VIEWPORT;
 import static org.lwjgl.opengl.GL11.glGetFloat;
 import static org.lwjgl.opengl.GL11.glGetInteger;
@@ -420,17 +421,20 @@ public class NeoRenderer {
         
         glBindBuffer(GL_ARRAY_BUFFER, mem.VBO);
         
-        int stride = 7 * 4;
+        int stride = MeshQuad.getStride();
         
         glVertexAttribPointer(0, 3, GL_FLOAT, false, stride, 0);
         glVertexAttribPointer(1, 2, GL_FLOAT, false, stride, 3 * 4);
         glVertexAttribPointer(2, 2, GL_SHORT, false, stride, 5 * 4);
         glVertexAttribPointer(3, 4, GL_UNSIGNED_BYTE, false, stride, 6 * 4);
+        glVertexAttribPointer(4, 4, GL_UNSIGNED_BYTE, false, stride, 7 * 4);
+        // we only need 2 bytes for attribute 4, but GL freaks out if the stride isn't a multiple of 4, so we have 2 unused bytes
         
         glEnableVertexAttribArray(0);
         glEnableVertexAttribArray(1);
         glEnableVertexAttribArray(2);
         glEnableVertexAttribArray(3);
+        glEnableVertexAttribArray(4);
         
         for(int i = 0; i < 2; i++) {
             piFirst[i] = BufferUtils.createIntBuffer(MAX_MESHES);

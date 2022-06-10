@@ -21,6 +21,13 @@ import net.minecraft.util.EnumFacing;
  *  |  |
  *  3--0
  * 
+ * We can glue quads together, forming a "quad squadron", or "squadron" for short.
+ * In the fragment shader we need to know which quad of the squadron we are operating on.
+ * For this reason, we store the "squadron X" and "squadron Y" coordinates in the vertices.
+ * Their values at vertex 0: (0, 0)
+ * Their values at vertex 1: (0, squadron height)
+ * Their values at vertex 2: (squadron width, squadron height)
+ * Their values at vertex 3: (squadron width, 0)
  */
 
 public class MeshQuad {
@@ -44,8 +51,8 @@ public class MeshQuad {
     public int offset;
     public ChunkMesh.Flags flags;
     
-    // 0: quads glued together on edge 0-1 or 2-3 ("row length")
-    // 1: quads glued together on edge 1-2 or 3-0 ("column length")
+    // 0: quads glued together on edge 0-1 or 2-3 ("squadron row length")
+    // 1: quads glued together on edge 1-2 or 3-0 ("squadron column length")
     private int[] quadCountByDirection = {1, 1}; 
     public static int[] totalMergeCountByPlane = new int[3];
     
@@ -126,8 +133,25 @@ public class MeshQuad {
             
             out.writeInt(c);
             
+            out.writeByte(vi < 2 ? (byte)0 : (byte)quadCountByDirection[0]); // squadron x
+            out.writeByte((vi == 0 || vi == 3) ? (byte)0 : (byte)quadCountByDirection[1]); // quad z
+            out.writeByte(vi < 2 ? (byte)0 : 1); // which squadron corner x
+            out.writeByte((vi == 0 || vi == 3) ? (byte)0 : 1); // which squadron corner z
+            
+            assert out.position() % getStride() == 0;
+            
             //System.out.println("[" + vertexI + "] x: " + x + ", y: " + y + " z: " + z + ", u: " + u + ", v: " + v + ", b: " + b + ", c: " + c);
         }
+    }
+    
+    public static int getStride() {
+        return
+                3 * 4    // XYZ          (float)
+                + 2 * 4  // UV           (float)
+                + 4      // B            (int)
+                + 4      // C            (int))
+                + 4
+                ; // squadron XY  (byte)
     }
     
     private boolean isTranslatedCopyOf(MeshQuad o, boolean checkValid) {

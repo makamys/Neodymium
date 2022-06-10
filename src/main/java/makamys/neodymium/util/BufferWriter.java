@@ -43,4 +43,14 @@ public class BufferWriter {
         incrementPosition(4);
     }
     
+    public void writeByte(byte x) {
+        buf.put(x); // this increments the buffer position by 1
+        
+        incrementPosition(0);
+    }
+    
+    public int position() {
+        return buf.position();
+    }
+    
 }
