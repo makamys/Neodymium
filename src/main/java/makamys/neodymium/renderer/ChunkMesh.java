@@ -103,28 +103,30 @@ public class ChunkMesh extends Mesh {
                 quads.add(quad);
             }
             
-            ArrayList<ArrayList<MeshQuad>> quadsByPlaneDir = new ArrayList<>(); // XY, XZ, YZ
-            for(int i = 0; i < 3; i++) {
-                quadsByPlaneDir.add(new ArrayList<MeshQuad>());
-            }
-            for(MeshQuad quad : quads) {
-                if(quad.plane != MeshQuad.Plane.NONE) {
-                    quadsByPlaneDir.get(quad.plane.ordinal() - 1).add(quad);
+            if(Config.simplifyChunkMeshes) {
+                ArrayList<ArrayList<MeshQuad>> quadsByPlaneDir = new ArrayList<>(); // XY, XZ, YZ
+                for(int i = 0; i < 3; i++) {
+                    quadsByPlaneDir.add(new ArrayList<MeshQuad>());
                 }
-            }
-            for(int plane = 0; plane < 3; plane++) {
-                quadsByPlaneDir.get(plane).sort(MeshQuad.QuadPlaneComparator.quadPlaneComparators[plane]);
-            }
-            
-            for(int plane = 0; plane < 3; plane++) {
-                List<MeshQuad> planeDirQuads = quadsByPlaneDir.get(plane);
-                int planeStart = 0;
-                for(int quadI = 0; quadI < planeDirQuads.size(); quadI++) {
-                    MeshQuad quad = planeDirQuads.get(quadI);
-                    MeshQuad nextQuad = quadI == planeDirQuads.size() - 1 ? null : planeDirQuads.get(quadI + 1);
-                    if(!quad.onSamePlaneAs(nextQuad)) {
-                        simplifyPlane(planeDirQuads.subList(planeStart, quadI + 1));
-                        planeStart = quadI + 1;
+                for(MeshQuad quad : quads) {
+                    if(quad.plane != MeshQuad.Plane.NONE) {
+                        quadsByPlaneDir.get(quad.plane.ordinal() - 1).add(quad);
+                    }
+                }
+                for(int plane = 0; plane < 3; plane++) {
+                    quadsByPlaneDir.get(plane).sort(MeshQuad.QuadPlaneComparator.quadPlaneComparators[plane]);
+                }
+                
+                for(int plane = 0; plane < 3; plane++) {
+                    List<MeshQuad> planeDirQuads = quadsByPlaneDir.get(plane);
+                    int planeStart = 0;
+                    for(int quadI = 0; quadI < planeDirQuads.size(); quadI++) {
+                        MeshQuad quad = planeDirQuads.get(quadI);
+                        MeshQuad nextQuad = quadI == planeDirQuads.size() - 1 ? null : planeDirQuads.get(quadI + 1);
+                        if(!quad.onSamePlaneAs(nextQuad)) {
+                            simplifyPlane(planeDirQuads.subList(planeStart, quadI + 1));
+                            planeStart = quadI + 1;
+                        }
                     }
                 }
             }
