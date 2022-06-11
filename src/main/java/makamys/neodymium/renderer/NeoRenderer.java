@@ -683,11 +683,14 @@ public class NeoRenderer {
     
     public List<String> getDebugText() {
         List<String> text = new ArrayList<>();
+        text.addAll(Arrays.asList(
+                "Neodymium " + Neodymium.VERSION
+        ));
         text.addAll(mem.getDebugText());
         text.addAll(Arrays.asList(
-                "Simple meshes: " + SimpleChunkMesh.instances + " (" + SimpleChunkMesh.usedRAM / 1024 / 1024 + "MB)",
-                "Full meshes: " + ChunkMesh.instances + " (" + ChunkMesh.usedRAM / 1024 / 1024 + "MB)",
-                "Total RAM used: " + ((SimpleChunkMesh.usedRAM + ChunkMesh.usedRAM) / 1024 / 1024) + " MB",
+                //"Simple meshes: " + SimpleChunkMesh.instances + " (" + SimpleChunkMesh.usedRAM / 1024 / 1024 + "MB)",
+                "Meshes: " + ChunkMesh.instances + " (" + ChunkMesh.usedRAM / 1024 / 1024 + "MB)",
+                //"Total RAM used: " + ((SimpleChunkMesh.usedRAM + ChunkMesh.usedRAM) / 1024 / 1024) + " MB",
                 "Rendered: " + renderedMeshes
         ));
         return text;
