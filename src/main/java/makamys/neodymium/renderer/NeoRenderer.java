@@ -443,11 +443,11 @@ public class NeoRenderer {
         int stride = MeshQuad.getStride();
         
         glVertexAttribPointer(0, 3, GL_FLOAT, false, stride, 0);
-        glVertexAttribPointer(1, 2, GL_FLOAT, false, stride, 3 * 4);
-        glVertexAttribPointer(2, 2, GL_SHORT, false, stride, 5 * 4);
-        glVertexAttribPointer(3, 4, GL_UNSIGNED_BYTE, false, stride, 6 * 4);
+        glVertexAttribPointer(1, 2, GL_SHORT, false, stride, 3 * 4);
+        glVertexAttribPointer(2, 2, GL_SHORT, false, stride, 4 * 4);
+        glVertexAttribPointer(3, 4, GL_UNSIGNED_BYTE, false, stride, 5 * 4);
         if(Config.simplifyChunkMeshes) {
-            glVertexAttribPointer(4, 4, GL_UNSIGNED_BYTE, false, stride, 7 * 4);
+            glVertexAttribPointer(4, 4, GL_UNSIGNED_BYTE, false, stride, 6 * 4);
         }
         
         glEnableVertexAttribArray(0);

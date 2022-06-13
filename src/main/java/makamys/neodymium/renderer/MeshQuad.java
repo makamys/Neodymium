@@ -166,8 +166,8 @@ public class MeshQuad {
             float u = us[vi];
             float v = vs[vi];
             
-            out.writeFloat(u);
-            out.writeFloat(v);
+            out.writeShort((short)(u * 16384));
+            out.writeShort((short)(v * 16384));
             
             int b = bs[vi];
             
@@ -209,7 +209,7 @@ public class MeshQuad {
     public static int getStride() {
         return
                 3 * 4    // XYZ          (float)
-                + 2 * 4  // UV           (float)
+                + 2 * 2  // UV           (float)
                 + 4      // B            (int)
                 + 4      // C            (int)
                 + (Config.simplifyChunkMeshes ? 4 : 0)      // megaquad XY  (byte)

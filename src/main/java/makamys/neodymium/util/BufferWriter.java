@@ -52,5 +52,11 @@ public class BufferWriter {
     public int position() {
         return buf.position();
     }
+
+    public void writeShort(short s) {
+        shortBuffer.put(s);
+        
+        incrementPosition(2);
+    }
     
 }
