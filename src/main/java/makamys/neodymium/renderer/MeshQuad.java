@@ -113,11 +113,9 @@ public class MeshQuad {
     }
     
     public void writeToBuffer(BufferWriter out) throws IOException {
-        int[] vertexI_to_vi = new int[]{3, 0, 1, 1, 2, 3};
-        for(int vertexI = 0; vertexI < 6; vertexI++) {
-            int vi = vertexI_to_vi[vertexI];
-            int ti = vertexI / 3;
-            int provokingI = vertexI_to_vi[ti * 3 + 2];
+        for(int vertexI = 0; vertexI < 4; vertexI++) {
+            int vi = vertexI;
+            int provokingI = 3;
             
             float x = xs[vi];
             float y = ys[vi];

@@ -153,7 +153,7 @@ public class GPUMemoryManager {
             
             glBufferSubData(GL_ARRAY_BUFFER, nextBase, mesh.buffer);
             mesh.iFirst = nextBase / mesh.getStride();
-            mesh.iCount = mesh.quadCount * 6;
+            mesh.iCount = mesh.quadCount * 4;
             mesh.offset = nextBase;
             
             if(insertIndex == -1) {

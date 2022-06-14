@@ -358,7 +358,7 @@ public class NeoRenderer {
         if(Config.wireframe) {
             GL11.glPolygonMode(GL11.GL_FRONT_AND_BACK, GL11.GL_LINE);
         }
-        glMultiDrawArrays(GL_TRIANGLES, piFirst[0], piCount[0]);
+        glMultiDrawArrays(GL_QUADS, piFirst[0], piCount[0]);
         if(Config.wireframe) {
             GL11.glPolygonMode(GL11.GL_FRONT_AND_BACK, GL11.GL_FILL);
         }
@@ -369,7 +369,7 @@ public class NeoRenderer {
         if(Config.wireframe) {
             GL11.glPolygonMode(GL11.GL_FRONT_AND_BACK, GL11.GL_LINE);
         }
-        glMultiDrawArrays(GL_TRIANGLES, piFirst[1], piCount[1]);
+        glMultiDrawArrays(GL_QUADS, piFirst[1], piCount[1]);
         if(Config.wireframe) {
             GL11.glPolygonMode(GL11.GL_FRONT_AND_BACK, GL11.GL_FILL);
         }
