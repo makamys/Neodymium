@@ -3,7 +3,7 @@ layout (location = 0) in vec3 aPos;
 layout (location = 1) in vec2 aTexCoord;
 layout (location = 2) in vec2 aBTexCoord;
 layout (location = 3) in vec4 aColor;
-layout (location = 4) in vec4 aSPos;
+layout (location = 4) in vec4 aMQPos;
 
 uniform mat4 modelView;
 uniform mat4 proj;
@@ -17,7 +17,7 @@ uniform vec3 playerPos;
 out vec2 TexCoord;
 out vec2 BTexCoord;
 out vec4 Color;
-out vec4 SPos;
+out vec4 MQPos;
 out vec4 Viewport;
 out mat4 ProjInv;
 out vec4 FogColor;
@@ -31,7 +31,7 @@ void main()
 	TexCoord = aTexCoord;
 	BTexCoord = aBTexCoord;
 	Color = aColor;
-	SPos = aSPos;
+	MQPos = aMQPos;
 	Viewport = viewport;
 	ProjInv = projInv;
 	FogColor = fogColor;

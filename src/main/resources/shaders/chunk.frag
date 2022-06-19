@@ -4,7 +4,7 @@ out vec4 FragColor;
 in vec2 TexCoord;
 in vec2 BTexCoord;
 in vec4 Color;
-in vec4 SPos;
+in vec4 MQPos;
 in vec4 Viewport;
 in mat4 ProjInv;
 in vec4 FogColor;
@@ -17,10 +17,10 @@ uniform sampler2D lightTex;
 
 void main()
 {
-	float wrappedU = mod(SPos.x, 1.0);
-	float wrappedV = mod(SPos.y, 1.0);
+	float wrappedU = mod(MQPos.x, 1.0);
+	float wrappedV = mod(MQPos.y, 1.0);
 	
-	vec2 goodTexCoord = ProvokingTexCoord.xy + (((TexCoord.xy - ProvokingTexCoord.xy) / SPos.zw) * vec2(wrappedU, wrappedV));
+	vec2 goodTexCoord = ProvokingTexCoord.xy + (((TexCoord.xy - ProvokingTexCoord.xy) / MQPos.zw) * vec2(wrappedU, wrappedV));
 	
 	vec4 texColor = texture(atlas, goodTexCoord);
 	

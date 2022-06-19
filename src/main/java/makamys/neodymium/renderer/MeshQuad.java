@@ -22,13 +22,13 @@ import net.minecraft.util.EnumFacing;
  *  |  |
  *  3--2
  * 
- * We can glue quads together, forming a "quad squadron", or "squadron" for short.
- * In the fragment shader we need to know which quad of the squadron we are operating on.
- * For this reason, we store the "squadron X" and "squadron Y" coordinates in the vertices.
+ * We can glue quads together, forming a megaquad.
+ * In the fragment shader we need to know which quad of the megaquad we are operating on.
+ * For this reason, we store the "megaquad X" and "megaquad Y" coordinates in the vertices.
  * Their values at vertex 0: (0, 0)
- * Their values at vertex 1: (sqadron width, 0)
- * Their values at vertex 2: (squadron width, squadron height)
- * Their values at vertex 3: (0, squadron height)
+ * Their values at vertex 1: (megaquad width, 0)
+ * Their values at vertex 2: (megaquad width, megaquad height)
+ * Their values at vertex 3: (0, megaquad height)
  */
 
 public class MeshQuad {
@@ -56,8 +56,8 @@ public class MeshQuad {
     // positive U direction is parallel to edge 0-1
     public boolean uDirectionIs01;
     
-    // 0: quads glued together on edge 1-2 or 3-0 ("squadron row length")
-    // 1: quads glued together on edge 0-1 or 2-3 ("squadron column length")
+    // 0: quads glued together on edge 1-2 or 3-0 ("megaquad row length")
+    // 1: quads glued together on edge 0-1 or 2-3 ("megaquad column length")
     private int[] quadCountByDirection = {1, 1}; 
     public static int[] totalMergeCountByPlane = new int[3];
     
@@ -167,7 +167,7 @@ public class MeshQuad {
                 + 4      // B            (int)
                 + 4      // C            (int))
                 + 4
-                ; // squadron XY  (byte)
+                ; // megaquad XY  (byte)
     }
     
     private boolean isTranslatedCopyOf(MeshQuad o, boolean checkValid) {
