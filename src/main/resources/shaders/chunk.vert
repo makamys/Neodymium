@@ -36,14 +36,17 @@ void main()
 	ProjInv = projInv;
 	FogColor = fogColor;
 	
-	float s = fogStartEnd.x;
-	float e = fogStartEnd.y;
-	vec4 eyePos = (modelView * (vec4(aPos - playerPos, 1.0) + vec4(0, 0.12, 0, 0)));
-	
-	float fogFactor = clamp((e - length(eyePos)) / (e - s), 0, 1);
-	
-	FogFactor = fogFactor;
-	
+	if(fogStartEnd.x >= 0 && fogStartEnd.y >= 0){
+		float s = fogStartEnd.x;
+		float e = fogStartEnd.y;
+		vec4 eyePos = (modelView * (vec4(aPos - playerPos, 1.0) + vec4(0, 0.12, 0, 0)));
+		
+		float fogFactor = clamp((e - length(eyePos)) / (e - s), 0, 1);
+		
+		FogFactor = fogFactor;	
+	} else {
+		FogFactor = -1;
+	}
 	FogStartEnd = fogStartEnd;
 	
 	ProvokingTexCoord = aTexCoord;

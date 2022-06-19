@@ -9,6 +9,7 @@ in vec4 Viewport;
 in mat4 ProjInv;
 in vec4 FogColor;
 in vec2 FogStartEnd;
+in float FogFactor;
 flat in vec2 ProvokingTexCoord;
 
 uniform sampler2D atlas;
@@ -29,5 +30,9 @@ void main()
 	
 	vec4 rasterColor = ((texColor * colorMult) * lightyColor);
 	
-	FragColor = rasterColor;
+	if(FogFactor >= 0){
+		FragColor = vec4(mix(FogColor.xyz, rasterColor.xyz, FogFactor), rasterColor.w);
+	} else {
+		FragColor = rasterColor;
+	}
 }
