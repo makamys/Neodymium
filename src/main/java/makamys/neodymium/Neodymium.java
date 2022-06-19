@@ -112,12 +112,6 @@ public class Neodymium
     	            }
     	        }
     	    }
-    	    
-    		EntityPlayer player = Minecraft.getMinecraft().thePlayer;
-    		World world = player != null ? player.worldObj : null;
-        	if(world != getRendererWorld()) {
-        		onPlayerWorldChanged(world);
-        	}
         	
         	if(MixinConfigPlugin.isOptiFinePresent()) {
     	        try {
@@ -141,7 +135,13 @@ public class Neodymium
     
     @SubscribeEvent
     public void onRenderTick(TickEvent.RenderTickEvent event) {
-        if(event.phase == TickEvent.Phase.END) {
+        if(event.phase == TickEvent.Phase.START) {
+            EntityPlayer player = Minecraft.getMinecraft().thePlayer;
+            World world = player != null ? player.worldObj : null;
+            if(world != getRendererWorld()) {
+                onPlayerWorldChanged(world);
+            }
+        } else if(event.phase == TickEvent.Phase.END) {
             if(isActive()) {
                 renderer.onRenderTickEnd();
             }
