@@ -2,6 +2,7 @@ package makamys.neodymium.renderer;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Locale;
 import java.util.Map;
@@ -46,6 +47,7 @@ public class MeshQuad {
     public int[] cs = new int[4];
     // TODO normals?
     public boolean deleted;
+    public boolean noMerge;
     
     public Plane plane;
     public int offset;
@@ -195,6 +197,8 @@ public class MeshQuad {
     }
     
     public void tryToMerge(MeshQuad o) {
+        if(noMerge || o.noMerge) return;
+        
         if(isTranslatedCopyOf(o, true)) {
             int numVerticesTouching = 0;
             boolean[] verticesTouching = new boolean[4];
@@ -328,5 +332,9 @@ public class MeshQuad {
         XY,
         XZ,
         YZ
+    }
+
+    public boolean isPosEqual(MeshQuad b) {
+        return Arrays.equals(xs, b.xs) && Arrays.equals(ys, b.ys) && Arrays.equals(zs, b.zs);
     }
 }

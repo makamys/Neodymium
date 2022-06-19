@@ -204,6 +204,20 @@ public class ChunkMesh extends Mesh {
     }
     
     private static void simplifyPlane(List<MeshQuad> planeQuads) {
+        // Exclude quads from merging if they have identical vertex positions to another quad.
+        // Workaround for z-fighting issue that arises when merging fancy grass and the overlay quad
+        // is a different dimension than the base quad.
+        for(int i = 0; i < planeQuads.size(); i++) {
+            MeshQuad a = planeQuads.get(i);
+            for(int j = i + 1; j < planeQuads.size(); j++) {
+                MeshQuad b = planeQuads.get(j);
+                if(a.isPosEqual(b)) {
+                    a.noMerge = true;
+                    b.noMerge = true;
+                }
+            }
+        }
+        
         MeshQuad lastQuad = null;
         // Pass 1: merge quads to create rows
         for(MeshQuad quad : planeQuads) {
