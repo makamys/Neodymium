@@ -229,6 +229,10 @@ public class ChunkMesh extends Mesh {
             }
         }
         
+        for(int i = 0; i < planeQuads.size(); i++) {
+            planeQuads.get(i).mergeReference = null;
+        }
+        
         // Pass 2: merge rows to create rectangles
         // TODO optimize?
         for(int i = 0; i < planeQuads.size(); i++) {

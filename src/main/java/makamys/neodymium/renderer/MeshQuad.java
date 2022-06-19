@@ -61,7 +61,7 @@ public class MeshQuad {
     private int[] quadCountByDirection = {1, 1}; 
     public static int[] totalMergeCountByPlane = new int[3];
     
-    private MeshQuad mergeReference;
+    public MeshQuad mergeReference;
     
     private int minPositive(int a, int b) {
         if(a == -1) {
