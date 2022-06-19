@@ -224,7 +224,7 @@ public class ChunkMesh extends Mesh {
             if(lastQuad != null) {
                 lastQuad.tryToMerge(quad);
             }
-            if(quad.isValid(quad)) {
+            if(MeshQuad.isValid(quad)) {
                 lastQuad = quad;
             }
         }
@@ -258,7 +258,7 @@ public class ChunkMesh extends Mesh {
         
         try {
             for(MeshQuad quad : quads) {
-                if(quad.isValid(quad)) {
+                if(MeshQuad.isValid(quad)) {
                     quad.writeToBuffer(out);
                 }
             }

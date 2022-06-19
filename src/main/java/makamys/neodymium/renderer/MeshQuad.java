@@ -1,19 +1,10 @@
 package makamys.neodymium.renderer;
 
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Locale;
-import java.util.Map;
-
 import makamys.neodymium.util.BufferWriter;
-import makamys.neodymium.util.SpriteUtil;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.client.renderer.texture.TextureMap;
-import net.minecraft.util.EnumFacing;
 
 /*
  * This is what a quad looks like.
@@ -53,7 +44,7 @@ public class MeshQuad {
     public int offset;
     public ChunkMesh.Flags flags;
     
-    // positive U direction is parallel to edge 0-1
+    // Is positive U direction parallel to edge 0-1?
     public boolean uDirectionIs01;
     
     // 0: quads glued together on edge 1-2 or 3-0 ("megaquad row length")
@@ -61,6 +52,8 @@ public class MeshQuad {
     private int[] quadCountByDirection = {1, 1}; 
     public static int[] totalMergeCountByPlane = new int[3];
     
+    // When we merge with another quad, we forget what we used to be like.
+    // Keep a reference to the quad we first merged with, and use it as a reminder.
     public MeshQuad mergeReference;
     
     private int minPositive(int a, int b) {
@@ -165,9 +158,9 @@ public class MeshQuad {
                 3 * 4    // XYZ          (float)
                 + 2 * 4  // UV           (float)
                 + 4      // B            (int)
-                + 4      // C            (int))
-                + 4
-                ; // megaquad XY  (byte)
+                + 4      // C            (int)
+                + 4      // megaquad XY  (byte)
+                ;
     }
     
     private boolean isTranslatedCopyOf(MeshQuad o, boolean checkValid) {
@@ -272,8 +265,7 @@ public class MeshQuad {
                     (plane == Plane.YZ && minX == o.minX));
     }
     
-    // this should be static..
-    public boolean isValid(MeshQuad q) {
+    public static boolean isValid(MeshQuad q) {
         return q != null && !q.deleted;
     }
     
