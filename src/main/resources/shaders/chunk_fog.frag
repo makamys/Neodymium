@@ -4,18 +4,26 @@ out vec4 FragColor;
 in vec2 TexCoord;
 in vec2 BTexCoord;
 in vec4 Color;
+in vec4 SPos;
 in vec4 Viewport;
 in mat4 ProjInv;
 in vec4 FogColor;
 in vec2 FogStartEnd;
 in float FogFactor;
+flat in vec2 ProvokingTexCoord;
 
 uniform sampler2D atlas;
 uniform sampler2D lightTex;
 
 void main()
-{	
-	vec4 texColor = texture(atlas, TexCoord);
+{
+	float wrappedU = mod(SPos.x, 1.0);
+	float wrappedV = mod(SPos.y, 1.0);
+	
+	vec2 goodTexCoord = ProvokingTexCoord.xy + (((TexCoord.xy - ProvokingTexCoord.xy) / SPos.zw) * vec2(wrappedU, wrappedV));
+	
+	vec4 texColor = texture(atlas, goodTexCoord);
+	
 	vec4 colorMult = Color/256.0;
 	
 	vec4 lightyColor = texture(lightTex, (BTexCoord + 8.0) / 256.0);
