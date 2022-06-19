@@ -90,7 +90,7 @@ public class NeoRenderer {
     private long gcInterval = 10 * 1000;
     private long saveInterval = 60 * 1000;
     
-    private int renderedMeshes;
+    private int renderedMeshes, renderedQuads;
     private int frameCount;
     
     public int renderRange = 48;
@@ -113,6 +113,7 @@ public class NeoRenderer {
         Neodymium.fogEventWasPosted = false;
         
         renderedMeshes = 0;
+        renderedQuads = 0;
         
         Minecraft.getMinecraft().entityRenderer.enableLightmap((double)alpha);
         
@@ -180,6 +181,7 @@ public class NeoRenderer {
             for(Mesh mesh : sentMeshes[i]) {
                 if(mesh.visible && (Config.maxMeshesPerFrame == -1 || renderedMeshes < Config.maxMeshesPerFrame)) {
                     renderedMeshes++;
+                    renderedQuads += mesh.quadCount;
                     piFirst[i].put(mesh.iFirst);
                     piCount[i].put(mesh.iCount);
                 }
@@ -657,7 +659,7 @@ public class NeoRenderer {
                 //"Simple meshes: " + SimpleChunkMesh.instances + " (" + SimpleChunkMesh.usedRAM / 1024 / 1024 + "MB)",
                 "Meshes: " + ChunkMesh.instances + " (" + ChunkMesh.usedRAM / 1024 / 1024 + "MB)",
                 //"Total RAM used: " + ((SimpleChunkMesh.usedRAM + ChunkMesh.usedRAM) / 1024 / 1024) + " MB",
-                "Rendered: " + renderedMeshes
+                "Rendered: " + renderedMeshes + " (" + renderedQuads / 1000 + " KQ)"
         ));
         return text;
     }
