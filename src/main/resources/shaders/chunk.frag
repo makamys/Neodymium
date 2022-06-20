@@ -17,10 +17,13 @@ uniform sampler2D lightTex;
 
 void main()
 {
-	float wrappedU = mod(MQPos.x, 1.0);
-	float wrappedV = mod(MQPos.y, 1.0);
-	
-	vec2 goodTexCoord = ProvokingTexCoord.xy + (((TexCoord.xy - ProvokingTexCoord.xy) / MQPos.zw) * vec2(wrappedU, wrappedV));
+	vec2 goodTexCoord = TexCoord;
+	if(MQPos.x <= 254){
+		float wrappedU = mod(MQPos.x, 1.0);
+		float wrappedV = mod(MQPos.y, 1.0);
+		
+		goodTexCoord = ProvokingTexCoord.xy + (((TexCoord.xy - ProvokingTexCoord.xy) / MQPos.zw) * vec2(wrappedU, wrappedV));
+	}
 	
 	vec4 texColor = texture(atlas, goodTexCoord);
 	

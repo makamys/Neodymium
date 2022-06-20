@@ -134,10 +134,18 @@ public class MeshQuad {
             
             out.writeInt(c);
             
-            out.writeByte(us[vi] == us[provokingI] ? 0 : (byte)quadCountByUVDirection(false));
-            out.writeByte(vs[vi] == vs[provokingI] ? 0 : (byte)quadCountByUVDirection(true));
-            out.writeByte(us[vi] == us[provokingI] ? (byte)0 : 1);
-            out.writeByte(vs[vi] == vs[provokingI] ? (byte)0 : 1);
+            if((quadCountByUVDirection(false) == 1 && quadCountByUVDirection(true) == 1)) {
+                // let the fragment shader know this is not a megaquad
+                out.writeByte((byte)255);
+                out.writeByte((byte)255);
+                out.writeByte((byte)255);
+                out.writeByte((byte)255);
+            } else {
+                out.writeByte(us[vi] == us[provokingI] ? 0 : (byte)quadCountByUVDirection(false));
+                out.writeByte(vs[vi] == vs[provokingI] ? 0 : (byte)quadCountByUVDirection(true));
+                out.writeByte(us[vi] == us[provokingI] ? (byte)0 : 1);
+                out.writeByte(vs[vi] == vs[provokingI] ? (byte)0 : 1);
+            }
             
             assert out.position() % getStride() == 0;
             
