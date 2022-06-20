@@ -257,9 +257,13 @@ public class ChunkMesh extends Mesh {
         BufferWriter out = new BufferWriter(buffer);
         
         try {
+            int i = 0;
             for(MeshQuad quad : quads) {
-                if(MeshQuad.isValid(quad)) {
-                    quad.writeToBuffer(out);
+                if(i < quadCount) {
+                    if(MeshQuad.isValid(quad)) {
+                        quad.writeToBuffer(out);
+                        i++;
+                    }
                 }
             }
         } catch(IOException e) {
