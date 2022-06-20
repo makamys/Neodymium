@@ -294,6 +294,16 @@ public class NeoRenderer {
         
         glUseProgram(shaderProgram);
         
+        updateUniforms(alpha);
+        renderMeshes();
+        
+        glUseProgram(0);
+        
+        GL11.glDepthMask(true);
+        GL11.glPopAttrib();
+    }
+    
+    private void updateUniforms(double alpha) {
         int u_modelView = glGetUniformLocation(shaderProgram, "modelView");
         int u_proj = glGetUniformLocation(shaderProgram, "proj");
         int u_playerPos = glGetUniformLocation(shaderProgram, "playerPos");
@@ -303,62 +313,60 @@ public class NeoRenderer {
         int u_fogColor = glGetUniformLocation(shaderProgram, "fogColor");
         int u_fogStartEnd = glGetUniformLocation(shaderProgram, "fogStartEnd");
         
-        if(false && (u_modelView == -1 || u_proj == -1 || u_playerPos == -1 || u_light == -1 || u_viewport == -1 || u_projInv == -1 || u_fogColor == -1 || u_fogStartEnd == -1)) {
-            System.out.println("failed to get the uniform");
-        } else {
-            glGetFloat(GL_MODELVIEW_MATRIX, modelView);
-            
-            glGetFloat(GL_PROJECTION_MATRIX, projBuf);
-            
-            glGetInteger(GL_VIEWPORT, viewportBuf);
-            
-            projMatrix.load(projBuf);
-            projBuf.flip();
-            projMatrix.invert();
-            projMatrix.store(projInvBuf);
-            projInvBuf.flip();
-            
-            fogColorBuf.limit(16);
-            glGetFloat(GL_FOG_COLOR, fogColorBuf);
-            fogColorBuf.limit(4);
-            
-            if(Config.renderFog) {
-                fogStartEnd.put(glGetFloat(GL_FOG_START));
-                fogStartEnd.put(glGetFloat(GL_FOG_END));
-            } else {
-                fogStartEnd.put(-1);
-                fogStartEnd.put(-1);
-            }
-            fogStartEnd.flip();
-            
-            glUniformMatrix4(u_modelView, false, modelView);
-            glUniformMatrix4(u_proj, false, projBuf);
-            glUniformMatrix4(u_projInv, false, projInvBuf);
-            glUniform4f(u_viewport, viewportBuf.get(0),viewportBuf.get(1),viewportBuf.get(2),viewportBuf.get(3));
-            glUniform4(u_fogColor, fogColorBuf);
-            glUniform2(u_fogStartEnd, fogStartEnd);
-            
-            float originX = 0;
-            float originY = 0;
-            float originZ = 0;
-            
-            Entity rve = Minecraft.getMinecraft().renderViewEntity;
-            double interpX = rve.lastTickPosX + (rve.posX - rve.lastTickPosX) * alpha;
-            double interpY = rve.lastTickPosY + (rve.posY - rve.lastTickPosY) * alpha + rve.getEyeHeight();
-            double interpZ = rve.lastTickPosZ + (rve.posZ - rve.lastTickPosZ) * alpha;
-            
-            glUniform3f(u_playerPos, (float)interpX - originX, (float)interpY - originY, (float)interpZ - originZ);
-            
-            glUniform1i(u_light, 1);
-            
-            modelView.position(0);
-            projBuf.position(0);
-            viewportBuf.position(0);
-            projInvBuf.position(0);
-            fogColorBuf.position(0);
-            fogStartEnd.position(0);
-        }
+        glGetFloat(GL_MODELVIEW_MATRIX, modelView);
         
+        glGetFloat(GL_PROJECTION_MATRIX, projBuf);
+        
+        glGetInteger(GL_VIEWPORT, viewportBuf);
+        
+        projMatrix.load(projBuf);
+        projBuf.flip();
+        projMatrix.invert();
+        projMatrix.store(projInvBuf);
+        projInvBuf.flip();
+        
+        fogColorBuf.limit(16);
+        glGetFloat(GL_FOG_COLOR, fogColorBuf);
+        fogColorBuf.limit(4);
+        
+        if(Config.renderFog) {
+            fogStartEnd.put(glGetFloat(GL_FOG_START));
+            fogStartEnd.put(glGetFloat(GL_FOG_END));
+        } else {
+            fogStartEnd.put(-1);
+            fogStartEnd.put(-1);
+        }
+        fogStartEnd.flip();
+        
+        glUniformMatrix4(u_modelView, false, modelView);
+        glUniformMatrix4(u_proj, false, projBuf);
+        glUniformMatrix4(u_projInv, false, projInvBuf);
+        glUniform4f(u_viewport, viewportBuf.get(0),viewportBuf.get(1),viewportBuf.get(2),viewportBuf.get(3));
+        glUniform4(u_fogColor, fogColorBuf);
+        glUniform2(u_fogStartEnd, fogStartEnd);
+        
+        float originX = 0;
+        float originY = 0;
+        float originZ = 0;
+        
+        Entity rve = Minecraft.getMinecraft().renderViewEntity;
+        double interpX = rve.lastTickPosX + (rve.posX - rve.lastTickPosX) * alpha;
+        double interpY = rve.lastTickPosY + (rve.posY - rve.lastTickPosY) * alpha + rve.getEyeHeight();
+        double interpZ = rve.lastTickPosZ + (rve.posZ - rve.lastTickPosZ) * alpha;
+        
+        glUniform3f(u_playerPos, (float)interpX - originX, (float)interpY - originY, (float)interpZ - originZ);
+        
+        glUniform1i(u_light, 1);
+        
+        modelView.position(0);
+        projBuf.position(0);
+        viewportBuf.position(0);
+        projInvBuf.position(0);
+        fogColorBuf.position(0);
+        fogStartEnd.position(0);
+    }
+    
+    private void renderMeshes() {
         glBindVertexArray(VAO);
         GL11.glDisable(GL11.GL_BLEND);
         
@@ -382,12 +390,6 @@ public class NeoRenderer {
         }
         
         glBindVertexArray(0);
-        glUseProgram(0);
-        
-        GL11.glDepthMask(true);
-        GL11.glPopAttrib();
-        
-        
     }
     
     public boolean init() {
