@@ -84,122 +84,56 @@ public class ChunkMesh extends Mesh {
         int tessellatorYOffset = fr ? 0 : yOffset;
         int tessellatorZOffset = fr ? 0 : zOffset;
         
-        boolean optimize = Config.simplifyChunkMeshes;
-        
         ChunkMesh.Flags flags = new ChunkMesh.Flags(t.hasTexture, t.hasBrightness, t.hasColor, t.hasNormals);
         
-        if(true) {
-            List<MeshQuad> quads = new ArrayList<>();
-            
-            for(int quadI = 0; quadI < t.vertexCount / 4; quadI++) {
-                MeshQuad quad = new MeshQuad(t.rawBuffer, quadI * 32, flags, tessellatorXOffset, tessellatorYOffset, tessellatorZOffset);
-                //if(quad.bUs[0] == quad.bUs[1] && quad.bUs[1] == quad.bUs[2] && quad.bUs[2] == quad.bUs[3] && quad.bUs[3] == quad.bVs[0] && quad.bVs[0] == quad.bVs[1] && quad.bVs[1] == quad.bVs[2] && quad.bVs[2] == quad.bVs[3] && quad.bVs[3] == 0) {
-                //    quad.deleted = true;
-                //}
-                /*if(quad.plane == quad.PLANE_XZ && !quad.isClockwiseXZ()) {
-                    // water hack
-                    quad.deleted = true;
-                }*/
-                quads.add(quad);
+        List<MeshQuad> quads = new ArrayList<>();
+        
+        for(int quadI = 0; quadI < t.vertexCount / 4; quadI++) {
+            MeshQuad quad = new MeshQuad(t.rawBuffer, quadI * 32, flags, tessellatorXOffset, tessellatorYOffset, tessellatorZOffset);
+            quads.add(quad);
+        }
+        
+        if(Config.simplifyChunkMeshes) {
+            ArrayList<ArrayList<MeshQuad>> quadsByPlaneDir = new ArrayList<>(); // XY, XZ, YZ
+            for(int i = 0; i < 3; i++) {
+                quadsByPlaneDir.add(new ArrayList<MeshQuad>());
+            }
+            for(MeshQuad quad : quads) {
+                if(quad.plane != MeshQuad.Plane.NONE) {
+                    quadsByPlaneDir.get(quad.plane.ordinal() - 1).add(quad);
+                }
+            }
+            for(int plane = 0; plane < 3; plane++) {
+                quadsByPlaneDir.get(plane).sort(MeshQuad.QuadPlaneComparator.quadPlaneComparators[plane]);
             }
             
-            if(Config.simplifyChunkMeshes) {
-                ArrayList<ArrayList<MeshQuad>> quadsByPlaneDir = new ArrayList<>(); // XY, XZ, YZ
-                for(int i = 0; i < 3; i++) {
-                    quadsByPlaneDir.add(new ArrayList<MeshQuad>());
-                }
-                for(MeshQuad quad : quads) {
-                    if(quad.plane != MeshQuad.Plane.NONE) {
-                        quadsByPlaneDir.get(quad.plane.ordinal() - 1).add(quad);
+            for(int plane = 0; plane < 3; plane++) {
+                List<MeshQuad> planeDirQuads = quadsByPlaneDir.get(plane);
+                int planeStart = 0;
+                for(int quadI = 0; quadI < planeDirQuads.size(); quadI++) {
+                    MeshQuad quad = planeDirQuads.get(quadI);
+                    MeshQuad nextQuad = quadI == planeDirQuads.size() - 1 ? null : planeDirQuads.get(quadI + 1);
+                    if(!quad.onSamePlaneAs(nextQuad)) {
+                        simplifyPlane(planeDirQuads.subList(planeStart, quadI + 1));
+                        planeStart = quadI + 1;
                     }
                 }
-                for(int plane = 0; plane < 3; plane++) {
-                    quadsByPlaneDir.get(plane).sort(MeshQuad.QuadPlaneComparator.quadPlaneComparators[plane]);
-                }
-                
-                for(int plane = 0; plane < 3; plane++) {
-                    List<MeshQuad> planeDirQuads = quadsByPlaneDir.get(plane);
-                    int planeStart = 0;
-                    for(int quadI = 0; quadI < planeDirQuads.size(); quadI++) {
-                        MeshQuad quad = planeDirQuads.get(quadI);
-                        MeshQuad nextQuad = quadI == planeDirQuads.size() - 1 ? null : planeDirQuads.get(quadI + 1);
-                        if(!quad.onSamePlaneAs(nextQuad)) {
-                            simplifyPlane(planeDirQuads.subList(planeStart, quadI + 1));
-                            planeStart = quadI + 1;
-                        }
-                    }
-                }
-            }
-            
-            int quadCount = countValidQuads(quads);
-            
-            totalOriginalQuadCount += quads.size();
-            totalSimplifiedQuadCount += quadCount;
-            //System.out.println("simplified quads " + totalOriginalQuadCount + " -> " + totalSimplifiedQuadCount + " (ratio: " + ((float)totalSimplifiedQuadCount / (float)totalOriginalQuadCount) + ") totalMergeCountByPlane: " + Arrays.toString(totalMergeCountByPlane));
-            
-            if(quadCount > 0) {
-                return new ChunkMesh(
-                        (int)(xOffset / 16), (int)(yOffset / 16), (int)(zOffset / 16),
-                        new ChunkMesh.Flags(t.hasTexture, t.hasBrightness, t.hasColor, t.hasNormals),
-                        quadCount, quads, pass);
-            } else {
-                return null;
-            }
-        } else {
-            int quadCount = t.vertexCount / 4;
-            ByteBuffer buffer = BufferUtils.createByteBuffer(quadCount * 6 * 7 * 4);
-            BufferWriter out = new BufferWriter(buffer);
-            
-            try {
-                for(int i = 0; i < quadCount; i++) {
-                    writeBufferQuad(t, i * 32, out, -tessellatorXOffset + xOffset, -tessellatorYOffset + yOffset, -tessellatorZOffset + zOffset);
-                }
-            } catch(IOException e) {
-                e.printStackTrace();
-            }
-            buffer.flip();
-            
-            if(quadCount > 0) {
-                return new ChunkMesh(
-                        (int)(xOffset / 16), (int)(yOffset / 16), (int)(zOffset / 16),
-                        flags,
-                        quadCount, buffer, pass);
-            } else {
-                return null;
             }
         }
-    }
-    
-    private static void writeBufferQuad(Tessellator t, int offset, BufferWriter out, float offsetX, float offsetY, float offsetZ) throws IOException {
-        for(int vertexI = 0; vertexI < 6; vertexI++) {
-            
-            int vi = new int[]{3, 0, 1, 1, 2, 3}[vertexI];
-            
-            int i = offset + vi * 8;
-            
-            float x = Float.intBitsToFloat(t.rawBuffer[i + 0]) + offsetX;
-            float y = Float.intBitsToFloat(t.rawBuffer[i + 1]) + offsetY;
-            float z = Float.intBitsToFloat(t.rawBuffer[i + 2]) + offsetZ;
-            
-            out.writeFloat(x);
-            out.writeFloat(y);
-            out.writeFloat(z);
-            
-            float u = Float.intBitsToFloat(t.rawBuffer[i + 3]);
-            float v = Float.intBitsToFloat(t.rawBuffer[i + 4]);
-            
-            out.writeFloat(u);
-            out.writeFloat(v);
-            
-            int brightness = t.rawBuffer[i + 7];
-            out.writeInt(brightness);
-
-            int color = t.rawBuffer[i + 5];
-            out.writeInt(color);
-            
-            //System.out.println("[" + vertexI + "] x: " + x + ", y: " + y + " z: " + z + ", u: " + u + ", v: " + v + ", b: " + brightness + ", c: " + color);
-            
-            i += 8;
+        
+        int quadCount = countValidQuads(quads);
+        
+        totalOriginalQuadCount += quads.size();
+        totalSimplifiedQuadCount += quadCount;
+        //System.out.println("simplified quads " + totalOriginalQuadCount + " -> " + totalSimplifiedQuadCount + " (ratio: " + ((float)totalSimplifiedQuadCount / (float)totalOriginalQuadCount) + ") totalMergeCountByPlane: " + Arrays.toString(totalMergeCountByPlane));
+        
+        if(quadCount > 0) {
+            return new ChunkMesh(
+                    (int)(xOffset / 16), (int)(yOffset / 16), (int)(zOffset / 16),
+                    new ChunkMesh.Flags(t.hasTexture, t.hasBrightness, t.hasColor, t.hasNormals),
+                    quadCount, quads, pass);
+        } else {
+            return null;
         }
     }
     
