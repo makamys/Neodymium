@@ -99,8 +99,8 @@ public class ChunkMesh extends Mesh {
                 quadsByPlaneDir.add(new ArrayList<MeshQuad>());
             }
             for(MeshQuad quad : quads) {
-                if(quad.plane != MeshQuad.Plane.NONE) {
-                    quadsByPlaneDir.get(quad.plane.ordinal() - 1).add(quad);
+                if(quad.getPlane() != MeshQuad.Plane.NONE) {
+                    quadsByPlaneDir.get(quad.getPlane().ordinal() - 1).add(quad);
                 }
             }
             for(int plane = 0; plane < 3; plane++) {

@@ -4,6 +4,9 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Locale;
+
+import org.lwjgl.util.vector.Vector3f;
+
 import makamys.neodymium.util.BufferWriter;
 
 /*
@@ -40,7 +43,7 @@ public class MeshQuad {
     public boolean deleted;
     public boolean noMerge;
     
-    public Plane plane;
+    public QuadNormal normal;
     public int offset;
     public ChunkMesh.Flags flags;
     
@@ -55,6 +58,10 @@ public class MeshQuad {
     // When we merge with another quad, we forget what we used to be like.
     // Keep a reference to the quad we first merged with, and use it as a reminder.
     public MeshQuad mergeReference;
+    
+    private static Vector3f vectorA = new Vector3f();
+    private static Vector3f vectorB = new Vector3f();
+    private static Vector3f vectorC = new Vector3f();
     
     private int minPositive(int a, int b) {
         if(a == -1) {
@@ -96,15 +103,11 @@ public class MeshQuad {
         
         updateMinMaxXYZ();
         
-        if(ys[0] == ys[1] && ys[1] == ys[2] && ys[2] == ys[3]) {
-            plane = Plane.XZ;
-        } else if(xs[0] == xs[1] && xs[1] == xs[2] && xs[2] == xs[3]) {
-            plane = Plane.YZ;
-        } else if(zs[0] == zs[1] && zs[1] == zs[2] && zs[2] == zs[3]) {
-            plane = Plane.XY;
-        } else {
-            plane = Plane.NONE;
-        }
+        vectorA.set(xs[1] - xs[0], ys[1] - ys[0], zs[1] - zs[0]);
+        vectorB.set(xs[2] - xs[1], ys[2] - ys[1], zs[2] - zs[1]);
+        Vector3f.cross(vectorA, vectorB, vectorC);
+        
+        normal = QuadNormal.fromVector(vectorC);
     }
     
     public void writeToBuffer(BufferWriter out) throws IOException {
@@ -172,7 +175,7 @@ public class MeshQuad {
     }
     
     private boolean isTranslatedCopyOf(MeshQuad o, boolean checkValid) {
-        if((!isValid(this) && checkValid) || !isValid(o) || plane != o.plane) return false;
+        if((!isValid(this) && checkValid) || !isValid(o) || normal != o.normal) return false;
         
         if(mergeReference != null) {
             return mergeReference.isTranslatedCopyOf(o, false);
@@ -225,7 +228,7 @@ public class MeshQuad {
                     quadCountByDirection[1] += o.quadCountByDirection[1];
                 }
                 
-                totalMergeCountByPlane[plane.ordinal() - 1]++;
+                totalMergeCountByPlane[getPlane().ordinal() - 1]++;
                 
                 mergeReference = o;
                 
@@ -267,10 +270,14 @@ public class MeshQuad {
     }
     
     public boolean onSamePlaneAs(MeshQuad o) {
-        return isValid(this) && isValid(o) && plane == o.plane &&
-            ((plane == Plane.XY && minZ == o.minZ) ||
-                    (plane == Plane.XZ && minY == o.minY) ||
-                    (plane == Plane.YZ && minX == o.minX));
+        return isValid(this) && isValid(o) && getPlane() == o.getPlane() &&
+            ((getPlane() == Plane.XY && minZ == o.minZ) ||
+                    (getPlane() == Plane.XZ && minY == o.minY) ||
+                    (getPlane() == Plane.YZ && minX == o.minX));
+    }
+    
+    public Plane getPlane() {
+        return Plane.fromNormal(normal);
     }
     
     public static boolean isValid(MeshQuad q) {
@@ -331,7 +338,23 @@ public class MeshQuad {
         NONE,
         XY,
         XZ,
-        YZ
+        YZ;
+        
+        public static Plane fromNormal(QuadNormal normal) {
+            switch(normal) {
+            case POSITIVE_X:
+            case NEGATIVE_X:
+                return YZ;
+            case POSITIVE_Y:
+            case NEGATIVE_Y:
+                return XZ;
+            case POSITIVE_Z:
+            case NEGATIVE_Z:
+                return XY;
+            default:
+                return NONE;
+            }
+        }
     }
 
     public boolean isPosEqual(MeshQuad b) {
