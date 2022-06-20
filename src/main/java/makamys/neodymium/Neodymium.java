@@ -2,6 +2,7 @@ package makamys.neodymium;
 
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -47,6 +48,7 @@ public class Neodymium
     public static boolean fogEventWasPosted;
     
     public static boolean ofFastRender;
+    private static Method ofIsFastRenderMethod;
     
     @EventHandler
     public void preInit(FMLPreInitializationEvent event)
@@ -112,15 +114,6 @@ public class Neodymium
     	            }
     	        }
     	    }
-        	
-        	if(MixinConfigPlugin.isOptiFinePresent()) {
-    	        try {
-    	            ofFastRender = (boolean)Class.forName("Config").getMethod("isFastRender").invoke(null);
-    	        } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException
-    	                | SecurityException | ClassNotFoundException e) {
-    	            // oops
-    	        }
-        	}
     	}
     }
     
@@ -136,6 +129,18 @@ public class Neodymium
     @SubscribeEvent
     public void onRenderTick(TickEvent.RenderTickEvent event) {
         if(event.phase == TickEvent.Phase.START) {
+            if(MixinConfigPlugin.isOptiFinePresent()) {
+                try {
+                    if(ofIsFastRenderMethod == null) {
+                        ofIsFastRenderMethod = Class.forName("Config").getMethod("isFastRender");
+                    }
+                    ofFastRender = (boolean)ofIsFastRenderMethod.invoke(null);
+                } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException
+                        | SecurityException | ClassNotFoundException e) {
+                    // oops
+                }
+            }
+            
             EntityPlayer player = Minecraft.getMinecraft().thePlayer;
             World world = player != null ? player.worldObj : null;
             if(world != getRendererWorld()) {
