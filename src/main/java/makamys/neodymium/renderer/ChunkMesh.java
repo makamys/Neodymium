@@ -80,9 +80,9 @@ public class ChunkMesh extends Mesh {
         int zOffset = wr.posZ;
         
         boolean fr = MixinConfigPlugin.isOptiFinePresent() && Neodymium.ofFastRender;
-        int tessellatorXOffset = fr ? xOffset : 0;
-        int tessellatorYOffset = fr ? yOffset : 0;
-        int tessellatorZOffset = fr ? zOffset : 0;
+        int tessellatorXOffset = fr ? 0 : xOffset;
+        int tessellatorYOffset = fr ? 0 : yOffset;
+        int tessellatorZOffset = fr ? 0 : zOffset;
         
         boolean optimize = Config.simplifyChunkMeshes;
         
@@ -92,7 +92,7 @@ public class ChunkMesh extends Mesh {
             List<MeshQuad> quads = new ArrayList<>();
             
             for(int quadI = 0; quadI < t.vertexCount / 4; quadI++) {
-                MeshQuad quad = new MeshQuad(t.rawBuffer, quadI * 32, flags, wr.posX, wr.posY, wr.posZ);
+                MeshQuad quad = new MeshQuad(t.rawBuffer, quadI * 32, flags, tessellatorXOffset, tessellatorYOffset, tessellatorZOffset);
                 //if(quad.bUs[0] == quad.bUs[1] && quad.bUs[1] == quad.bUs[2] && quad.bUs[2] == quad.bUs[3] && quad.bUs[3] == quad.bVs[0] && quad.bVs[0] == quad.bVs[1] && quad.bVs[1] == quad.bVs[2] && quad.bVs[2] == quad.bVs[3] && quad.bVs[3] == 0) {
                 //    quad.deleted = true;
                 //}
