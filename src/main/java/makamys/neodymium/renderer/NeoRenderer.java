@@ -85,6 +85,10 @@ public class NeoRenderer {
     private double lastSortY = Double.NaN;
     private double lastSortZ = Double.NaN;
     
+    private double interpX;
+    private double interpY;
+    private double interpZ;
+    
     private long lastGCTime = -1;
     private long lastSaveTime = -1;
     private long gcInterval = 10 * 1000;
@@ -132,6 +136,12 @@ public class NeoRenderer {
             }
             
             if(rendererActive && renderWorld) {
+                Entity rve = Minecraft.getMinecraft().renderViewEntity;
+                
+                interpX = rve.lastTickPosX + (rve.posX - rve.lastTickPosX) * alpha;
+                interpY = rve.lastTickPosY + (rve.posY - rve.lastTickPosY) * alpha + rve.getEyeHeight();
+                interpZ = rve.lastTickPosZ + (rve.posZ - rve.lastTickPosZ) * alpha;
+                
                 if(frameCount % Config.sortFrequency == 0) {
                     sort();
                 }
@@ -179,7 +189,7 @@ public class NeoRenderer {
             piFirst[i].limit(sentMeshes[i].size());
             piCount[i].limit(sentMeshes[i].size());
             for(Mesh mesh : sentMeshes[i]) {
-                if(mesh.visible && (Config.maxMeshesPerFrame == -1 || renderedMeshes < Config.maxMeshesPerFrame)) {
+                if(isNormalMeshVisible(mesh) && mesh.visible && (Config.maxMeshesPerFrame == -1 || renderedMeshes < Config.maxMeshesPerFrame)) {
                     renderedMeshes++;
                     renderedQuads += mesh.quadCount;
                     piFirst[i].put(mesh.iFirst);
@@ -188,6 +198,25 @@ public class NeoRenderer {
             }
             piFirst[i].flip();
             piCount[i].flip();
+        }
+    }
+    
+    private boolean isNormalMeshVisible(Mesh mesh) {
+        switch(mesh.normal) {
+        case POSITIVE_X:
+            return interpX > ((mesh.x + 0) * 16.0);
+        case NEGATIVE_X:
+            return interpX < ((mesh.x + 1) * 16.0);
+        case POSITIVE_Y:
+            return interpY > ((mesh.y + 0) * 16.0);
+        case NEGATIVE_Y:
+            return interpY < ((mesh.y + 1) * 16.0);
+        case POSITIVE_Z:
+            return interpZ > ((mesh.z + 0) * 16.0);
+        case NEGATIVE_Z:
+            return interpZ < ((mesh.z + 1) * 16.0);
+        default:
+            return true;
         }
     }
     
@@ -348,11 +377,6 @@ public class NeoRenderer {
         float originX = 0;
         float originY = 0;
         float originZ = 0;
-        
-        Entity rve = Minecraft.getMinecraft().renderViewEntity;
-        double interpX = rve.lastTickPosX + (rve.posX - rve.lastTickPosX) * alpha;
-        double interpY = rve.lastTickPosY + (rve.posY - rve.lastTickPosY) * alpha + rve.getEyeHeight();
-        double interpZ = rve.lastTickPosZ + (rve.posZ - rve.lastTickPosZ) * alpha;
         
         glUniform3f(u_playerPos, (float)interpX - originX, (float)interpY - originY, (float)interpZ - originZ);
         
