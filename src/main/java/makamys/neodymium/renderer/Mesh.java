@@ -16,6 +16,7 @@ public abstract class Mesh {
 	public int offset = -1;
 	public int pass;
 	int x, y, z;
+	public QuadNormal normal;
 	
 	public abstract int getStride();
 	
