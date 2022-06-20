@@ -592,19 +592,27 @@ public class NeoRenderer {
         }
         for(int y = 0; y < 16; y++) {
             for(int pass = 0; pass < 2; pass++) {
-                ChunkMesh cm = lodChunk.chunkMeshes[y * 2 + pass];
+                CullableMeshCollection cm = lodChunk.chunkMeshes[y * 2 + pass];
                 if(cm != null) {
                     if(lodChunk.isSectionVisible[y] && newLOD == 2) {
-                        if(!cm.visible) {
+                        if(!cm.isVisible()) {
                             setMeshVisible(cm, true);
                         }
                     } else {
-                        if(cm.visible) {
+                        if(cm.isVisible()) {
                             setMeshVisible(cm, false);
                         }
                     }
                 }
             }
+        }
+    }
+    
+    protected void setMeshVisible(CullableMeshCollection cm, boolean visible) {
+        if(cm == null) return;
+        
+        for(ChunkMesh mesh : cm.getMeshes()) {
+            if(mesh != null) setMeshVisible(mesh, visible);
         }
     }
     
@@ -631,7 +639,15 @@ public class NeoRenderer {
         mem.deleteMeshFromGPU(mesh);
         sentMeshes[mesh.pass].remove(mesh);
         setMeshVisible(mesh, false);
-    } 
+    }
+    
+    public void removeMesh(CullableMeshCollection cm) {
+        if(cm == null) return;
+        
+        for(Mesh mesh : cm.getMeshes()) {
+            if(mesh != null) removeMesh(mesh);
+        }
+    }
     
     public Chunk getChunkFromChunkCoords(int x, int z) {
         for(Chunk chunk : myChunks) {

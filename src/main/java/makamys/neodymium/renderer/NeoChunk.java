@@ -18,7 +18,7 @@ public class NeoChunk {
 	boolean discardedMesh;
 	
 	SimpleChunkMesh[] simpleMeshes = new SimpleChunkMesh[2];
-	ChunkMesh[] chunkMeshes = new ChunkMesh[32];
+	CullableMeshCollection[] chunkMeshes = new CullableMeshCollection[32];
 	
 	public boolean[] isSectionVisible = new boolean[16];
 	
@@ -56,12 +56,17 @@ public class NeoChunk {
 		return Math.pow(entity.posX - x * 16, 2) + Math.pow(entity.posZ - z * 16, 2);
 	}
 	
-	public void putChunkMeshes(int cy, List<ChunkMesh> newChunkMeshes) {
+	public void putChunkMeshes(int cy, List<CullableMeshCollection> newChunkMeshes) {
 		for(int i = 0; i < 2; i++) {
-		    ChunkMesh newChunkMesh = newChunkMeshes.size() > i ? newChunkMeshes.get(i) : null;
+		    CullableMeshCollection newChunkMesh = newChunkMeshes.size() > i ? newChunkMeshes.get(i) : null;
 		    if(chunkMeshes[cy * 2 + i] != null) {
 			    if(newChunkMesh != null) {
-			        newChunkMesh.pass = i;
+			        // ??? why is this needed?
+			        for(ChunkMesh mesh : newChunkMesh.getMeshes()) {
+			            if(mesh != null) {
+			                mesh.pass = i;
+			            }
+			        }
 			    }
 			    
 			    renderer.removeMesh(chunkMeshes[cy * 2 + i]);
@@ -92,7 +97,7 @@ public class NeoChunk {
 	}
 	
 	public boolean hasChunkMeshes() {
-		for(ChunkMesh cm : chunkMeshes) {
+		for(CullableMeshCollection cm : chunkMeshes) {
 			if(cm != null) {
 				return true;
 			}
@@ -156,7 +161,7 @@ public class NeoChunk {
 	            scm.destroy();
 	        }
         }
-	    for(ChunkMesh cm: chunkMeshes) {
+	    for(CullableMeshCollection cm: chunkMeshes) {
 	        if(cm != null) {
 	            cm.destroy();
 	        }

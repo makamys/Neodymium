@@ -15,6 +15,7 @@ import makamys.neodymium.Config;
 import makamys.neodymium.Neodymium;
 import makamys.neodymium.ducks.IWorldRenderer;
 import makamys.neodymium.renderer.ChunkMesh;
+import makamys.neodymium.renderer.CullableMeshCollection;
 import makamys.neodymium.renderer.NeoRenderer;
 import makamys.neodymium.renderer.lod.FarChunkCache;
 import makamys.neodymium.renderer.lod.FarWorldRenderer;
@@ -49,7 +50,7 @@ abstract class MixinWorldRenderer implements IWorldRenderer {
     
     boolean savedDrawnStatus;
     
-    public List<ChunkMesh> chunkMeshes;
+    public List<CullableMeshCollection> chunkMeshes;
     
     @Redirect(method = "setPosition", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/entity/RenderItem;renderAABB(Lnet/minecraft/util/AxisAlignedBB;)V"))
     private void redirectRenderAABB(AxisAlignedBB p1) {
@@ -149,7 +150,7 @@ abstract class MixinWorldRenderer implements IWorldRenderer {
     }
     
     @Override
-    public List<ChunkMesh> getChunkMeshes() {
+    public List<CullableMeshCollection> getChunkMeshes() {
         return chunkMeshes;
     }
     

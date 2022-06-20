@@ -69,7 +69,7 @@ public class ChunkMesh extends Mesh {
     private static int totalOriginalQuadCount = 0;
     private static int totalSimplifiedQuadCount = 0;
     
-    public static ChunkMesh fromTessellator(int pass, WorldRenderer wr, Tessellator t) {
+    public static CullableMeshCollection fromTessellator(int pass, WorldRenderer wr, Tessellator t) {
         if(t.vertexCount % 4 != 0) {
             System.out.println("Error: Vertex count is not a multiple of 4");
             return null;
@@ -128,7 +128,7 @@ public class ChunkMesh extends Mesh {
         //System.out.println("simplified quads " + totalOriginalQuadCount + " -> " + totalSimplifiedQuadCount + " (ratio: " + ((float)totalSimplifiedQuadCount / (float)totalOriginalQuadCount) + ") totalMergeCountByPlane: " + Arrays.toString(totalMergeCountByPlane));
         
         if(quadCount > 0) {
-            return new ChunkMesh(
+            return new CullableMeshCollection(
                     (int)(xOffset / 16), (int)(yOffset / 16), (int)(zOffset / 16),
                     new ChunkMesh.Flags(t.hasTexture, t.hasBrightness, t.hasColor, t.hasNormals),
                     quadCount, quads, pass);
@@ -289,7 +289,7 @@ public class ChunkMesh extends Mesh {
         //Tessellator.endSave();
     }
     
-    static List<ChunkMesh> getChunkMesh(int theX, int theY, int theZ) {
+    static List<CullableMeshCollection> getChunkMesh(int theX, int theY, int theZ) {
         WorldRenderer wr = new WorldRenderer(Minecraft.getMinecraft().theWorld, new ArrayList<TileEntity>(), theX * 16, theY * 16, theZ * 16, 100000);
     
         wr.isWaitingOnOcclusionQuery = false;
