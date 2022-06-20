@@ -88,6 +88,9 @@ public class NeoRenderer {
     private double interpX;
     private double interpY;
     private double interpZ;
+    int interpXDiv;
+    int interpYDiv;
+    int interpZDiv;
     
     private long lastGCTime = -1;
     private long lastSaveTime = -1;
@@ -141,6 +144,10 @@ public class NeoRenderer {
                 interpX = rve.lastTickPosX + (rve.posX - rve.lastTickPosX) * alpha;
                 interpY = rve.lastTickPosY + (rve.posY - rve.lastTickPosY) * alpha + rve.getEyeHeight();
                 interpZ = rve.lastTickPosZ + (rve.posZ - rve.lastTickPosZ) * alpha;
+                
+                interpXDiv = Math.floorDiv((int)Math.floor(interpX), 16);
+                interpYDiv = Math.floorDiv((int)Math.floor(interpY), 16);
+                interpZDiv = Math.floorDiv((int)Math.floor(interpZ), 16);
                 
                 if(frameCount % Config.sortFrequency == 0) {
                     sort();
@@ -204,17 +211,17 @@ public class NeoRenderer {
     private boolean isNormalMeshVisible(Mesh mesh) {
         switch(mesh.normal) {
         case POSITIVE_X:
-            return interpX > ((mesh.x + 0) * 16.0);
+            return interpXDiv >= ((mesh.x + 0));
         case NEGATIVE_X:
-            return interpX < ((mesh.x + 1) * 16.0);
+            return interpXDiv < ((mesh.x + 1));
         case POSITIVE_Y:
-            return interpY > ((mesh.y + 0) * 16.0);
+            return interpYDiv >= ((mesh.y + 0));
         case NEGATIVE_Y:
-            return interpY < ((mesh.y + 1) * 16.0);
+            return interpYDiv < ((mesh.y + 1));
         case POSITIVE_Z:
-            return interpZ > ((mesh.z + 0) * 16.0);
+            return interpZDiv >= ((mesh.z + 0));
         case NEGATIVE_Z:
-            return interpZ < ((mesh.z + 1) * 16.0);
+            return interpZDiv < ((mesh.z + 1));
         default:
             return true;
         }
