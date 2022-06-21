@@ -5,3 +5,5 @@ jar {
         )
     }
 }
+
+apply from: "makalibs.gradle"

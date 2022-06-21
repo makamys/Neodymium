@@ -14,12 +14,15 @@ import org.lwjgl.input.Keyboard;
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.Mod.EventHandler;
+import cpw.mods.fml.common.event.FMLConstructionEvent;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import makamys.mclib.core.MCLib;
+import makamys.mclib.core.MCLibModules;
 import makamys.neodymium.renderer.NeoRenderer;
 import makamys.neodymium.util.SpriteUtil;
 import net.minecraft.client.Minecraft;
@@ -51,8 +54,14 @@ public class Neodymium
     private static Method ofIsFastRenderMethod;
     
     @EventHandler
+    public void preInit(FMLConstructionEvent event) {
+        MCLib.init();
+    }
+    
+    @EventHandler
     public void preInit(FMLPreInitializationEvent event)
     {
+        MCLibModules.updateCheckAPI.submitModTask(MODID, "@UPDATE_URL@");
         Config.reloadConfig();
     }
     

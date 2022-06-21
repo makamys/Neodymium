@@ -1,0 +1,19 @@
+/* Common code in my projects using my libraries */
+
+repositories {
+	maven { url 'https://jitpack.io' }
+}
+
+minecraft {
+    srgExtra "PK: makamys/mclib makamys/${project.modid}/repackage/makamys/mclib"
+}
+
+dependencies {
+	shade('com.github.makamys:MCLib:0.3.3'){
+		exclude group: "codechicken"
+	}
+}
+
+minecraft {
+	replace '@UPDATE_URL@', project.update_url
+}
