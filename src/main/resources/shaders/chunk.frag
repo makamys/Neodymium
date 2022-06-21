@@ -18,12 +18,15 @@ uniform sampler2D lightTex;
 void main()
 {
 	vec2 goodTexCoord = TexCoord;
+
+#ifdef SIMPLIFY_MESHES
 	if(MQPos.x <= 254){
 		float wrappedU = mod(MQPos.x, 1.0);
 		float wrappedV = mod(MQPos.y, 1.0);
 		
 		goodTexCoord = ProvokingTexCoord.xy + (((TexCoord.xy - ProvokingTexCoord.xy) / MQPos.zw) * vec2(wrappedU, wrappedV));
 	}
+#endif
 	
 	vec4 texColor = texture(atlas, goodTexCoord);
 	
@@ -33,9 +36,9 @@ void main()
 	
 	vec4 rasterColor = ((texColor * colorMult) * lightyColor);
 	
-	if(FogFactor >= 0){
+#ifdef RENDER_FOG
 		FragColor = vec4(mix(FogColor.xyz, rasterColor.xyz, FogFactor), rasterColor.w);
-	} else {
+#else
 		FragColor = rasterColor;
-	}
+#endif
 }

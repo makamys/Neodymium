@@ -14,10 +14,12 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
+import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.lwjgl.BufferUtils;
@@ -30,6 +32,7 @@ import makamys.neodymium.Neodymium;
 import makamys.neodymium.ducks.IWorldRenderer;
 import makamys.neodymium.renderer.Mesh.GPUStatus;
 import makamys.neodymium.util.GuiHelper;
+import makamys.neodymium.util.Preprocessor;
 import makamys.neodymium.util.Util;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
@@ -464,12 +467,20 @@ public class NeoRenderer {
     }
     
        public void reloadShader() {
-            boolean errors = false;
+           Set<String> defines = new HashSet<>();
+           if(Config.renderFog) {
+               defines.add("RENDER_FOG");
+           }
+           if(Config.simplifyChunkMeshes) {
+               defines.add("SIMPLIFY_MESHES");
+           }
            
+            boolean errors = false;
+            
             int vertexShader;
             vertexShader = glCreateShader(GL_VERTEX_SHADER);
             
-            glShaderSource(vertexShader, Util.readFile("shaders/chunk.vert"));
+            glShaderSource(vertexShader, Preprocessor.preprocess(Util.readFile("shaders/chunk.vert"), defines));
             glCompileShader(vertexShader);
             
             if(glGetShaderi(vertexShader, GL_COMPILE_STATUS) == 0) {
@@ -480,7 +491,7 @@ public class NeoRenderer {
             int fragmentShader;
             fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
             
-            glShaderSource(fragmentShader, Util.readFile("shaders/chunk.frag"));
+            glShaderSource(fragmentShader, Preprocessor.preprocess(Util.readFile("shaders/chunk.frag"), defines));
             glCompileShader(fragmentShader);
             
             if(glGetShaderi(fragmentShader, GL_COMPILE_STATUS) == 0) {
