@@ -228,10 +228,10 @@ public class NeoRenderer {
     }
     
     private void mainLoop() {
-        while(!farChunks.isEmpty()) {
+        /*while(!farChunks.isEmpty()) {
             NeoChunk lodChunk = receiveFarChunk(farChunks.remove());
             sendChunkToGPU(lodChunk);
-        }
+        }*/
         
         if(Minecraft.getMinecraft().playerController.netClientHandler.doneLoadingTerrain) {
             Entity player = Minecraft.getMinecraft().renderViewEntity;
@@ -239,7 +239,7 @@ public class NeoRenderer {
             List<ChunkCoordIntPair> newServerChunkLoadQueue = new ArrayList<>();
             
             if(Double.isNaN(lastSortX) || getLastSortDistanceSq(player) > 16 * 16) {
-                int centerX = (int)Math.floor(player.posX / 16.0);
+                /*int centerX = (int)Math.floor(player.posX / 16.0);
                 int centerZ = (int)Math.floor(player.posZ / 16.0);
                 
                 for(int x = -renderRange; x <= renderRange; x++) {
@@ -260,7 +260,7 @@ public class NeoRenderer {
                 
                 lastSortX = player.posX;
                 lastSortY = player.posY;
-                lastSortZ = player.posZ;
+                lastSortZ = player.posZ;*/
                 for(Iterator<ChunkCoordIntPair> it = loadedRegionsMap.keySet().iterator(); it.hasNext();) {
                     ChunkCoordIntPair k = it.next();
                     NeoRegion v = loadedRegionsMap.get(k);
