@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import makamys.neodymium.Config;
 import makamys.neodymium.renderer.ChunkMesh.Flags;
 
 public class CullableMeshCollection {
@@ -11,12 +12,16 @@ public class CullableMeshCollection {
     private ChunkMesh[] meshes = new ChunkMesh[QuadNormal.values().length];
     
     public CullableMeshCollection(int x, int y, int z, Flags flags, int quadCount, List<MeshQuad> quads, int pass) {
-        for(QuadNormal normal : QuadNormal.values()) {
-            List<MeshQuad> normalQuads = quads.stream().filter(q -> MeshQuad.isValid(q) && q.normal == normal).collect(Collectors.toList());
-            if(!normalQuads.isEmpty()) {
-                putMeshWithNormal(normal, new ChunkMesh(x, y, z, flags, normalQuads.size(), normalQuads, pass));
-                getMeshWithNormal(normal).normal = normal;
+        if(Config.cullFaces) {
+            for(QuadNormal normal : QuadNormal.values()) {
+                List<MeshQuad> normalQuads = quads.stream().filter(q -> MeshQuad.isValid(q) && q.normal == normal).collect(Collectors.toList());
+                if(!normalQuads.isEmpty()) {
+                    putMeshWithNormal(normal, new ChunkMesh(x, y, z, flags, normalQuads.size(), normalQuads, pass));
+                    getMeshWithNormal(normal).normal = normal;
+                }
             }
+        } else {
+            putMeshWithNormal(QuadNormal.NONE, new ChunkMesh(x, y, z, flags, quadCount, quads, pass));
         }
     }
 

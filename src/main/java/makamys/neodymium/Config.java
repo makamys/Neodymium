@@ -30,6 +30,7 @@ public class Config {
     public static boolean hotswap;
     
     public static boolean simplifyChunkMeshes;
+    public static boolean cullFaces;
     public static int maxMeshesPerFrame;
     public static int sortFrequency;
     public static int gcRate;
@@ -72,6 +73,7 @@ public class Config {
         hotswap = config.getBoolean("hotswap", "_general", false, "Apply changes made in the config file immediately without having to reload the world. Off by default because it could potentially cause poor performance on certain platforms. Note that not all settings can be hotswapped.");
         
         simplifyChunkMeshes = config.getBoolean("simplifyChunkMeshes", "render", false, "Simplify chunk meshes so they are made of less vertices. Proof of concept, produces very janky results.");
+        cullFaces = config.getBoolean("cullFaces", "render", false, "Don't submit faces for rendering if they are facing away from the camera. Reduces GPU workload at the cost of increasing driver overhead. On weaker graphics cards this may significantly improve performance, but on better cards it may have the opposite effect.");
         
         sortFrequency = config.getInt("sortFrequency", "render", 1, 1, Integer.MAX_VALUE, "Interval (in frames) between the sorting of meshes. Increasing this might increase framerate, but increase the likelyhood of graphical artifacts when moving quickly.");
         gcRate = config.getInt("gcRate", "render", 1, 1, Integer.MAX_VALUE, "Maximum number of meshes to relocate in the buffer each frame. Setting this to a higher value will make it harder for the VRAM to get full (which causes a lag spike when it happens), but slightly reduces overall framerate. Examining the VRAM debugger can help find the right value.");
