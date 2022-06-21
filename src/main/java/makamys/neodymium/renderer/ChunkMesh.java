@@ -19,6 +19,7 @@ import makamys.neodymium.MixinConfigPlugin;
 import makamys.neodymium.Neodymium;
 import makamys.neodymium.ducks.IWorldRenderer;
 import makamys.neodymium.util.BufferWriter;
+import makamys.neodymium.util.RecyclingList;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.WorldRenderer;
@@ -39,6 +40,8 @@ public class ChunkMesh extends Mesh {
     
     public static int usedRAM = 0;
     public static int instances = 0;
+    
+    private static RecyclingList<MeshQuad> quadBuf = new RecyclingList<>(() -> new MeshQuad());
     
     public ChunkMesh(int x, int y, int z, Flags flags, int quadCount, ByteBuffer buffer, int pass) {
         this.x = x;
@@ -86,12 +89,13 @@ public class ChunkMesh extends Mesh {
         
         ChunkMesh.Flags flags = new ChunkMesh.Flags(t.hasTexture, t.hasBrightness, t.hasColor, t.hasNormals);
         
-        List<MeshQuad> quads = new ArrayList<>();
+        quadBuf.reset();
         
         for(int quadI = 0; quadI < t.vertexCount / 4; quadI++) {
-            MeshQuad quad = new MeshQuad(t.rawBuffer, quadI * 32, flags, tessellatorXOffset, tessellatorYOffset, tessellatorZOffset);
-            quads.add(quad);
+            quadBuf.next().setState(t.rawBuffer, quadI * 32, flags, tessellatorXOffset, tessellatorYOffset, tessellatorZOffset);
         }
+        
+        List<MeshQuad> quads = quadBuf.getAsList();
         
         if(Config.simplifyChunkMeshes) {
             ArrayList<ArrayList<MeshQuad>> quadsByPlaneDir = new ArrayList<>(); // XY, XZ, YZ

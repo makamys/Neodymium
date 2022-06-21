@@ -96,7 +96,9 @@ public class MeshQuad {
         }
     }
     
-    public MeshQuad(int[] rawBuffer, int offset, ChunkMesh.Flags flags, int offsetX, int offsetY, int offsetZ) {
+    public void setState(int[] rawBuffer, int offset, ChunkMesh.Flags flags, int offsetX, int offsetY, int offsetZ) {
+        resetState();
+        
         read(rawBuffer, offset, offsetX, offsetY, offsetZ);
         
         uDirectionIs01 = us[0] != us[1];
@@ -108,6 +110,36 @@ public class MeshQuad {
         Vector3f.cross(vectorA, vectorB, vectorC);
         
         normal = QuadNormal.fromVector(vectorC);
+    }
+    
+    private void resetState() {
+        Arrays.fill(xs, 0);
+        Arrays.fill(ys, 0);
+        Arrays.fill(zs, 0);
+        Arrays.fill(us, 0);
+        Arrays.fill(vs, 0);
+        Arrays.fill(bs, 0);
+        Arrays.fill(cs, 0);
+        
+        minX = Float.POSITIVE_INFINITY;
+        minY = Float.POSITIVE_INFINITY;
+        minZ = Float.POSITIVE_INFINITY;
+        maxX = Float.NEGATIVE_INFINITY;
+        maxY = Float.NEGATIVE_INFINITY;
+        maxZ = Float.NEGATIVE_INFINITY;
+        
+        deleted = noMerge = false;
+        normal = null;
+        offset = 0;
+        flags = null;
+        uDirectionIs01 = false;
+        Arrays.fill(quadCountByDirection, 1);
+        Arrays.fill(totalMergeCountByPlane, 0);
+        mergeReference = null;
+    }
+    
+    public MeshQuad() {
+        
     }
     
     public void writeToBuffer(BufferWriter out) throws IOException {
