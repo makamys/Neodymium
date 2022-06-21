@@ -50,6 +50,8 @@ public class MeshQuad {
     // Is positive U direction parallel to edge 0-1?
     public boolean uDirectionIs01;
     
+    public boolean isRectangle;
+    
     // 0: quads glued together on edge 1-2 or 3-0 ("megaquad row length")
     // 1: quads glued together on edge 0-1 or 2-3 ("megaquad column length")
     private int[] quadCountByDirection = {1, 1}; 
@@ -104,6 +106,11 @@ public class MeshQuad {
         uDirectionIs01 = us[0] != us[1];
         
         updateMinMaxXYZ();
+        updateIsRectangle();
+        if(!isRectangle) {
+            // merging non-rectangles (e.g. Carpenter's Blocks wedge) is buggy, don't do it
+            noMerge = true;
+        }
         
         vectorA.set(xs[1] - xs[0], ys[1] - ys[0], zs[1] - zs[0]);
         vectorB.set(xs[2] - xs[1], ys[2] - ys[1], zs[2] - zs[1]);
@@ -290,6 +297,27 @@ public class MeshQuad {
             maxY = Math.max(maxY, ys[i]);
             maxZ = Math.max(maxZ, zs[i]);
         }
+    }
+    
+    private void updateIsRectangle() {
+        isRectangle =
+                vertexExists(minX, minY, minZ) &&
+                vertexExists(minX, minY, maxZ) &&
+                vertexExists(minX, maxY, minZ) &&
+                vertexExists(minX, maxY, maxZ) &&
+                vertexExists(maxX, minY, minZ) &&
+                vertexExists(maxX, minY, maxZ) &&
+                vertexExists(maxX, maxY, minZ) &&
+                vertexExists(maxX, maxY, maxZ);
+    }
+    
+    private boolean vertexExists(float x, float y, float z) {
+        for(int i = 0; i < 4; i++) {
+            if(xs[i] == x && ys[i] == y && zs[i] == z) {
+                return true;
+            }
+        }
+        return false;
     }
     
     // maybe minXYZ and maxXYZ should be arrays instead
