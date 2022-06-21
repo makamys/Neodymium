@@ -149,9 +149,12 @@ public class ChunkMesh extends Mesh {
             MeshQuad a = planeQuads.get(i);
             for(int j = i + 1; j < planeQuads.size(); j++) {
                 MeshQuad b = planeQuads.get(j);
-                if(a.isPosEqual(b)) {
+                if(!a.noMerge && a.isPosEqual(b)) {
                     a.noMerge = true;
                     b.noMerge = true;
+                } else {
+                    // Due to sorting, identical quads will always be next to each other
+                    break;
                 }
             }
         }
