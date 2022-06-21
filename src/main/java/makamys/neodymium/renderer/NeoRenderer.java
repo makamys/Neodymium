@@ -708,7 +708,7 @@ public class NeoRenderer {
                 //"Simple meshes: " + SimpleChunkMesh.instances + " (" + SimpleChunkMesh.usedRAM / 1024 / 1024 + "MB)",
                 "Meshes: " + ChunkMesh.instances + " (" + ChunkMesh.usedRAM / 1024 / 1024 + "MB)",
                 //"Total RAM used: " + ((SimpleChunkMesh.usedRAM + ChunkMesh.usedRAM) / 1024 / 1024) + " MB",
-                "Rendered: " + renderedMeshes + " (" + renderedQuads / 1000 + " KQ)"
+                "Rendered: " + renderedMeshes + " (" + renderedQuads / 1000 + "KQ)"
         ));
         return text;
     }
