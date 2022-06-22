@@ -232,4 +232,8 @@ public class GPUMemoryManager {
         GuiHelper.drawRectangle((bufferSize / scale) % rowLength, (bufferSize / scale) / rowLength + yOff, 4, 4, 0xFF0000);
     }
     
+    public float getCoherenceRate() {
+        return (float)ChunkMesh.usedRAM / (float)end();
+    }
+    
 }
