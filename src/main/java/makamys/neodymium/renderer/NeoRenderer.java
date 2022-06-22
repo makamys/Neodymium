@@ -267,7 +267,6 @@ public class NeoRenderer {
                     NeoRegion v = loadedRegionsMap.get(k);
                     
                     if(v.isEmpty()) {
-                        System.out.println("unloading " + v);
                         v.destroy(getSaveDir());
                         it.remove();
                     } else {
