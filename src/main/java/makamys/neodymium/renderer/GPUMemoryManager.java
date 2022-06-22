@@ -47,7 +47,11 @@ public class GPUMemoryManager {
         int timesReachedEnd = 0;
         int checksLeft = sentMeshes.size();
         
-        while((!full && (moved < 4 && checksLeft-- > 0)) || (full && timesReachedEnd < 2) && !sentMeshes.isEmpty()) {
+        final int MB256 = 256 * 1024 * 1024;
+        
+        int panicRate = (int)(((float)Math.max(MB256 - (bufferSize - end()), 0) / (float)MB256) * 64f);
+        
+        while((!full && (moved < (4 + panicRate) && checksLeft-- > 0)) || (full && timesReachedEnd < 2) && !sentMeshes.isEmpty()) {
             nextMesh++;
             if(nextMesh >= sentMeshes.size()) {
                 nextMesh = 0;

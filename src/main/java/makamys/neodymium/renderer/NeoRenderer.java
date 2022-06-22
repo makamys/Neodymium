@@ -132,9 +132,7 @@ public class NeoRenderer {
             if(Minecraft.getMinecraft().currentScreen == null) {
                 handleKeyboard();
             }
-            if(frameCount % 2 == 0) {
-                mem.runGC(false);
-            }
+            mem.runGC(false);
             lastGCTime = System.currentTimeMillis();
             if(lastSaveTime == -1 || (System.currentTimeMillis() - lastSaveTime) > saveInterval && Config.saveMeshes) {
                 onSave();
