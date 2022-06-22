@@ -43,19 +43,6 @@ public class ChunkMesh extends Mesh {
     
     private static RecyclingList<MeshQuad> quadBuf = new RecyclingList<>(() -> new MeshQuad());
     
-    public ChunkMesh(int x, int y, int z, Flags flags, int quadCount, ByteBuffer buffer, int pass) {
-        this.x = x;
-        this.y = y;
-        this.z = z;
-        this.flags = flags;
-        this.quadCount = quadCount;
-        this.pass = pass;
-        
-        this.buffer = buffer;
-        usedRAM += buffer.limit();
-        instances++;
-    }
-    
     public ChunkMesh(int x, int y, int z, Flags flags, int quadCount, List<MeshQuad> quads, int pass) {
         this.x = x;
         this.y = y;
