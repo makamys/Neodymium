@@ -49,6 +49,7 @@ abstract class MixinWorldRenderer implements IWorldRenderer {
     public boolean needsUpdate;
     
     boolean savedDrawnStatus;
+    private boolean insideUpdateRenderer;
     
     public List<CullableMeshCollection> chunkMeshes;
     
@@ -71,6 +72,7 @@ abstract class MixinWorldRenderer implements IWorldRenderer {
     @Inject(method = "updateRenderer", at = @At(value = "HEAD"))
     private void preUpdateRenderer(CallbackInfo ci) {
         saveDrawnStatus();
+        insideUpdateRenderer = true;
         
         if(Neodymium.isActive()) {
             if(needsUpdate) {
@@ -88,6 +90,7 @@ abstract class MixinWorldRenderer implements IWorldRenderer {
     @Inject(method = "updateRenderer", at = @At(value = "RETURN"))
     private void postUpdateRenderer(CallbackInfo ci) {
         notifyIfDrawnStatusChanged();
+        insideUpdateRenderer = false;
         
         if(Neodymium.isActive()) {
             if(chunkMeshes != null) {
@@ -99,7 +102,7 @@ abstract class MixinWorldRenderer implements IWorldRenderer {
     
     @Inject(method = "postRenderBlocks", at = @At(value = "HEAD"))
     private void prePostRenderBlocks(int pass, EntityLivingBase entity, CallbackInfo ci) {
-        if(Neodymium.isActive() && !Config.disableChunkMeshes) {
+        if(insideUpdateRenderer && Neodymium.isActive() && !Config.disableChunkMeshes) {
             if(chunkMeshes != null) {
                 chunkMeshes.add(ChunkMesh.fromTessellator(pass, WorldRenderer.class.cast(this), Tessellator.instance));
             }

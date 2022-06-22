@@ -537,6 +537,10 @@ public class NeoRenderer {
         lodChunk.isSectionVisible[y] = change == WorldRendererChange.VISIBLE;
         if(change == WorldRendererChange.DELETED) {
             removeMesh(lodChunk.chunkMeshes[y]);
+            if(lodChunk.chunkMeshes[y] != null) {
+                lodChunk.chunkMeshes[y].destroy();
+                lodChunk.chunkMeshes[y] = null;
+            }
         }
         lodChunkChanged(lodChunk);
     }
