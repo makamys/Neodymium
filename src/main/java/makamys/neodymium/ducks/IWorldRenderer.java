@@ -2,9 +2,9 @@ package makamys.neodymium.ducks;
 
 import java.util.List;
 
-import makamys.neodymium.renderer.CullableMeshCollection;
+import makamys.neodymium.renderer.ChunkMesh;
 
 public interface IWorldRenderer {
-    public List<CullableMeshCollection> getChunkMeshes();
+    public List<ChunkMesh> getChunkMeshes();
     public boolean isDrawn();
 }
