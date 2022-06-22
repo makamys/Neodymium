@@ -17,6 +17,7 @@ import cpw.mods.fml.common.Mod.EventHandler;
 import cpw.mods.fml.common.event.FMLConstructionEvent;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
+import cpw.mods.fml.common.event.FMLServerAboutToStartEvent;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
 import cpw.mods.fml.relauncher.Side;
@@ -72,6 +73,12 @@ public class Neodymium
         MinecraftForge.EVENT_BUS.register(this);
     }
     
+    @EventHandler
+    public void onServerAboutToStart(FMLServerAboutToStartEvent event)
+    {
+        Config.reloadConfig();
+    }
+    
     private void onPlayerWorldChanged(World newWorld) {
     	if(getRendererWorld() == null && newWorld != null) {
     		Config.reloadConfig();
@@ -91,6 +98,8 @@ public class Neodymium
     @SubscribeEvent
     @SideOnly(Side.CLIENT)
     public void onWorldUnload(WorldEvent.Unload event) {
+        if(!Config.enabled) return;
+        
         if(event.world == getRendererWorld()) {
         	onPlayerWorldChanged(null);
         }
@@ -115,6 +124,8 @@ public class Neodymium
     
     @SubscribeEvent
     public void onClientTick(TickEvent.ClientTickEvent event) {
+        if(!Config.enabled) return;
+        
     	if(event.phase == TickEvent.Phase.START) {
     	    if(Config.hotswap) {
     	        if(Config.reloadIfChanged()) {
@@ -128,6 +139,8 @@ public class Neodymium
     
     @SubscribeEvent
     public void onServerTick(TickEvent.ServerTickEvent event) {
+        if(!Config.enabled) return;
+        
         if(event.phase == TickEvent.Phase.START) {
             if(isActive()) {
                 renderer.serverTick();
@@ -137,6 +150,8 @@ public class Neodymium
     
     @SubscribeEvent
     public void onRenderTick(TickEvent.RenderTickEvent event) {
+        if(!Config.enabled) return;
+        
         if(event.phase == TickEvent.Phase.START) {
             if(MixinConfigPlugin.isOptiFinePresent()) {
                 try {
