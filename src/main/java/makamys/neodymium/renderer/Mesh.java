@@ -1,6 +1,7 @@
 package makamys.neodymium.renderer;
 
 import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
 
 import makamys.neodymium.util.Util;
 
@@ -40,4 +41,12 @@ public abstract class Mesh {
 	public static enum GPUStatus {
 	    UNSENT, SENT, PENDING_DELETE
 	}
+
+    public void writeToIndexBuffer(IntBuffer piFirst, IntBuffer piCount, int[] renderedMeshesReturn,
+            int[] renderedQuadsReturn) {
+        renderedMeshesReturn[0] = 1;
+        renderedQuadsReturn[0] = quadCount;
+        piFirst.put(iFirst);
+        piCount.put(iCount);
+    }
 }

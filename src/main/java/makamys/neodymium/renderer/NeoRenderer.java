@@ -195,16 +195,18 @@ public class NeoRenderer {
         }
     }
     
+    private static int[] renderedMeshesReturn = new int[1];
+    private static int[] renderedQuadsReturn = new int[1];
+    
     private void initIndexBuffers() {
         for(int i = 0; i < 2; i++) {
-            piFirst[i].limit(sentMeshes[i].size());
-            piCount[i].limit(sentMeshes[i].size());
+            piFirst[i].limit(MAX_MESHES);
+            piCount[i].limit(MAX_MESHES);
             for(Mesh mesh : sentMeshes[i]) {
-                if(isNormalMeshVisible(mesh) && mesh.visible && (Config.maxMeshesPerFrame == -1 || renderedMeshes < Config.maxMeshesPerFrame)) {
-                    renderedMeshes++;
-                    renderedQuads += mesh.quadCount;
-                    piFirst[i].put(mesh.iFirst);
-                    piCount[i].put(mesh.iCount);
+                if(mesh.visible && (Config.maxMeshesPerFrame == -1 || renderedMeshes < Config.maxMeshesPerFrame)) {
+                    mesh.writeToIndexBuffer(piFirst[i], piCount[i], renderedMeshesReturn, renderedQuadsReturn);
+                    renderedMeshes += renderedMeshesReturn[0];
+                    renderedQuads += renderedQuadsReturn[0];
                 }
             }
             piFirst[i].flip();
