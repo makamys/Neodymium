@@ -167,6 +167,7 @@ public class NeoRenderer {
     
     public void onRenderTickEnd() {
         if(destroyPending) {
+            destroy();
             Neodymium.renderer = null;
             return;
         }

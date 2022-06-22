@@ -36,6 +36,7 @@ abstract class MixinRenderGlobal {
     @Inject(method = "loadRenderers", at = @At(value = "HEAD"))
     public void preLoadRenderers(CallbackInfo ci) {
         if(Neodymium.isActive()) {
+            Neodymium.renderer.destroy();
             Neodymium.renderer = null;
         }
     }
