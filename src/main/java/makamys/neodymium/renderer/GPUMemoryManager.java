@@ -24,7 +24,9 @@ public class GPUMemoryManager {
     
     private List<Mesh> sentMeshes = new ArrayList<>();
     
-    private int usedRAM;
+    private int usedVRAM;
+    private long lastUsedVRAMUpdate;
+    private static final long USED_VRAM_UPDATE_RATE = 1_000_000_000;
     
     public GPUMemoryManager() {
         VBO = glGenBuffers();
@@ -67,7 +69,6 @@ public class GPUMemoryManager {
                 mesh.gpuStatus = GPUStatus.UNSENT;
                 
                 sentMeshes.remove(nextMesh);
-                usedRAM -= mesh.bufferSize();
                 
                 mesh.destroyBuffer();
                 
@@ -165,7 +166,6 @@ public class GPUMemoryManager {
                 sentMeshes.add(insertIndex, mesh);
                 nextMesh = insertIndex;
             }
-            usedRAM += mesh.bufferSize();
             
             glBindBuffer(GL_ARRAY_BUFFER, 0);
         }
@@ -185,7 +185,15 @@ public class GPUMemoryManager {
     }
 
     public List<String> getDebugText() {
-        return Arrays.asList("VRAM: " + (usedRAM / 1024 / 1024) + "MB / " + (bufferSize / 1024 / 1024) + "MB");
+        long t = System.nanoTime();
+        if(t - lastUsedVRAMUpdate > USED_VRAM_UPDATE_RATE) {
+            usedVRAM = 0;
+            for(Mesh mesh : sentMeshes) {
+                usedVRAM += mesh.bufferSize();
+            }
+            lastUsedVRAMUpdate = t;
+        }
+        return Arrays.asList("VRAM: " + (usedVRAM / 1024 / 1024) + "MB (" + (end() / 1024 / 1024) + "MB) / " + (bufferSize / 1024 / 1024) + "MB");
     }
 
     public void drawInfo() {
