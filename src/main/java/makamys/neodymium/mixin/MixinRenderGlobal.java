@@ -5,6 +5,7 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import makamys.neodymium.Neodymium;
@@ -29,6 +30,13 @@ abstract class MixinRenderGlobal {
     public void preRenderSortedRenderers(int startRenderer, int numRenderers, int renderPass, double partialTickTime, CallbackInfoReturnable cir) {
         if(Neodymium.isActive()) {
             Neodymium.renderer.preRenderSortedRenderers(renderPass, partialTickTime, sortedWorldRenderers);
+        }
+    }
+    
+    @Inject(method = "loadRenderers", at = @At(value = "HEAD"))
+    public void preLoadRenderers(CallbackInfo ci) {
+        if(Neodymium.isActive()) {
+            Neodymium.renderer = null;
         }
     }
 }
