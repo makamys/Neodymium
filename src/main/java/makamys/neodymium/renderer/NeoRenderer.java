@@ -103,7 +103,7 @@ public class NeoRenderer {
     private int renderedMeshes, renderedQuads;
     private int frameCount;
     
-    public int renderRange = 48;
+    public int renderRange = 48; // unused LOD thing..
     
     private boolean freezeMeshes;
     
@@ -266,7 +266,7 @@ public class NeoRenderer {
                     ChunkCoordIntPair k = it.next();
                     NeoRegion v = loadedRegionsMap.get(k);
                     
-                    if(v.distanceTaxicab(player) > renderRange * 16 + 16 * 16) {
+                    if(v.isEmpty()) {
                         System.out.println("unloading " + v);
                         v.destroy(getSaveDir());
                         it.remove();

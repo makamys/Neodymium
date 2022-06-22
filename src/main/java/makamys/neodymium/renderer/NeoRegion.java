@@ -174,5 +174,17 @@ public class NeoRegion {
 	public String toString() {
 	    return "LODRegion(" + regionX + ", " + regionZ + ")";
 	}
+    
+	public boolean isEmpty() {
+	    for(int i = 0; i < 32; i++) {
+            for(int j = 0; j < 32; j++) {
+                NeoChunk chunk = data[i][j];
+                if(chunk != null && !chunk.isEmpty()) {
+                    return false;
+                }
+            }
+	    }
+	    return true;
+    }
 	
 }

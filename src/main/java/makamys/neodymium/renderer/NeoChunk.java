@@ -185,4 +185,18 @@ public class NeoChunk {
 	    return true;
 	}
 	
+    public boolean isEmpty() {
+        for(SimpleChunkMesh scm: simpleMeshes) {
+            if(scm != null) {
+                return false;
+            }
+        }
+        for(CullableMeshCollection cm: chunkMeshes) {
+            if(cm != null) {
+                return false;
+            }
+        }
+        return true;
+    }
+	
 }
