@@ -446,14 +446,17 @@ public class NeoRenderer {
         glVertexAttribPointer(1, 2, GL_FLOAT, false, stride, 3 * 4);
         glVertexAttribPointer(2, 2, GL_SHORT, false, stride, 5 * 4);
         glVertexAttribPointer(3, 4, GL_UNSIGNED_BYTE, false, stride, 6 * 4);
-        glVertexAttribPointer(4, 4, GL_UNSIGNED_BYTE, false, stride, 7 * 4);
-        // we only need 2 bytes for attribute 4, but GL freaks out if the stride isn't a multiple of 4, so we have 2 unused bytes
+        if(Config.simplifyChunkMeshes) {
+            glVertexAttribPointer(4, 4, GL_UNSIGNED_BYTE, false, stride, 7 * 4);
+        }
         
         glEnableVertexAttribArray(0);
         glEnableVertexAttribArray(1);
         glEnableVertexAttribArray(2);
         glEnableVertexAttribArray(3);
-        glEnableVertexAttribArray(4);
+        if(Config.simplifyChunkMeshes) {
+            glEnableVertexAttribArray(4);
+        }
         
         for(int i = 0; i < 2; i++) {
             piFirst[i] = BufferUtils.createIntBuffer(MAX_MESHES);

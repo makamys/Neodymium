@@ -3,7 +3,10 @@ layout (location = 0) in vec3 aPos;
 layout (location = 1) in vec2 aTexCoord;
 layout (location = 2) in vec2 aBTexCoord;
 layout (location = 3) in vec4 aColor;
+
+#ifdef SIMPLIFY_MESHES
 layout (location = 4) in vec4 aMQPos; // if the first coordinate is 255, it means: disable megaquad processing for this quad
+#endif
 
 uniform mat4 modelView;
 uniform mat4 proj;
@@ -31,7 +34,11 @@ void main()
 	TexCoord = aTexCoord;
 	BTexCoord = aBTexCoord;
 	Color = aColor;
+	
+#ifdef SIMPLIFY_MESHES
 	MQPos = aMQPos;
+#endif
+	
 	Viewport = viewport;
 	ProjInv = projInv;
 	FogColor = fogColor;

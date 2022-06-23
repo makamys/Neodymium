@@ -7,6 +7,7 @@ import java.util.Locale;
 
 import org.lwjgl.util.vector.Vector3f;
 
+import makamys.neodymium.Config;
 import makamys.neodymium.util.BufferWriter;
 
 /*
@@ -176,17 +177,19 @@ public class MeshQuad {
             
             out.writeInt(c);
             
-            if((quadCountByUVDirection(false) == 1 && quadCountByUVDirection(true) == 1)) {
-                // let the fragment shader know this is not a megaquad
-                out.writeByte((byte)255);
-                out.writeByte((byte)255);
-                out.writeByte((byte)255);
-                out.writeByte((byte)255);
-            } else {
-                out.writeByte(us[vi] == us[provokingI] ? 0 : (byte)quadCountByUVDirection(false));
-                out.writeByte(vs[vi] == vs[provokingI] ? 0 : (byte)quadCountByUVDirection(true));
-                out.writeByte(us[vi] == us[provokingI] ? (byte)0 : 1);
-                out.writeByte(vs[vi] == vs[provokingI] ? (byte)0 : 1);
+            if(Config.simplifyChunkMeshes) {
+                if((quadCountByUVDirection(false) == 1 && quadCountByUVDirection(true) == 1)) {
+                    // let the fragment shader know this is not a megaquad
+                    out.writeByte((byte)255);
+                    out.writeByte((byte)255);
+                    out.writeByte((byte)255);
+                    out.writeByte((byte)255);
+                } else {
+                    out.writeByte(us[vi] == us[provokingI] ? 0 : (byte)quadCountByUVDirection(false));
+                    out.writeByte(vs[vi] == vs[provokingI] ? 0 : (byte)quadCountByUVDirection(true));
+                    out.writeByte(us[vi] == us[provokingI] ? (byte)0 : 1);
+                    out.writeByte(vs[vi] == vs[provokingI] ? (byte)0 : 1);
+                }
             }
             
             assert out.position() % getStride() == 0;
@@ -209,7 +212,7 @@ public class MeshQuad {
                 + 2 * 4  // UV           (float)
                 + 4      // B            (int)
                 + 4      // C            (int)
-                + 4      // megaquad XY  (byte)
+                + (Config.simplifyChunkMeshes ? 4 : 0)      // megaquad XY  (byte)
                 ;
     }
     
