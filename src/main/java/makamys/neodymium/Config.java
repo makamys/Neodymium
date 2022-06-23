@@ -44,7 +44,7 @@ public class Config {
     @ConfigBoolean(cat="render", def=true, com="Don't submit faces for rendering if they are facing away from the camera. Reduces GPU workload at the cost of increasing driver overhead. This will improve the framerate most of the time, but may reduce it if you are not fillrate-limited.")
     public static boolean cullFaces;
     @NeedsReload
-    @ConfigBoolean(cat="render", def=true, com="Store texture coordinates as shorts instead of floats. Slightly improves performance.")
+    @ConfigBoolean(cat="render", def=false, com="Store texture coordinates as shorts instead of floats. Slightly improves performance. Might affect visuals slightly, but it's only noticable if the texture atlas is huge.")
     public static boolean shortUV;
     @ConfigInt(cat="render", def=1, min=1, max=Integer.MAX_VALUE, com="Interval (in frames) between the sorting of meshes. Increasing this might increase framerate, but increase the likelyhood of graphical artifacts when moving quickly.")
     public static int sortFrequency;
