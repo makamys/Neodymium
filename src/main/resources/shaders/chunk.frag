@@ -27,7 +27,12 @@ void main()
 		goodTexCoord = ProvokingTexCoord.xy + (((TexCoord.xy - ProvokingTexCoord.xy) / MQPos.zw) * vec2(wrappedU, wrappedV));
 	}
 #endif
-	vec4 texColor = texture(atlas, goodTexCoord / 16384.0);
+	
+	vec4 texColor = texture(atlas, goodTexCoord
+#ifdef SHORT_UV
+	/ 16384.0
+#endif
+	);
 	
 	vec4 colorMult = Color/256.0;
 	

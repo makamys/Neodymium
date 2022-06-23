@@ -443,11 +443,12 @@ public class NeoRenderer {
         int stride = MeshQuad.getStride();
         
         glVertexAttribPointer(0, 3, GL_FLOAT, false, stride, 0);
-        glVertexAttribPointer(1, 2, GL_SHORT, false, stride, 3 * 4);
-        glVertexAttribPointer(2, 2, GL_SHORT, false, stride, 4 * 4);
-        glVertexAttribPointer(3, 4, GL_UNSIGNED_BYTE, false, stride, 5 * 4);
+        glVertexAttribPointer(1, 2, Config.shortUV ? GL_SHORT : GL_FLOAT, false, stride, 3 * 4);
+        int uvEnd = Config.shortUV ? 4 * 4 : 5 * 4;
+        glVertexAttribPointer(2, 2, GL_SHORT, false, stride, uvEnd);
+        glVertexAttribPointer(3, 4, GL_UNSIGNED_BYTE, false, stride, uvEnd + 1 * 4);
         if(Config.simplifyChunkMeshes) {
-            glVertexAttribPointer(4, 4, GL_UNSIGNED_BYTE, false, stride, 6 * 4);
+            glVertexAttribPointer(4, 4, GL_UNSIGNED_BYTE, false, stride, uvEnd + 2 * 4);
         }
         
         glEnableVertexAttribArray(0);
@@ -478,6 +479,9 @@ public class NeoRenderer {
            }
            if(Config.simplifyChunkMeshes) {
                defines.add("SIMPLIFY_MESHES");
+           }
+           if(Config.shortUV) {
+               defines.add("SHORT_UV");
            }
            
             boolean errors = false;

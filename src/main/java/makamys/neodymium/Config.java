@@ -31,6 +31,7 @@ public class Config {
     
     public static boolean simplifyChunkMeshes;
     public static boolean cullFaces;
+    public static boolean shortUV;
     public static int maxMeshesPerFrame;
     public static int sortFrequency;
     public static int gcRate;
@@ -74,6 +75,7 @@ public class Config {
         
         simplifyChunkMeshes = config.getBoolean("simplifyChunkMeshes", "render", false, "Simplify chunk meshes so they are made of less vertices. Reduces vertex count at the cost of increasing shader complexity. The optimal setting depends on your hardware. Requires renderer restart when changed.");
         cullFaces = config.getBoolean("cullFaces", "render", true, "Don't submit faces for rendering if they are facing away from the camera. Reduces GPU workload at the cost of increasing driver overhead. This will improve the framerate most of the time, but may reduce it if you are not fillrate-limited.");
+        shortUV = config.getBoolean("shortUV", "render", true, "Store texture coordinates as shorts instead of floats. Slightly improves performance.");
         
         sortFrequency = config.getInt("sortFrequency", "render", 1, 1, Integer.MAX_VALUE, "Interval (in frames) between the sorting of meshes. Increasing this might increase framerate, but increase the likelyhood of graphical artifacts when moving quickly.");
         VRAMSize = config.getInt("VRAMSize", "render", 1024, 1, Integer.MAX_VALUE, "VRAM buffer size (MB). 512 seems to be a good value on Normal render distance. Increase this if you encounter warnings about the VRAM getting full. Does not affect RAM usage. Requires renderer restart when changed.");
