@@ -88,3 +88,32 @@ artifacts {
     archives sourcesJar
     archives devJar
 }
+
+// Add git commit hash to MANIFEST.MF
+
+def getCommitHash(){
+	try {
+		def commitHashProc = "git describe --always --dirty".execute()
+		commitHashProc.waitFor()
+		if(commitHashProc.exitValue() == 0){
+			def commitHash = commitHashProc.text.trim()
+			
+			return commitHash
+		} else {
+			println commitHashProc.err.text
+			throw new Exception("git describe exited with non-zero return value")
+		}
+	} catch(Exception e){
+		println "Failed to get commit version: " + e.getMessage()
+	}
+	return "UNKNOWN" // fallback
+}
+
+
+jar {
+    manifest {
+        attributes (
+            'Commit-ID': getCommitHash(),
+        )
+    }
+}
