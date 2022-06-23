@@ -11,6 +11,10 @@ import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+import org.apache.commons.io.FileUtils;
+import org.lwjgl.BufferUtils;
+import org.lwjgl.opengl.GL11;
+
 import net.minecraft.launchwrapper.Launch;
 
 public class Util {
@@ -84,5 +88,22 @@ public class Util {
         return Math.pow(x1 - x2, 2) +
                 Math.pow(y1 - y2, 2) +
                 Math.pow(z1 - z2, 2);
+    }
+    
+    public static void dumpTexture() {
+        int width = GL11.glGetTexLevelParameteri(GL11.GL_TEXTURE_2D, 0, GL11.GL_TEXTURE_WIDTH);
+        int height = GL11.glGetTexLevelParameteri(GL11.GL_TEXTURE_2D, 0, GL11.GL_TEXTURE_HEIGHT);
+        
+        System.out.println("Dumped " + width + "x" + height + " texture.");
+        
+        ByteBuffer buf = BufferUtils.createByteBuffer(4 * width * height);
+        GL11.glGetTexImage(GL11.GL_TEXTURE_2D, 0, GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, buf);
+        try {
+            // to convert to png:
+            // magick -size 512x256 -depth 8 out.rgba out.png
+            FileUtils.writeByteArrayToFile(new File("out.rgba"), Util.byteBufferToArray(buf));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

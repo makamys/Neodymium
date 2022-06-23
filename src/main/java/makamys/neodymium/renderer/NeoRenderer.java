@@ -313,6 +313,9 @@ public class NeoRenderer {
                 //chunk.chunkMeshes[7].quadCount = 256;
                 //setMeshVisible(chunk.chunkMeshes[7], true, true);
             }
+            if(Keyboard.isKeyDown(Keyboard.KEY_P) && !wasDown[Keyboard.KEY_P]) {
+                Util.dumpTexture();
+            }
         }
         for(int i = 0; i < 256; i++) {
             wasDown[i] = Keyboard.isKeyDown(i);
