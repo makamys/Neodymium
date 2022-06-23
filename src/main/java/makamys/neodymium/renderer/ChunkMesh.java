@@ -426,9 +426,9 @@ public class ChunkMesh extends Mesh {
         @Override
         public int compare(MeshQuad a, MeshQuad b) {
             if(!MeshQuad.isValid(b)) {
-                return 1;
-            } else if(!MeshQuad.isValid(a)) {
                 return -1;
+            } else if(!MeshQuad.isValid(a)) {
+                return 1;
             } else {
                 return QUAD_NORMAL_TO_NORMAL_ORDER[a.normal.ordinal()] - QUAD_NORMAL_TO_NORMAL_ORDER[b.normal.ordinal()];
             }
