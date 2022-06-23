@@ -35,22 +35,22 @@ public class Config {
 
     @ConfigBoolean(cat="_general", def=true, com="Set this to false to fully disable the mod.")
     public static boolean enabled;
-    @ConfigBoolean(cat="_general", def=false, com="Apply changes made in the config file immediately without having to reload the world. Off by default because it could potentially cause poor performance on certain platforms. Note that not all settings can be hotswapped.")
+    @ConfigBoolean(cat="_general", def=false, com="Apply changes made in the config file immediately without having to manually reload the renderer. Off by default because it could potentially cause poor performance on certain platforms.")
     public static boolean hotswap;
     
     @NeedsReload
-    @ConfigBoolean(cat="render", def=true, com="Set this to false to fully disable the mod.")
+    @ConfigBoolean(cat="render", def=false, com="Simplify chunk meshes so they are made of less vertices. Reduces vertex count at the cost of increasing shader complexity and slightly increasing memory usage. The optimal setting depends on your hardware.")
     public static boolean simplifyChunkMeshes;
     @ConfigBoolean(cat="render", def=true, com="Don't submit faces for rendering if they are facing away from the camera. Reduces GPU workload at the cost of increasing driver overhead. This will improve the framerate most of the time, but may reduce it if you are not fillrate-limited.")
     public static boolean cullFaces;
     @NeedsReload
-    @ConfigBoolean(cat="render", def=false, com="Store texture coordinates as shorts instead of floats. Slightly improves performance. Might affect visuals slightly, but it's only noticable if the texture atlas is huge.")
+    @ConfigBoolean(cat="render", def=false, com="Store texture coordinates as shorts instead of floats. Slightly reduces memory usage and might improve performance by small amount. Might affect visuals slightly, but it's only noticable if the texture atlas is huge.")
     public static boolean shortUV;
-    @ConfigInt(cat="render", def=1, min=1, max=Integer.MAX_VALUE, com="Interval (in frames) between the sorting of meshes. Increasing this might increase framerate, but increase the likelyhood of graphical artifacts when moving quickly.")
+    @ConfigInt(cat="render", def=1, min=1, max=Integer.MAX_VALUE, com="Interval (in frames) between the sorting of meshes. Increasing this might improve performance, but also increase the likelyhood of graphical artifacts appearing when moving quickly.")
     public static int sortFrequency;
     
     @NeedsReload
-    @ConfigInt(cat="render", def=1024, min=1, max=Integer.MAX_VALUE, com="VRAM buffer size (MB). 512 seems to be a good value on Normal render distance. Increase this if you encounter warnings about the VRAM getting full. Does not affect RAM usage.")
+    @ConfigInt(cat="render", def=512, min=1, max=Integer.MAX_VALUE, com="VRAM buffer size (MB). 512 seems to be a good value on Normal render distance. Increase this if you encounter warnings about the VRAM getting full. Does not affect RAM usage.")
     public static int VRAMSize;
     @ConfigBoolean(cat="render", def=true, com="Render fog? Slightly reduces framerate.")
     public static boolean renderFog;
