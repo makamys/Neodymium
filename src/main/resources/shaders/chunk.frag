@@ -37,8 +37,13 @@ void main()
 	vec4 colorMult = Color/256.0;
 	
 	vec4 lightyColor = texture(lightTex, (BTexCoord + 8.0) / 256.0);
-	
-	vec4 rasterColor = ((texColor * colorMult) * lightyColor);
+
+	vec4 rasterColor = 
+#ifdef PASS_0
+		vec4((texColor.xyz * colorMult.xyz) * lightyColor.xyz, texColor.w);
+#else
+		(texColor * colorMult) * lightyColor;
+#endif
 	
 #ifdef RENDER_FOG
 		FragColor = vec4(mix(FogColor.xyz, rasterColor.xyz, FogFactor), rasterColor.w);

@@ -65,7 +65,8 @@ public class NeoRenderer {
     
     private static int MAX_MESHES = 100000;
     
-    private int VAO, shaderProgram;
+    private int VAO;
+    private int[] shaderPrograms = {0, 0};
     private IntBuffer[] piFirst = new IntBuffer[2];
     private IntBuffer[] piCount = new IntBuffer[2];
     private List<Mesh>[] sentMeshes = (List<Mesh>[])new ArrayList[] {new ArrayList<Mesh>(), new ArrayList<Mesh>()};
@@ -331,23 +332,47 @@ public class NeoRenderer {
     Matrix4f projMatrix = new Matrix4f();
     
     private void render(double alpha) {
-        if(shaderProgram == 0) return;
+        if(shaderPrograms[0] == 0 || shaderPrograms[1] == 0) return;
         
         GL11.glPushAttrib(GL11.GL_ENABLE_BIT);
         GL11.glDisable(GL11.GL_TEXTURE_2D);
         
-        glUseProgram(shaderProgram);
+        glBindVertexArray(VAO);
+        GL11.glDisable(GL11.GL_BLEND);
         
-        updateUniforms(alpha);
-        renderMeshes();
+        glUseProgram(shaderPrograms[0]);
+        updateUniforms(alpha, 0);
+        if(Config.wireframe) {
+            GL11.glPolygonMode(GL11.GL_FRONT_AND_BACK, GL11.GL_LINE);
+        }
+        glMultiDrawArrays(GL_QUADS, piFirst[0], piCount[0]);
+        if(Config.wireframe) {
+            GL11.glPolygonMode(GL11.GL_FRONT_AND_BACK, GL11.GL_FILL);
+        }
         
+        glUseProgram(shaderPrograms[1]);
+        updateUniforms(alpha, 1);
+        GL11.glEnable(GL11.GL_BLEND);
+        GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+        
+        if(Config.wireframe) {
+            GL11.glPolygonMode(GL11.GL_FRONT_AND_BACK, GL11.GL_LINE);
+        }
+        glMultiDrawArrays(GL_QUADS, piFirst[1], piCount[1]);
+        if(Config.wireframe) {
+            GL11.glPolygonMode(GL11.GL_FRONT_AND_BACK, GL11.GL_FILL);
+        }
+        
+        glBindVertexArray(0);
         glUseProgram(0);
         
         GL11.glDepthMask(true);
         GL11.glPopAttrib();
     }
     
-    private void updateUniforms(double alpha) {
+    private void updateUniforms(double alpha, int pass) {
+        int shaderProgram = shaderPrograms[pass];
+        
         int u_modelView = glGetUniformLocation(shaderProgram, "modelView");
         int u_proj = glGetUniformLocation(shaderProgram, "proj");
         int u_playerPos = glGetUniformLocation(shaderProgram, "playerPos");
@@ -405,32 +430,6 @@ public class NeoRenderer {
         fogStartEnd.position(0);
     }
     
-    private void renderMeshes() {
-        glBindVertexArray(VAO);
-        GL11.glDisable(GL11.GL_BLEND);
-        
-        if(Config.wireframe) {
-            GL11.glPolygonMode(GL11.GL_FRONT_AND_BACK, GL11.GL_LINE);
-        }
-        glMultiDrawArrays(GL_QUADS, piFirst[0], piCount[0]);
-        if(Config.wireframe) {
-            GL11.glPolygonMode(GL11.GL_FRONT_AND_BACK, GL11.GL_FILL);
-        }
-        
-        GL11.glEnable(GL11.GL_BLEND);
-        GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-        
-        if(Config.wireframe) {
-            GL11.glPolygonMode(GL11.GL_FRONT_AND_BACK, GL11.GL_LINE);
-        }
-        glMultiDrawArrays(GL_QUADS, piFirst[1], piCount[1]);
-        if(Config.wireframe) {
-            GL11.glPolygonMode(GL11.GL_FRONT_AND_BACK, GL11.GL_FILL);
-        }
-        
-        glBindVertexArray(0);
-    }
-    
     public boolean init() {
         Map<String, TextureAtlasSprite> uploadedSprites = ((TextureMap)Minecraft.getMinecraft().getTextureManager().getTexture(TextureMap.locationBlocksTexture)).mapUploadedSprites;
         
@@ -475,7 +474,7 @@ public class NeoRenderer {
         return true;
     }
     
-       public void reloadShader() {
+       public void reloadShader(int pass) {
            Set<String> defines = new HashSet<>();
            if(Config.renderFog) {
                defines.add("RENDER_FOG");
@@ -485,6 +484,9 @@ public class NeoRenderer {
            }
            if(Config.shortUV) {
                defines.add("SHORT_UV");
+           }
+           if(pass == 0) {
+               defines.add("PASS_0");
            }
            
             boolean errors = false;
@@ -522,17 +524,23 @@ public class NeoRenderer {
             }
             
             if(!errors) {
-                shaderProgram = newShaderProgram;
+                shaderPrograms[pass] = newShaderProgram;
             }
             
             glDeleteShader(vertexShader);
             glDeleteShader(fragmentShader);
         }
+       
+    public void reloadShader() {
+        reloadShader(0);
+        reloadShader(1);
+    }
     
     public void destroy() {
         onSave();
         
-        glDeleteProgram(shaderProgram);
+        glDeleteProgram(shaderPrograms[0]);
+        glDeleteProgram(shaderPrograms[1]);
         glDeleteVertexArrays(VAO);
         mem.destroy();
         
