@@ -204,7 +204,7 @@ public class NeoRenderer {
             piCount[i].limit(MAX_MESHES);
             for(Mesh mesh : sentMeshes[i]) {
                 if(mesh.visible && (Config.maxMeshesPerFrame == -1 || renderedMeshes < Config.maxMeshesPerFrame)) {
-                    mesh.writeToIndexBuffer(piFirst[i], piCount[i], renderedMeshesReturn, renderedQuadsReturn);
+                    mesh.writeToIndexBuffer(piFirst[i], piCount[i], renderedMeshesReturn, renderedQuadsReturn, interpXDiv, interpYDiv, interpZDiv);
                     renderedMeshes += renderedMeshesReturn[0];
                     renderedQuads += renderedQuadsReturn[0];
                 }

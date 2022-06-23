@@ -9,6 +9,8 @@ import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.nio.ShortBuffer;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -35,6 +37,8 @@ public class ChunkMesh extends Mesh {
     
     Flags flags;
     
+    private int[] subMeshStart = new int[NORMAL_ORDER.length]; 
+    
  // TODO move this somewhere else
     List<String> nameList = (List<String>) ((TextureMap)Minecraft.getMinecraft().getTextureManager().getTexture(TextureMap.locationBlocksTexture)).mapUploadedSprites.keySet().stream().collect(Collectors.toList());
     
@@ -43,6 +47,21 @@ public class ChunkMesh extends Mesh {
     
     private static RecyclingList<MeshQuad> quadBuf = new RecyclingList<>(() -> new MeshQuad());
     
+    private static final QuadNormal[] NORMAL_ORDER = new QuadNormal[] {QuadNormal.NONE, QuadNormal.POSITIVE_Y, QuadNormal.POSITIVE_X, QuadNormal.POSITIVE_Z, QuadNormal.NEGATIVE_X, QuadNormal.NEGATIVE_Z, QuadNormal.NEGATIVE_Y};
+    private static final Comparator<MeshQuad> MESH_QUAD_RENDER_COMPARATOR = new MeshQuadRenderOrderComparator();
+    private static final int[] QUAD_NORMAL_TO_NORMAL_ORDER;
+    
+    static {
+        QUAD_NORMAL_TO_NORMAL_ORDER = new int[QuadNormal.values().length];
+        for(int i = 0; i < QuadNormal.values().length; i++) {
+            int idx = Arrays.asList(NORMAL_ORDER).indexOf(QuadNormal.values()[i]);
+            if(idx == -1) {
+                idx = 0;
+            }
+            QUAD_NORMAL_TO_NORMAL_ORDER[i] = idx;
+        }
+    }
+    
     public ChunkMesh(int x, int y, int z, Flags flags, int quadCount, List<MeshQuad> quads, int pass) {
         this.x = x;
         this.y = y;
@@ -50,6 +69,7 @@ public class ChunkMesh extends Mesh {
         this.flags = flags;
         this.quadCount = quadCount;
         this.pass = pass;
+        Arrays.fill(subMeshStart, -1);
         
         buffer = createBuffer(quads, quadCount);
         usedRAM += buffer.limit();
@@ -184,13 +204,21 @@ public class ChunkMesh extends Mesh {
         ByteBuffer buffer = BufferUtils.createByteBuffer(quadCount * 4 * MeshQuad.getStride());
         BufferWriter out = new BufferWriter(buffer);
         
+        quads.sort(MESH_QUAD_RENDER_COMPARATOR);
+        
         try {
             int i = 0;
             for(MeshQuad quad : quads) {
                 if(i < quadCount) {
                     if(MeshQuad.isValid(quad)) {
+                        int subMeshStartIdx = QUAD_NORMAL_TO_NORMAL_ORDER[quad.normal.ordinal()];
+                        if(subMeshStart[subMeshStartIdx] == -1) {
+                            subMeshStart[subMeshStartIdx] = i;
+                        }
                         quad.writeToBuffer(out);
                         i++;
+                    } else {
+                        break;
                     }
                 }
             }
@@ -295,6 +323,58 @@ public class ChunkMesh extends Mesh {
         return ((IWorldRenderer)wr).getChunkMeshes();
     }
     
+    @Override
+    public void writeToIndexBuffer(IntBuffer piFirst, IntBuffer piCount, int[] renderedMeshesReturn,
+            int[] renderedQuadsReturn, int cameraXDiv, int cameraYDiv, int cameraZDiv) {
+        if(!Config.cullFaces) {
+            super.writeToIndexBuffer(piFirst, piCount, renderedMeshesReturn, renderedQuadsReturn, cameraXDiv, cameraYDiv, cameraZDiv);
+            return;
+        }
+        
+        renderedMeshesReturn[0] = 0;
+        renderedQuadsReturn[0] = 0;
+        
+        int startIndex = -1;
+        for(int i = 0; i < NORMAL_ORDER.length + 1; i++) {
+            if(i < subMeshStart.length && subMeshStart[i] == -1) continue;
+            
+            QuadNormal normal = i < NORMAL_ORDER.length ? NORMAL_ORDER[i] : null;
+            boolean isVisible = normal != null && isNormalVisible(normal, cameraXDiv, cameraYDiv, cameraZDiv);
+            
+            if(isVisible && startIndex == -1) {
+                startIndex = subMeshStart[QUAD_NORMAL_TO_NORMAL_ORDER[normal.ordinal()]];
+            } else if(!isVisible && startIndex != -1) {
+                int endIndex = i < subMeshStart.length ? subMeshStart[i] : quadCount;
+                
+                piFirst.put(iFirst + (startIndex*4));
+                piCount.put((endIndex - startIndex)*4);
+                renderedMeshesReturn[0]++;
+                renderedQuadsReturn[0] += endIndex - startIndex; // TODO remove this, it's redundant
+                
+                startIndex = -1;
+            }
+        }
+    }
+    
+    private boolean isNormalVisible(QuadNormal normal, int interpXDiv, int interpYDiv, int interpZDiv) {
+        switch(normal) {
+        case POSITIVE_X:
+            return interpXDiv >= ((x + 0));
+        case NEGATIVE_X:
+            return interpXDiv < ((x + 1));
+        case POSITIVE_Y:
+            return interpYDiv >= ((y + 0));
+        case NEGATIVE_Y:
+            return interpYDiv < ((y + 1));
+        case POSITIVE_Z:
+            return interpZDiv >= ((z + 0));
+        case NEGATIVE_Z:
+            return interpZDiv < ((z + 1));
+        default:
+            return true;
+        }
+    }
+    
     public double distSq(Entity player) {
         int centerX = x * 16 + 8;
         int centerY = y * 16 + 8;
@@ -339,6 +419,21 @@ public class ChunkMesh extends Mesh {
             }
             return flags;
         }
+    }
+    
+    private static class MeshQuadRenderOrderComparator implements Comparator<MeshQuad> {
+
+        @Override
+        public int compare(MeshQuad a, MeshQuad b) {
+            if(!MeshQuad.isValid(b)) {
+                return 1;
+            } else if(!MeshQuad.isValid(a)) {
+                return -1;
+            } else {
+                return QUAD_NORMAL_TO_NORMAL_ORDER[a.normal.ordinal()] - QUAD_NORMAL_TO_NORMAL_ORDER[b.normal.ordinal()];
+            }
+        }
+        
     }
     
 }
