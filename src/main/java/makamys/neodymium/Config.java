@@ -72,16 +72,15 @@ public class Config {
         enabled = config.getBoolean("enabled", "_general", true, "Set this to false to fully disable the mod.");
         hotswap = config.getBoolean("hotswap", "_general", false, "Apply changes made in the config file immediately without having to reload the world. Off by default because it could potentially cause poor performance on certain platforms. Note that not all settings can be hotswapped.");
         
-        simplifyChunkMeshes = config.getBoolean("simplifyChunkMeshes", "render", true, "Simplify chunk meshes so they are made of less vertices. Improves framerate at the cost of making chunks load slightly slower.");
-        cullFaces = config.getBoolean("cullFaces", "render", false, "Don't submit faces for rendering if they are facing away from the camera. Reduces GPU workload at the cost of increasing driver overhead. On weaker graphics cards this may significantly improve performance, but on better cards it may have the opposite effect.");
+        simplifyChunkMeshes = config.getBoolean("simplifyChunkMeshes", "render", false, "Simplify chunk meshes so they are made of less vertices. Reduces vertex count at the cost of increasing shader complexity. The optimal setting depends on your hardware. Requires renderer restart when changed.");
+        cullFaces = config.getBoolean("cullFaces", "render", true, "Don't submit faces for rendering if they are facing away from the camera. Reduces GPU workload at the cost of increasing driver overhead. This will improve the framerate most of the time, but may reduce it if you are not fillrate-limited.");
         
         sortFrequency = config.getInt("sortFrequency", "render", 1, 1, Integer.MAX_VALUE, "Interval (in frames) between the sorting of meshes. Increasing this might increase framerate, but increase the likelyhood of graphical artifacts when moving quickly.");
-        gcRate = config.getInt("gcRate", "render", 1, 1, Integer.MAX_VALUE, "Maximum number of meshes to relocate in the buffer each frame. Setting this to a higher value will make it harder for the VRAM to get full (which causes a lag spike when it happens), but slightly reduces overall framerate. Examining the VRAM debugger can help find the right value.");
-        VRAMSize = config.getInt("VRAMSize", "render", 1024, 1, Integer.MAX_VALUE, "VRAM buffer size (MB). 512 seems to be a good value on Normal render distance. Increase this if you encounter warnings about the VRAM getting full. Does not affect RAM usage.");
-        renderFog = config.getBoolean("renderFog", "render", true, "Render fog? Disabling this might increase framerate.");
+        VRAMSize = config.getInt("VRAMSize", "render", 1024, 1, Integer.MAX_VALUE, "VRAM buffer size (MB). 512 seems to be a good value on Normal render distance. Increase this if you encounter warnings about the VRAM getting full. Does not affect RAM usage. Requires renderer restart when changed.");
+        renderFog = config.getBoolean("renderFog", "render", true, "Render fog? Slightly reduces framerate.");
         
         maxMeshesPerFrame = config.getInt("maxMeshesPerFrame", "debug", -1, -1, Integer.MAX_VALUE, "");
-        debugPrefix = config.getInt("debugPrefix", "debug", Keyboard.KEY_F4, -1, Integer.MAX_VALUE, "This key has to be held down while pressing the debug keybinds. LWJGL keycode. Setting this to 0 will make the keybinds usable without holding anything else down. Setting this to -1 will disable debug keybinds entirely.");
+        debugPrefix = config.getInt("debugPrefix", "debug", Keyboard.KEY_F4, -1, Integer.MAX_VALUE, "The LWJGL keycode of the key that has to be held down while pressing the debug keybinds. Setting this to 0 will make the keybinds usable without holding anything else down. Setting this to -1 will disable debug keybinds entirely.");
         debugInfoStartY = config.getInt("debugInfoStartY", "debug", 80, -1, Integer.MAX_VALUE, "The Y position of the first line of the debug info in the F3 overlay. Set this to -1 to disable showing that info.");
         wireframe = config.getBoolean("wireframe", "debug", false, "");
         
