@@ -167,8 +167,8 @@ public class MeshQuad {
             float v = vs[vi];
             
             if(Config.shortUV) {
-                out.writeShort((short)(u * 16384));
-                out.writeShort((short)(v * 16384));
+                out.writeShort((short)(u * 32768));
+                out.writeShort((short)(v * 32768));
             } else {
                 out.writeFloat(u);
                 out.writeFloat(v);

@@ -443,7 +443,7 @@ public class NeoRenderer {
         int stride = MeshQuad.getStride();
         
         glVertexAttribPointer(0, 3, GL_FLOAT, false, stride, 0);
-        glVertexAttribPointer(1, 2, Config.shortUV ? GL_SHORT : GL_FLOAT, false, stride, 3 * 4);
+        glVertexAttribPointer(1, 2, Config.shortUV ? GL_UNSIGNED_SHORT : GL_FLOAT, false, stride, 3 * 4);
         int uvEnd = Config.shortUV ? 4 * 4 : 5 * 4;
         glVertexAttribPointer(2, 2, GL_SHORT, false, stride, uvEnd);
         glVertexAttribPointer(3, 4, GL_UNSIGNED_BYTE, false, stride, uvEnd + 1 * 4);

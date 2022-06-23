@@ -30,7 +30,7 @@ void main()
 	
 	vec4 texColor = texture(atlas, goodTexCoord
 #ifdef SHORT_UV
-	/ 16384.0
+	/ 32768.0
 #endif
 	);
 	
