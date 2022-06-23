@@ -9,6 +9,13 @@ import static makamys.neodymium.Neodymium.MODID;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.annotation.Annotation;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.WatchEvent;
@@ -26,19 +33,35 @@ import net.minecraftforge.common.config.Configuration;
 
 public class Config {
 
+    @ConfigBoolean(cat="_general", def=true, com="Set this to false to fully disable the mod.")
     public static boolean enabled;
+    @ConfigBoolean(cat="_general", def=false, com="Apply changes made in the config file immediately without having to reload the world. Off by default because it could potentially cause poor performance on certain platforms. Note that not all settings can be hotswapped.")
     public static boolean hotswap;
     
+    @NeedsReload
+    @ConfigBoolean(cat="render", def=true, com="Set this to false to fully disable the mod.")
     public static boolean simplifyChunkMeshes;
+    @ConfigBoolean(cat="render", def=true, com="Don't submit faces for rendering if they are facing away from the camera. Reduces GPU workload at the cost of increasing driver overhead. This will improve the framerate most of the time, but may reduce it if you are not fillrate-limited.")
     public static boolean cullFaces;
+    @NeedsReload
+    @ConfigBoolean(cat="render", def=true, com="Store texture coordinates as shorts instead of floats. Slightly improves performance.")
     public static boolean shortUV;
-    public static int maxMeshesPerFrame;
+    @ConfigInt(cat="render", def=1, min=1, max=Integer.MAX_VALUE, com="Interval (in frames) between the sorting of meshes. Increasing this might increase framerate, but increase the likelyhood of graphical artifacts when moving quickly.")
     public static int sortFrequency;
-    public static int gcRate;
+    
+    @NeedsReload
+    @ConfigInt(cat="render", def=1024, min=1, max=Integer.MAX_VALUE, com="VRAM buffer size (MB). 512 seems to be a good value on Normal render distance. Increase this if you encounter warnings about the VRAM getting full. Does not affect RAM usage.")
     public static int VRAMSize;
-    public static int debugPrefix;
-    public static int debugInfoStartY;
+    @ConfigBoolean(cat="render", def=true, com="Render fog? Slightly reduces framerate.")
     public static boolean renderFog;
+    
+    @ConfigInt(cat="debug", def=-1, min=-1, max=Integer.MAX_VALUE)
+    public static int maxMeshesPerFrame;
+    @ConfigInt(cat="debug", def=Keyboard.KEY_F4, min=-1, max=Integer.MAX_VALUE, com="The LWJGL keycode of the key that has to be held down while pressing the debug keybinds. Setting this to 0 will make the keybinds usable without holding anything else down. Setting this to -1 will disable debug keybinds entirely.")
+    public static int debugPrefix;
+    @ConfigInt(cat="debug", def=80, min=-1, max=Integer.MAX_VALUE, com="The Y position of the first line of the debug info in the F3 overlay. Set this to -1 to disable showing that info.")
+    public static int debugInfoStartY;
+    @ConfigBoolean(cat="debug", def=false)
     public static boolean wireframe;
     
     // Unused LOD stuff
@@ -56,7 +79,7 @@ public class Config {
     private static File configFile = new File(Launch.minecraftHome, "config/" + MODID + ".cfg");
     private static WatchService watcher;
     
-    public static void reloadConfig() {
+    public static void reloadConfig(ReloadInfo info) {
         try {
             if(Files.size(configFile.toPath()) == 0) {
                 // Sometimes the watcher fires twice, and the first time the file is empty.
@@ -70,21 +93,11 @@ public class Config {
         Configuration config = new Configuration(configFile);
         
         config.load();
-        enabled = config.getBoolean("enabled", "_general", true, "Set this to false to fully disable the mod.");
-        hotswap = config.getBoolean("hotswap", "_general", false, "Apply changes made in the config file immediately without having to reload the world. Off by default because it could potentially cause poor performance on certain platforms. Note that not all settings can be hotswapped.");
         
-        simplifyChunkMeshes = config.getBoolean("simplifyChunkMeshes", "render", false, "Simplify chunk meshes so they are made of less vertices. Reduces vertex count at the cost of increasing shader complexity. The optimal setting depends on your hardware. Requires renderer restart when changed.");
-        cullFaces = config.getBoolean("cullFaces", "render", true, "Don't submit faces for rendering if they are facing away from the camera. Reduces GPU workload at the cost of increasing driver overhead. This will improve the framerate most of the time, but may reduce it if you are not fillrate-limited.");
-        shortUV = config.getBoolean("shortUV", "render", true, "Store texture coordinates as shorts instead of floats. Slightly improves performance.");
-        
-        sortFrequency = config.getInt("sortFrequency", "render", 1, 1, Integer.MAX_VALUE, "Interval (in frames) between the sorting of meshes. Increasing this might increase framerate, but increase the likelyhood of graphical artifacts when moving quickly.");
-        VRAMSize = config.getInt("VRAMSize", "render", 1024, 1, Integer.MAX_VALUE, "VRAM buffer size (MB). 512 seems to be a good value on Normal render distance. Increase this if you encounter warnings about the VRAM getting full. Does not affect RAM usage. Requires renderer restart when changed.");
-        renderFog = config.getBoolean("renderFog", "render", true, "Render fog? Slightly reduces framerate.");
-        
-        maxMeshesPerFrame = config.getInt("maxMeshesPerFrame", "debug", -1, -1, Integer.MAX_VALUE, "");
-        debugPrefix = config.getInt("debugPrefix", "debug", Keyboard.KEY_F4, -1, Integer.MAX_VALUE, "The LWJGL keycode of the key that has to be held down while pressing the debug keybinds. Setting this to 0 will make the keybinds usable without holding anything else down. Setting this to -1 will disable debug keybinds entirely.");
-        debugInfoStartY = config.getInt("debugInfoStartY", "debug", 80, -1, Integer.MAX_VALUE, "The Y position of the first line of the debug info in the F3 overlay. Set this to -1 to disable showing that info.");
-        wireframe = config.getBoolean("wireframe", "debug", false, "");
+        boolean needReload = loadFields(config);
+        if(info != null) {
+            info.needReload = needReload;
+        }
         
         if(config.hasChanged()) {
             config.save();
@@ -97,6 +110,63 @@ public class Config {
                 LOGGER.warn("Failed to register watch service: " + e + " (" + e.getMessage() + "). Changes to the config file will not be reflected");
             }
         }
+    }
+    
+    public static void reloadConfig() {
+        reloadConfig(null);
+    }
+    
+    private static boolean loadFields(Configuration config) {
+        boolean needReload = false;
+        
+        for(Field field : Config.class.getFields()) {
+            if(!Modifier.isStatic(field.getModifiers())) continue;
+            
+            NeedsReload needsReload = null;
+            ConfigBoolean configBoolean = null;
+            ConfigInt configInt = null;
+            
+            for(Annotation an : field.getAnnotations()) {
+                if(an instanceof NeedsReload) {
+                    needsReload = (NeedsReload) an;
+                } else if(an instanceof ConfigInt) {
+                    configInt = (ConfigInt) an;
+                } else if(an instanceof ConfigBoolean) {
+                    configBoolean = (ConfigBoolean) an;
+                }
+            }
+            
+            if(configBoolean == null && configInt == null) continue;
+            
+            Object currentValue = null;
+            Object newValue = null;
+            try {
+                currentValue = field.get(null);
+            } catch (Exception e) {
+                LOGGER.error("Failed to get value of field " + field.getName());
+                e.printStackTrace();
+                continue;
+            }
+            
+            if(configBoolean != null) {
+                newValue = config.getBoolean(field.getName(), configBoolean.cat(), configBoolean.def(), configBoolean.com());
+            } else if(configInt != null) {
+                newValue = config.getInt(field.getName(), configInt.cat(), configInt.def(), configInt.min(), configInt.max(), configInt.com()); 
+            }
+            
+            if(needsReload != null && !newValue.equals(currentValue)) {
+                needReload = true;
+            }
+            
+            try {
+                field.set(null, newValue);
+            } catch (Exception e) {
+                LOGGER.error("Failed to set value of field " + field.getName());
+                e.printStackTrace();
+            }
+        }
+        
+        return needReload;
     }
     
     // Unused
@@ -122,7 +192,7 @@ public class Config {
         saveMeshes = config.getBoolean("saveMeshes", "render", false, "");
     }
     
-    public static boolean reloadIfChanged() {
+    public static boolean reloadIfChanged(ReloadInfo info) {
         boolean reloaded = false;
         if(watcher != null) {
             WatchKey key = watcher.poll();
@@ -130,7 +200,7 @@ public class Config {
             if(key != null) {
                 for(WatchEvent<?> event: key.pollEvents()) {
                     if(event.context().toString().equals(configFile.getName())) {
-                        reloadConfig();
+                        reloadConfig(info);
                         reloaded = true;
                     }
                 }
@@ -144,6 +214,38 @@ public class Config {
     private static void registerWatchService() throws IOException {
         watcher = FileSystems.getDefault().newWatchService();
         configFile.toPath().getParent().register(watcher, ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY);
+    }
+    
+    @Retention(RetentionPolicy.RUNTIME)
+    @Target(ElementType.FIELD)
+    public static @interface NeedsReload {
+
+    }
+    
+    @Retention(RetentionPolicy.RUNTIME)
+    @Target(ElementType.FIELD)
+    public static @interface ConfigBoolean {
+
+        String cat();
+        boolean def();
+        String com() default "";
+
+    }
+    
+    @Retention(RetentionPolicy.RUNTIME)
+    @Target(ElementType.FIELD)
+    public static @interface ConfigInt {
+
+        String cat();
+        int min();
+        int max();
+        int def();
+        String com() default "";
+
+    }
+    
+    public static class ReloadInfo {
+        boolean needReload;
     }
     
 }

@@ -47,6 +47,8 @@ public class Neodymium
     
     public static final Logger LOGGER = LogManager.getLogger(MODID);
     
+    private static final Config.ReloadInfo CONFIG_RELOAD_INFO = new Config.ReloadInfo();
+    
     public static NeoRenderer renderer;
     
     public static boolean fogEventWasPosted;
@@ -126,10 +128,12 @@ public class Neodymium
     public void onClientTick(TickEvent.ClientTickEvent event) {
         if(!Config.enabled) return;
         
-    	if(event.phase == TickEvent.Phase.START) {
+    	if(event.phase == TickEvent.Phase.START && isActive()) {
     	    if(Config.hotswap) {
-    	        if(Config.reloadIfChanged()) {
-    	            if(renderer != null) {
+    	        if(Config.reloadIfChanged(CONFIG_RELOAD_INFO)) {
+    	            if(CONFIG_RELOAD_INFO.needReload) {
+    	                Minecraft.getMinecraft().renderGlobal.loadRenderers();
+    	            } else if(renderer != null) {
     	                renderer.reloadShader();
     	            }
     	        }
