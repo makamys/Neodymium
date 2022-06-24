@@ -18,6 +18,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -273,11 +274,11 @@ public class NeoRenderer {
                 lastSortX = player.posX;
                 lastSortY = player.posY;
                 lastSortZ = player.posZ;*/
-                for(Iterator<ChunkCoordIntPair> it = loadedRegionsMap.keySet().iterator(); it.hasNext();) {
-                    ChunkCoordIntPair k = it.next();
-                    NeoRegion v = loadedRegionsMap.get(k);
+                for(Iterator<Entry<ChunkCoordIntPair, NeoRegion>> it = loadedRegionsMap.entrySet().iterator(); it.hasNext();) {
+                    Entry<ChunkCoordIntPair, NeoRegion> kv = it.next();
+                    NeoRegion v = kv.getValue();
                     
-                    if(v.isEmpty()) {
+                    if(v.shouldDelete()) {
                         v.destroy(getSaveDir());
                         it.remove();
                     } else {
@@ -570,6 +571,7 @@ public class NeoRenderer {
             if(lodChunk.chunkMeshes[y] != null) {
                 lodChunk.chunkMeshes[y].destroy();
                 lodChunk.chunkMeshes[y] = null;
+                lodChunk.region.meshes--;
             }
         }
         lodChunkChanged(lodChunk);

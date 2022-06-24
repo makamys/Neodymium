@@ -16,6 +16,7 @@ public class NeoChunk {
 	boolean visible;
 	boolean dirty;
 	boolean discardedMesh;
+	NeoRegion region;
 	
 	SimpleChunkMesh[] simpleMeshes = new SimpleChunkMesh[2];
 	ChunkMesh[] chunkMeshes = new ChunkMesh[32];
@@ -24,9 +25,10 @@ public class NeoChunk {
 	
 	NeoRenderer renderer = Neodymium.renderer;
 	
-	public NeoChunk(int x, int z) {
+	public NeoChunk(int x, int z, NeoRegion region) {
 		this.x = x;
 		this.z = z;
+		this.region = region;
 	}
 	/*
 	public LODChunk(NBTTagCompound nbt, List<String> spriteList) {
@@ -69,6 +71,8 @@ public class NeoChunk {
 			    
 			    renderer.removeMesh(chunkMeshes[cy * 2 + i]);
 			    chunkMeshes[cy * 2 + i].destroy();
+			} else {
+			    region.meshes++;
 			}
 		    chunkMeshes[cy * 2 + i] = newChunkMesh;
 		}
@@ -104,14 +108,18 @@ public class NeoChunk {
 	}
 	
 	public void tick(Entity player) {
-		double distSq = distSq(player);
-		if(Config.disableSimpleMeshes || distSq < Math.pow((Neodymium.renderer.renderRange / 2) * 16, 2)) {
-		    setLOD(2);
-		} else if(distSq < Math.pow((Neodymium.renderer.renderRange) * 16, 2)) {
-		    setLOD(1);
-		} else {
-		    setLOD(0);
-		}
+	    if(Config.disableSimpleMeshes) {
+	        setLOD(2);
+	    } else {
+    		double distSq = distSq(player);
+    		if(Config.disableSimpleMeshes || distSq < Math.pow((Neodymium.renderer.renderRange / 2) * 16, 2)) {
+    		    setLOD(2);
+    		} else if(distSq < Math.pow((Neodymium.renderer.renderRange) * 16, 2)) {
+    		    setLOD(1);
+    		} else {
+    		    setLOD(0);
+    		}
+	    }
 	}
 	
    public void setLOD(int lod) {
@@ -125,6 +133,7 @@ public class NeoChunk {
                     if(chunkMeshes[i] != null) {
                         chunkMeshes[i].destroy();
                         chunkMeshes[i] = null;
+                        region.meshes--;
                         discardedMesh = true;
                     }
                 }
@@ -157,11 +166,13 @@ public class NeoChunk {
 	    for(SimpleChunkMesh scm: simpleMeshes) {
 	        if(scm != null) {
 	            scm.destroy();
+	            region.meshes--;
 	        }
         }
 	    for(ChunkMesh cm: chunkMeshes) {
 	        if(cm != null) {
 	            cm.destroy();
+	            region.meshes--;
 	        }
 	    }
 	    Neodymium.renderer.setVisible(this, false);

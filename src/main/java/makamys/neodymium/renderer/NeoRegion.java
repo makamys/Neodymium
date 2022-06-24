@@ -11,13 +11,17 @@ public class NeoRegion {
 	
 	int regionX, regionZ;
 	
+	public int meshes = 0;
+	
+	private int emptyTicks = 0;
+	
 	public NeoRegion(int regionX, int regionZ) {
 		this.regionX = regionX;
 		this.regionZ = regionZ;
 		
 		for(int i = 0; i < 32; i++) {
 			for(int j = 0; j < 32; j++) {
-				data[i][j] = new NeoChunk(regionX * 32 + i, regionZ * 32 + j);
+				data[i][j] = new NeoChunk(regionX * 32 + i, regionZ * 32 + j, this);
 			}
 		}
 	}
@@ -134,20 +138,21 @@ public class NeoRegion {
 		return null;
 	}
 	
-	public boolean tick(Entity player) {
-	    int visibleChunks = 0;
+	public void tick(Entity player) {
 		for(int i = 0; i < 32; i++) {
 			for(int j = 0; j < 32; j++) {
 				NeoChunk chunk = data[i][j];
 				if(chunk != null) {
 					chunk.tick(player);
-					if(chunk.visible) {
-					    visibleChunks++;
-					}
 				}
 			}
 		}
-		return visibleChunks > 0;
+		
+		if(meshes == 0) {
+		    emptyTicks++;
+		} else {
+		    emptyTicks = 0;
+		}
 	}
 	
 	public void destroy(Path saveDir) {
@@ -175,16 +180,8 @@ public class NeoRegion {
 	    return "LODRegion(" + regionX + ", " + regionZ + ")";
 	}
     
-	public boolean isEmpty() {
-	    for(int i = 0; i < 32; i++) {
-            for(int j = 0; j < 32; j++) {
-                NeoChunk chunk = data[i][j];
-                if(chunk != null && !chunk.isEmpty()) {
-                    return false;
-                }
-            }
-	    }
-	    return true;
+	public boolean shouldDelete() {
+	    return emptyTicks > 100;
     }
 	
 }
