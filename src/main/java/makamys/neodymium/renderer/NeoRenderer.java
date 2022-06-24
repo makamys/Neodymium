@@ -55,8 +55,9 @@ public class NeoRenderer {
     
     public boolean hasInited = false;
     public boolean destroyPending;
+    public boolean reloadPending;
     
-    private boolean[] wasDown = new boolean[256];
+    private static boolean[] wasDown = new boolean[256];
     private int renderQuads = 0;
     
     public boolean renderWorld;
@@ -173,6 +174,8 @@ public class NeoRenderer {
             destroy();
             Neodymium.renderer = null;
             return;
+        } else if(reloadPending) {
+            Minecraft.getMinecraft().renderGlobal.loadRenderers();
         }
         if(showMemoryDebugger && mem != null) {
             GuiHelper.begin();
@@ -316,6 +319,9 @@ public class NeoRenderer {
             }
             if(Keyboard.isKeyDown(Keyboard.KEY_P) && !wasDown[Keyboard.KEY_P]) {
                 Util.dumpTexture();
+            }
+            if(Keyboard.isKeyDown(Keyboard.KEY_LEFT) && !wasDown[Keyboard.KEY_LEFT]) {
+                reloadPending = true;
             }
         }
         for(int i = 0; i < 256; i++) {
