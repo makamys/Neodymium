@@ -22,7 +22,7 @@ public abstract class Mesh {
 	public abstract int getStride();
 	
 	public double distSq(double x2, double y2, double z2) {
-	    return Util.distSq(x, y, z, x2, y2, z2);
+	    return Util.distSq(x + 0.5, y + 0.5, z + 0.5, x2, y2, z2);
 	}
 	
 	public int bufferSize() {

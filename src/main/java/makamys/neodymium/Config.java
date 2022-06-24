@@ -46,7 +46,7 @@ public class Config {
     @NeedsReload
     @ConfigBoolean(cat="render", def=false, com="Store texture coordinates as shorts instead of floats. Slightly reduces memory usage and might improve performance by small amount. Might affect visuals slightly, but it's only noticable if the texture atlas is huge.")
     public static boolean shortUV;
-    @ConfigInt(cat="render", def=1, min=1, max=Integer.MAX_VALUE, com="Interval (in frames) between the sorting of meshes. Increasing this might improve performance, but also increase the likelyhood of graphical artifacts appearing when moving quickly.")
+    @ConfigInt(cat="render", def=1, min=1, max=Integer.MAX_VALUE, com="Interval (in frames) between the sorting of transparent meshes. Increasing this will reduce CPU usage, but also increase the likelyhood of graphical artifacts appearing when transparent chunks are loaded.")
     public static int sortFrequency;
     
     @NeedsReload

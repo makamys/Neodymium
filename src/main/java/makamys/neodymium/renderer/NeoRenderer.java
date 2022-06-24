@@ -53,6 +53,8 @@ import net.minecraftforge.event.world.ChunkEvent;
 /** The main renderer class. */
 public class NeoRenderer {
     
+    private static final MeshDistanceComparator DISTANCE_COMPARATOR = new MeshDistanceComparator();
+    
     public boolean hasInited = false;
     public boolean destroyPending;
     public boolean reloadPending;
@@ -154,9 +156,7 @@ public class NeoRenderer {
                 interpYDiv = Math.floorDiv((int)Math.floor(interpY), 16);
                 interpZDiv = Math.floorDiv((int)Math.floor(interpZ), 16);
                 
-                if(frameCount % Config.sortFrequency == 0) {
-                    sort();
-                }
+                sort(frameCount % 100 == 0, frameCount % Config.sortFrequency == 0);
                 
                 updateMeshes();
                 initIndexBuffers();
@@ -184,10 +184,12 @@ public class NeoRenderer {
         }
     }
     
-    private void sort() {
-        Entity player = Minecraft.getMinecraft().renderViewEntity;
-        for(List<Mesh> list : sentMeshes) {
-            list.sort(new MeshDistanceComparator(Math.floor(player.posX / 16.0), Math.floor(player.posY / 16.0), Math.floor(player.posZ / 16.0)));
+    private void sort(boolean pass0, boolean pass1) {
+        if(pass0) {
+            sentMeshes[0].sort(DISTANCE_COMPARATOR.setOrigin(interpX, interpY, interpZ).setInverted(false));
+        }
+        if(pass1) {
+            sentMeshes[1].sort(DISTANCE_COMPARATOR.setOrigin(interpX, interpY, interpZ).setInverted(true));
         }
     }
     
@@ -805,13 +807,20 @@ public class NeoRenderer {
     
     public static class MeshDistanceComparator implements Comparator<Mesh> {
         double x, y, z;
+        boolean inverted;
         
-        MeshDistanceComparator(double x, double y, double z){
-            this.x = x;
-            this.y = y;
-            this.z = z;
+        public Comparator<? super Mesh> setInverted(boolean inverted) {
+            this.inverted = inverted;
+            return this;
         }
-        
+
+        public MeshDistanceComparator setOrigin(double x, double y, double z) {
+            this.x = x / 16.0;
+            this.y = y / 16.0;
+            this.z = z / 16.0;
+            return this;
+        }
+
         @Override
         public int compare(Mesh a, Mesh b) {
             if(a.pass < b.pass) {
@@ -821,10 +830,13 @@ public class NeoRenderer {
             } else {
                 double distSqA = a.distSq(x, y, z);
                 double distSqB = b.distSq(x, y, z);
+                
+                int mult = inverted ? -1 : 1;
+                
                 if(distSqA > distSqB) {
-                    return 1;
+                    return 1 * mult;
                 } else if(distSqA < distSqB) {
-                    return -1;
+                    return -1 * mult;
                 } else {
                     return 0;
                 }
