@@ -85,27 +85,6 @@ public class GPUMemoryManager {
         glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
     
-    private int malloc(int size) {
-        int nextBase = 0;
-        if(!sentMeshes.isEmpty()) {
-            if(nextMesh < sentMeshes.size() - 1) {
-                Mesh next = sentMeshes.get(nextMesh);
-                Mesh nextnext = sentMeshes.get(nextMesh + 1);
-                if(nextnext.offset - next.getEnd() >= size) {
-                    return next.getEnd();
-                }
-            }
-            
-            nextBase = sentMeshes.get(sentMeshes.size() - 1).getEnd();
-        }
-        
-        if(nextBase + size >= bufferSize) {
-            return -1;
-        } else {
-            return nextBase;
-        }
-    }
-    
     private int end() {
         return (sentMeshes.isEmpty() ? 0 : sentMeshes.get(sentMeshes.size() - 1).getEnd());
     }

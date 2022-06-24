@@ -2,10 +2,8 @@ package makamys.neodymium.renderer;
 
 import java.util.List;
 
-import makamys.neodymium.Config;
 import makamys.neodymium.Neodymium;
 import net.minecraft.entity.Entity;
-import net.minecraft.world.chunk.Chunk;
 
 /** A container for the meshes that compose a chunk (16x256x16 region). It keeps track of which meshes should be made visible and which ones should not. */
 public class NeoChunk {
@@ -18,7 +16,6 @@ public class NeoChunk {
 	boolean discardedMesh;
 	NeoRegion region;
 	
-	SimpleChunkMesh[] simpleMeshes = new SimpleChunkMesh[2];
 	ChunkMesh[] chunkMeshes = new ChunkMesh[32];
 	
 	public boolean[] isSectionVisible = new boolean[16];
@@ -30,25 +27,7 @@ public class NeoChunk {
 		this.z = z;
 		this.region = region;
 	}
-	/*
-	public LODChunk(NBTTagCompound nbt, List<String> spriteList) {
-	    this.x = nbt.getInteger("x");
-	    this.z = nbt.getInteger("z");
-	    
-	    loadChunkMeshesNBT(nbt.getCompoundTag("chunkMeshes"), spriteList);
-	}
 	
-	private void loadChunkMeshesNBT(NBTTagCompound chunkMeshesCompound, List<String> spriteList) {
-	    for(Object o : chunkMeshesCompound.func_150296_c()) {
-            String key = (String)o;
-            int keyInt = Integer.parseInt(key);
-            
-            byte[] data = chunkMeshesCompound.getByteArray(key);
-            
-            chunkMeshes[keyInt] = new ChunkMesh(x, keyInt / 2, z, new ChunkMesh.Flags(true, true, true, false), data.length / (2 + 4 * (3 + 2 + 2 + 4)), data, spriteList, keyInt % 2);
-        }
-	}
-	*/
 	@Override
 	public String toString() {
 		return "LODChunk(" + x + ", " + z + ")";
@@ -64,9 +43,7 @@ public class NeoChunk {
 		    if(chunkMeshes[cy * 2 + i] != null) {
 			    if(newChunkMesh != null) {
 			        // ??? why is this needed?
-		            if(newChunkMesh != null) {
-		                newChunkMesh.pass = i;
-		            }
+	                newChunkMesh.pass = i;
 			    }
 			    
 			    renderer.removeMesh(chunkMeshes[cy * 2 + i]);
@@ -81,23 +58,6 @@ public class NeoChunk {
 		discardedMesh = false;
 	}
 	
-	// nice copypasta
-	public void putSimpleMeshes(List<SimpleChunkMesh> newSimpleMeshes) {
-	    for(int i = 0; i < 2; i++) {
-            SimpleChunkMesh newSimpleMesh = newSimpleMeshes.size() > i ? newSimpleMeshes.get(i) : null;
-            if(simpleMeshes[i] != null) {
-                if(newSimpleMesh != null) {
-                    newSimpleMesh.pass = i;
-                }
-                
-                renderer.setMeshVisible(simpleMeshes[i], false);
-                simpleMeshes[i].destroy();
-            }
-            simpleMeshes[i] = newSimpleMesh;
-        }
-	    Neodymium.renderer.lodChunkChanged(this);
-	}
-	
 	public boolean hasChunkMeshes() {
 		for(ChunkMesh cm : chunkMeshes) {
 			if(cm != null) {
@@ -107,19 +67,8 @@ public class NeoChunk {
 		return false;
 	}
 	
-	public void tick(Entity player) {
-	    if(Config.disableSimpleMeshes) {
-	        setLOD(2);
-	    } else {
-    		double distSq = distSq(player);
-    		if(Config.disableSimpleMeshes || distSq < Math.pow((Neodymium.renderer.renderRange / 2) * 16, 2)) {
-    		    setLOD(2);
-    		} else if(distSq < Math.pow((Neodymium.renderer.renderRange) * 16, 2)) {
-    		    setLOD(1);
-    		} else {
-    		    setLOD(0);
-    		}
-	    }
+	public void tick() {
+        setLOD(2);
 	}
 	
    public void setLOD(int lod) {
@@ -140,35 +89,8 @@ public class NeoChunk {
             }
         }
     }
-	/*
-	public NBTTagCompound saveToNBT(NBTTagCompound oldNbt, List<String> oldStringTable) {
-	    NBTTagCompound nbt = new NBTTagCompound();
-	    nbt.setInteger("x", x);
-	    nbt.setInteger("z", z);
-	    
-	    NBTTagCompound chunkMeshesCompound = oldNbt == null ? new NBTTagCompound() : oldNbt.getCompoundTag("chunkMeshes");
-	    if(!discardedMesh) {
-	        for(int i = 0; i < chunkMeshes.length; i++) {
-	            if(chunkMeshes[i] != null) {
-	                chunkMeshesCompound.setTag(String.valueOf(i), chunkMeshes[i].nbtData);
-	            }
-	        }
-	    } else if(oldNbt != null && discardedMesh && lod == 2) {
-	        loadChunkMeshesNBT(chunkMeshesCompound, oldStringTable);
-	        Neodymium.renderer.lodChunkChanged(this);
-	    }
-	    nbt.setTag("chunkMeshes", chunkMeshesCompound);
-	    dirty = false;
-	    return nbt;
-	}
-	*/
+   
 	public void destroy() {
-	    for(SimpleChunkMesh scm: simpleMeshes) {
-	        if(scm != null) {
-	            scm.destroy();
-	            region.meshes--;
-	        }
-        }
 	    for(ChunkMesh cm: chunkMeshes) {
 	        if(cm != null) {
 	            cm.destroy();
@@ -176,12 +98,6 @@ public class NeoChunk {
 	        }
 	    }
 	    Neodymium.renderer.setVisible(this, false);
-	}
-	
-	public void receiveChunk(Chunk chunk) {
-	    if(!Config.disableSimpleMeshes) {
-	        putSimpleMeshes(SimpleChunkMesh.generateSimpleMeshes(chunk));
-	    }
 	}
 	
 	public boolean isFullyVisible() {
@@ -195,11 +111,6 @@ public class NeoChunk {
 	}
 	
     public boolean isEmpty() {
-        for(SimpleChunkMesh scm: simpleMeshes) {
-            if(scm != null) {
-                return false;
-            }
-        }
         for(ChunkMesh cm: chunkMeshes) {
             if(cm != null) {
                 return false;

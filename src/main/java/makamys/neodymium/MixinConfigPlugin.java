@@ -9,19 +9,15 @@ import org.spongepowered.asm.lib.tree.ClassNode;
 import org.spongepowered.asm.mixin.extensibility.IMixinConfigPlugin;
 import org.spongepowered.asm.mixin.extensibility.IMixinInfo;
 
+import makamys.neodymium.util.OFUtil;
+
 public class MixinConfigPlugin implements IMixinConfigPlugin {
     
-    private static boolean isOptiFinePresent = MixinConfigPlugin.class.getResource("/optifine/OptiFineTweaker.class") != null;
-    
     @Override
-    public void onLoad(String mixinPackage) {
-        // TODO Auto-generated method stub
-        
-    }
+    public void onLoad(String mixinPackage) {}
 
     @Override
     public String getRefMapperConfig() {
-        // TODO Auto-generated method stub
         return null;
     }
 
@@ -31,10 +27,7 @@ public class MixinConfigPlugin implements IMixinConfigPlugin {
     }
 
     @Override
-    public void acceptTargets(Set<String> myTargets, Set<String> otherTargets) {
-        // TODO Auto-generated method stub
-        
-    }
+    public void acceptTargets(Set<String> myTargets, Set<String> otherTargets) {}
 
     @Override
     public List<String> getMixins() {
@@ -43,7 +36,7 @@ public class MixinConfigPlugin implements IMixinConfigPlugin {
         "MixinRenderGlobal",
         "MixinWorldRenderer"));
         
-        if (isOptiFinePresent()) {
+        if (OFUtil.isOptiFinePresent()) {
             System.out.println("Detected OptiFine");
             mixins.add("MixinRenderGlobal_OptiFine");
         }
@@ -52,19 +45,9 @@ public class MixinConfigPlugin implements IMixinConfigPlugin {
     }
 
     @Override
-    public void preApply(String targetClassName, ClassNode targetClass, String mixinClassName, IMixinInfo mixinInfo) {
-        // TODO Auto-generated method stub
-        
-    }
+    public void preApply(String targetClassName, ClassNode targetClass, String mixinClassName, IMixinInfo mixinInfo) {}
 
     @Override
-    public void postApply(String targetClassName, ClassNode targetClass, String mixinClassName, IMixinInfo mixinInfo) {
-        // TODO Auto-generated method stub
-        
-    }
-    
-    public static boolean isOptiFinePresent() {
-        return isOptiFinePresent;
-    }
+    public void postApply(String targetClassName, ClassNode targetClass, String mixinClassName, IMixinInfo mixinInfo) {}
     
 }

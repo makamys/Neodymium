@@ -1,16 +1,9 @@
 package makamys.neodymium;
 
-import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.Objects;
-import java.util.stream.Collectors;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.lwjgl.input.Keyboard;
-
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.Mod.EventHandler;
@@ -25,18 +18,16 @@ import cpw.mods.fml.relauncher.SideOnly;
 import makamys.mclib.core.MCLib;
 import makamys.mclib.core.MCLibModules;
 import makamys.neodymium.renderer.NeoRenderer;
-import makamys.neodymium.util.SpriteUtil;
+import makamys.neodymium.util.OFUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.world.World;
-import net.minecraftforge.client.event.EntityViewRenderEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent.ElementType;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.world.ChunkEvent;
 import net.minecraftforge.event.world.WorldEvent;
 
 @Mod(modid = Neodymium.MODID, version = Neodymium.VERSION)
@@ -50,8 +41,6 @@ public class Neodymium
     private static final Config.ReloadInfo CONFIG_RELOAD_INFO = new Config.ReloadInfo();
     
     public static NeoRenderer renderer;
-    
-    public static boolean fogEventWasPosted;
     
     public static boolean ofFastRender;
     private static Method ofIsFastRenderMethod;
@@ -84,9 +73,6 @@ public class Neodymium
     private void onPlayerWorldChanged(World newWorld) {
     	if(getRendererWorld() == null && newWorld != null) {
     		Config.reloadConfig();
-    		if(Config.enabled) {
-    			SpriteUtil.init();
-    		}
     	}
     	if(renderer != null) {
             renderer.destroy();
@@ -104,15 +90,6 @@ public class Neodymium
         
         if(event.world == getRendererWorld()) {
         	onPlayerWorldChanged(null);
-        }
-    }
-    
-    @SubscribeEvent
-    public void onChunkLoad(ChunkEvent.Load event) {
-        if(!event.world.isRemote) return;
-        
-        if(isActive()) {
-            renderer.onChunkLoad(event);
         }
     }
     
@@ -142,22 +119,11 @@ public class Neodymium
     }
     
     @SubscribeEvent
-    public void onServerTick(TickEvent.ServerTickEvent event) {
-        if(!Config.enabled) return;
-        
-        if(event.phase == TickEvent.Phase.START) {
-            if(isActive()) {
-                renderer.serverTick();
-            }
-        }
-    }
-    
-    @SubscribeEvent
     public void onRenderTick(TickEvent.RenderTickEvent event) {
         if(!Config.enabled) return;
         
         if(event.phase == TickEvent.Phase.START) {
-            if(MixinConfigPlugin.isOptiFinePresent()) {
+            if(OFUtil.isOptiFinePresent()) {
                 try {
                     if(ofIsFastRenderMethod == null) {
                         ofIsFastRenderMethod = Class.forName("Config").getMethod("isFastRender");
@@ -197,12 +163,6 @@ public class Neodymium
                 yOffset += 10;
             }
         }
-    }
-
-    
-    @SubscribeEvent
-    public void onRenderFog(EntityViewRenderEvent.RenderFogEvent event) {
-        fogEventWasPosted = true;
     }
 
     public static boolean shouldRenderVanillaWorld() {

@@ -21,10 +21,6 @@ import java.nio.file.Files;
 import java.nio.file.WatchEvent;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
 import org.lwjgl.input.Keyboard;
 
@@ -63,18 +59,6 @@ public class Config {
     public static int debugInfoStartY;
     @ConfigBoolean(cat="debug", def=false)
     public static boolean wireframe;
-    
-    // Unused LOD stuff
-    public static int chunkLoadsPerTick = 64;
-    public static List<Class<?>> blockClassBlacklist = Arrays.asList();
-    public static double fogStart = 0.25f;
-    public static double fogEnd = 1f;
-    public static double farPlaneDistanceMultiplier = 1;
-    public static boolean forceVanillaBiomeTemperature = false;
-    public static boolean hideUnderVanillaChunks = false;
-    public static boolean disableChunkMeshes = false;
-    public static boolean disableSimpleMeshes = true;
-    public static boolean saveMeshes = false;
     
     private static File configFile = new File(Launch.minecraftHome, "config/" + MODID + ".cfg");
     private static WatchService watcher;
@@ -167,29 +151,6 @@ public class Config {
         }
         
         return needReload;
-    }
-    
-    // Unused
-    public static void loadConfigLOD(Configuration config) {
-        chunkLoadsPerTick = config.get("General", "chunkLoadsPerTick", 64).getInt();
-        blockClassBlacklist = Arrays.stream(config.get("General", "blockClassBlacklist", "net.minecraft.block.BlockRotatedPillar;biomesoplenty.common.blocks.BlockBOPLog;gregapi.block.multitileentity.MultiTileEntityBlock").getString().split(";"))
-                .map(className -> {
-                    try {
-                        return Class.forName(className);
-                    } catch (ClassNotFoundException e) {
-                        return null;
-                    }
-                })
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList());
-        fogStart = config.get("Fog", "fogStart", "0.4").getDouble();
-        fogEnd = config.get("Fog", "fogEnd", "0.8").getDouble();
-        farPlaneDistanceMultiplier = config.get("Fog", "farPlaneDistanceMultiplier", "1.0").getDouble();
-        forceVanillaBiomeTemperature = config.get("Simple mesh generation", "forceVanillaBiomeTemperature", true).getBoolean();
-        hideUnderVanillaChunks = config.getBoolean("hideUnderVanillaChunks", "render", true, "");
-        disableChunkMeshes = config.getBoolean("disableChunkMeshes", "render", true, "");
-        disableSimpleMeshes = config.getBoolean("disableSimpleMeshes", "render", false, "");
-        saveMeshes = config.getBoolean("saveMeshes", "render", false, "");
     }
     
     public static boolean reloadIfChanged(ReloadInfo info) {

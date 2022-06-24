@@ -11,7 +11,6 @@ import java.nio.IntBuffer;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -39,16 +38,12 @@ import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.WorldRenderer;
-import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.world.ChunkCoordIntPair;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
-import net.minecraft.world.gen.ChunkProviderServer;
 import net.minecraftforge.event.world.ChunkEvent;
 
 /** The main renderer class. */
@@ -61,7 +56,6 @@ public class NeoRenderer {
     public boolean reloadPending;
     
     private static boolean[] wasDown = new boolean[256];
-    private int renderQuads = 0;
     
     public boolean renderWorld;
     public boolean rendererActive;
@@ -79,19 +73,9 @@ public class NeoRenderer {
     List<Chunk> myChunks = new ArrayList<Chunk>();
     List<NeoChunk> pendingLODChunks = new ArrayList<>();
     
-    private boolean hasServerInited = false;
     private Map<ChunkCoordIntPair, NeoRegion> loadedRegionsMap = new HashMap<>();
     
     public World world;
-    
-    // TODO make these packets to make this work on dedicated servers
-    Queue<Chunk> farChunks = new ConcurrentLinkedQueue<>();
-    
-    List<ChunkCoordIntPair> serverChunkLoadQueue = new ArrayList<>();
-    
-    private double lastSortX = Double.NaN;
-    private double lastSortY = Double.NaN;
-    private double lastSortZ = Double.NaN;
     
     private double interpX;
     private double interpY;
@@ -100,17 +84,8 @@ public class NeoRenderer {
     int interpYDiv;
     int interpZDiv;
     
-    private long lastGCTime = -1;
-    private long lastSaveTime = -1;
-    private long gcInterval = 10 * 1000;
-    private long saveInterval = 60 * 1000;
-    
     private int renderedMeshes, renderedQuads;
     private int frameCount;
-    
-    public int renderRange = 48; // unused LOD thing..
-    
-    private boolean freezeMeshes;
     
     public NeoRenderer(World world){
         this.world = world;
@@ -125,8 +100,6 @@ public class NeoRenderer {
     public void preRenderSortedRenderers(int renderPass, double alpha, WorldRenderer[] sortedWorldRenderers) {
         if(renderPass != 0) return;
         
-        Neodymium.fogEventWasPosted = false;
-        
         renderedMeshes = 0;
         renderedQuads = 0;
         
@@ -139,11 +112,6 @@ public class NeoRenderer {
             }
             if(mem.getCoherenceRate() < 0.95f || frameCount % 4 == 0) {
                 mem.runGC(false);
-            }
-            lastGCTime = System.currentTimeMillis();
-            if(lastSaveTime == -1 || (System.currentTimeMillis() - lastSaveTime) > saveInterval && Config.saveMeshes) {
-                onSave();
-                lastSaveTime = System.currentTimeMillis();
             }
             
             if(rendererActive && renderWorld) {
@@ -221,83 +189,19 @@ public class NeoRenderer {
         }
     }
     
-    private boolean isNormalMeshVisible(Mesh mesh) {
-        switch(mesh.normal) {
-        case POSITIVE_X:
-            return interpXDiv >= ((mesh.x + 0));
-        case NEGATIVE_X:
-            return interpXDiv < ((mesh.x + 1));
-        case POSITIVE_Y:
-            return interpYDiv >= ((mesh.y + 0));
-        case NEGATIVE_Y:
-            return interpYDiv < ((mesh.y + 1));
-        case POSITIVE_Z:
-            return interpZDiv >= ((mesh.z + 0));
-        case NEGATIVE_Z:
-            return interpZDiv < ((mesh.z + 1));
-        default:
-            return true;
-        }
-    }
-    
     private void mainLoop() {
-        /*while(!farChunks.isEmpty()) {
-            NeoChunk lodChunk = receiveFarChunk(farChunks.remove());
-            sendChunkToGPU(lodChunk);
-        }*/
-        
         if(Minecraft.getMinecraft().playerController.netClientHandler.doneLoadingTerrain) {
-            Entity player = Minecraft.getMinecraft().renderViewEntity;
-            
-            List<ChunkCoordIntPair> newServerChunkLoadQueue = new ArrayList<>();
-            
-            if(Double.isNaN(lastSortX) || getLastSortDistanceSq(player) > 16 * 16) {
-                /*int centerX = (int)Math.floor(player.posX / 16.0);
-                int centerZ = (int)Math.floor(player.posZ / 16.0);
+            for(Iterator<Entry<ChunkCoordIntPair, NeoRegion>> it = loadedRegionsMap.entrySet().iterator(); it.hasNext();) {
+                Entry<ChunkCoordIntPair, NeoRegion> kv = it.next();
+                NeoRegion v = kv.getValue();
                 
-                for(int x = -renderRange; x <= renderRange; x++) {
-                    for(int z = -renderRange; z <= renderRange; z++) {
-                        if(x * x + z * z < renderRange * renderRange) {
-                            int chunkX = centerX + x;
-                            int chunkZ = centerZ + z;
-                            
-                            if(getLODChunk(chunkX, chunkZ).needsChunk) {
-                                newServerChunkLoadQueue.add(new ChunkCoordIntPair(chunkX, chunkZ));
-                                getLODChunk(chunkX, chunkZ).needsChunk = false;
-                            }
-                        }
-                    }
-                }
-                Collections.sort(newServerChunkLoadQueue, new ChunkCoordDistanceComparator(player.posX, player.posY, player.posZ));
-                addToServerChunkLoadQueue(newServerChunkLoadQueue);
-                
-                lastSortX = player.posX;
-                lastSortY = player.posY;
-                lastSortZ = player.posZ;*/
-                for(Iterator<Entry<ChunkCoordIntPair, NeoRegion>> it = loadedRegionsMap.entrySet().iterator(); it.hasNext();) {
-                    Entry<ChunkCoordIntPair, NeoRegion> kv = it.next();
-                    NeoRegion v = kv.getValue();
-                    
-                    if(v.shouldDelete()) {
-                        v.destroy(getSaveDir());
-                        it.remove();
-                    } else {
-                        v.tick(player);
-                    }
+                if(v.shouldDelete()) {
+                    v.destroy(getSaveDir());
+                    it.remove();
+                } else {
+                    v.tick();
                 }
             }
-        }
-    }
-    
-    public float getFarPlaneDistanceMultiplier() {
-        return (float)Config.farPlaneDistanceMultiplier;
-    }
-    
-    public void afterSetupFog(int mode, float alpha, float farPlaneDistance) {
-        EntityLivingBase entity = Minecraft.getMinecraft().renderViewEntity;
-        if(Neodymium.fogEventWasPosted && !Minecraft.getMinecraft().theWorld.provider.doesXZShowFog((int)entity.posX, (int)entity.posZ)) {
-            GL11.glFogf(GL11.GL_FOG_START, mode < 0 ? 0 : farPlaneDistance * (float)Config.fogStart);
-            GL11.glFogf(GL11.GL_FOG_END, mode < 0 ? farPlaneDistance/4 : farPlaneDistance * (float)Config.fogEnd);
         }
     }
     
@@ -314,11 +218,6 @@ public class NeoRenderer {
             }
             if(Keyboard.isKeyDown(Keyboard.KEY_M) && !wasDown[Keyboard.KEY_M]) {
                 showMemoryDebugger = !showMemoryDebugger;
-                //LODChunk chunk = getLODChunk(9, -18);
-                //setMeshVisible(chunk.chunkMeshes[7], false, true);
-                //freezeMeshes = false;
-                //chunk.chunkMeshes[7].quadCount = 256;
-                //setMeshVisible(chunk.chunkMeshes[7], true, true);
             }
             if(Keyboard.isKeyDown(Keyboard.KEY_P) && !wasDown[Keyboard.KEY_P]) {
                 Util.dumpTexture();
@@ -440,8 +339,6 @@ public class NeoRenderer {
     }
     
     public boolean init() {
-        Map<String, TextureAtlasSprite> uploadedSprites = ((TextureMap)Minecraft.getMinecraft().getTextureManager().getTexture(TextureMap.locationBlocksTexture)).mapUploadedSprites;
-        
         reloadShader();
         
         VAO = glGenVertexArrays();
@@ -546,15 +443,11 @@ public class NeoRenderer {
     }
     
     public void destroy() {
-        onSave();
-        
         glDeleteProgram(shaderPrograms[0]);
         glDeleteProgram(shaderPrograms[1]);
         glDeleteVertexArrays(VAO);
         mem.destroy();
         
-        SimpleChunkMesh.instances = 0;
-        SimpleChunkMesh.usedRAM = 0;
         ChunkMesh.instances = 0;
         ChunkMesh.usedRAM = 0;
     }
@@ -578,8 +471,6 @@ public class NeoRenderer {
     }
     
     public void onWorldRendererPost(WorldRenderer wr) {
-        if(Config.disableChunkMeshes) return;
-        
         int x = Math.floorDiv(wr.posX, 16);
         int y = Math.floorDiv(wr.posY, 16);
         int z = Math.floorDiv(wr.posZ, 16);
@@ -591,36 +482,8 @@ public class NeoRenderer {
         }
     }
     
-    private double getLastSortDistanceSq(Entity player) {
-        return Math.pow(lastSortX - player.posX, 2) + Math.pow(lastSortZ - player.posZ, 2);
-    }
-    
-    private synchronized void addToServerChunkLoadQueue(List<ChunkCoordIntPair> coords) {
-        serverChunkLoadQueue.addAll(coords);
-    }
-    
-    private NeoChunk receiveFarChunk(Chunk chunk) {
-        NeoRegion region = getRegionContaining(chunk.xPosition, chunk.zPosition);
-        return region.putChunk(chunk);
-    }
-    
     private NeoChunk getLODChunk(int chunkX, int chunkZ) {
         return getRegionContaining(chunkX, chunkZ).getChunkAbsolute(chunkX, chunkZ);
-    }
-    
-    public void onStopServer() {
-        
-    }
-    
-    public synchronized void serverTick() {
-        int chunkLoadsRemaining = Config.chunkLoadsPerTick;
-        while(!serverChunkLoadQueue.isEmpty() && chunkLoadsRemaining-- > 0) {
-            ChunkCoordIntPair coords = serverChunkLoadQueue.remove(0);
-            ChunkProviderServer chunkProviderServer = Minecraft.getMinecraft().getIntegratedServer().worldServerForDimension(world.provider.dimensionId).theChunkProviderServer;
-            Chunk chunk = chunkProviderServer.currentChunkProvider.provideChunk(coords.chunkXPos, coords.chunkZPos);
-            SimpleChunkMesh.prepareFarChunkOnServer(chunk);
-            farChunks.add(chunk);
-        }
     }
     
     private NeoRegion getRegionContaining(int chunkX, int chunkZ) {
@@ -631,13 +494,6 @@ public class NeoRenderer {
             loadedRegionsMap.put(key, region);
         }
         return region;
-    }
-    
-    private void sendChunkToGPU(NeoChunk lodChunk) {
-        Entity player = Minecraft.getMinecraft().renderViewEntity;
-        
-        lodChunk.tick(player);
-        setVisible(lodChunk, true, true);
     }
     
     public void setVisible(NeoChunk chunk, boolean visible) {
@@ -652,20 +508,7 @@ public class NeoRenderer {
     }
     
     public void lodChunkChanged(NeoChunk lodChunk) {
-        int newLOD = (!lodChunk.hasChunkMeshes() && lodChunk.lod == 2) ? (Config.disableSimpleMeshes ? 0 : 1) : lodChunk.lod;
-        for(SimpleChunkMesh sm : lodChunk.simpleMeshes) {
-            if(sm != null) {
-                if(lodChunk.isFullyVisible() && newLOD == 1) {
-                    if(!sm.visible) {
-                        setMeshVisible(sm, true);
-                    }
-                } else {
-                    if(sm.visible) {
-                        setMeshVisible(sm, false);
-                    }
-                }
-            }
-        }
+        int newLOD = lodChunk.hasChunkMeshes() ? 2 : 0;
         for(int y = 0; y < 16; y++) {
             for(int pass = 0; pass < 2; pass++) {
                 ChunkMesh cm = lodChunk.chunkMeshes[y * 2 + pass];
@@ -685,11 +528,7 @@ public class NeoRenderer {
     }
     
     protected void setMeshVisible(Mesh mesh, boolean visible) {
-        setMeshVisible(mesh, visible, false);
-    }
-    
-    protected void setMeshVisible(Mesh mesh, boolean visible, boolean force) {
-        if((!force && freezeMeshes) || mesh == null) return;
+        if(mesh == null) return;
         
         if(mesh.visible != visible) {
             mesh.visible = visible;
@@ -734,23 +573,10 @@ public class NeoRenderer {
         ));
         text.addAll(mem.getDebugText());
         text.addAll(Arrays.asList(
-                //"Simple meshes: " + SimpleChunkMesh.instances + " (" + SimpleChunkMesh.usedRAM / 1024 / 1024 + "MB)",
                 "Meshes: " + ChunkMesh.instances + " (" + ChunkMesh.usedRAM / 1024 / 1024 + "MB)",
-                //"Total RAM used: " + ((SimpleChunkMesh.usedRAM + ChunkMesh.usedRAM) / 1024 / 1024) + " MB",
                 "Rendered: " + renderedMeshes + " (" + renderedQuads / 1000 + "KQ)"
         ));
         return text;
-    }
-    
-    public void onSave() {
-        //System.out.println("Saving LOD regions...");
-        //long t0 = System.currentTimeMillis();
-        //loadedRegionsMap.forEach((k, v) -> v.save(getSaveDir()));
-        //System.out.println("Finished saving LOD regions in " + ((System.currentTimeMillis() - t0) / 1000.0) + "s");
-    }
-    
-    public void onChunkLoad(ChunkEvent.Load event) {
-        farChunks.add(event.getChunk());
     }
     
     private Path getSaveDir(){

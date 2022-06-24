@@ -66,21 +66,6 @@ public class MeshQuad {
     private static Vector3f vectorB = new Vector3f();
     private static Vector3f vectorC = new Vector3f();
     
-    private int minPositive(int a, int b) {
-        if(a == -1) {
-            return b;
-        } else {
-            return a < b ? a : b;
-        }
-    }
-    private int maxPositive(int a, int b) {
-        if(a == -1) {
-            return b;
-        } else {
-            return a > b ? a : b;
-        }
-    }
-    
     private void read(int[] rawBuffer, int offset, int offsetX, int offsetY, int offsetZ) {
         for(int vi = 0; vi < 4; vi++) {
             int i = offset + vi * 8;
@@ -144,10 +129,6 @@ public class MeshQuad {
         Arrays.fill(quadCountByDirection, 1);
         Arrays.fill(totalMergeCountByPlane, 0);
         mergeReference = null;
-    }
-    
-    public MeshQuad() {
-        
     }
     
     public void writeToBuffer(BufferWriter out) throws IOException {
