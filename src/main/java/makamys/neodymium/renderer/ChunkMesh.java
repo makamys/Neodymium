@@ -244,15 +244,12 @@ public class ChunkMesh extends Mesh {
     }
     
     @Override
-    public void writeToIndexBuffer(IntBuffer piFirst, IntBuffer piCount, int[] renderedMeshesReturn,
-            int[] renderedQuadsReturn, int cameraXDiv, int cameraYDiv, int cameraZDiv) {
+    public int writeToIndexBuffer(IntBuffer piFirst, IntBuffer piCount, int cameraXDiv, int cameraYDiv, int cameraZDiv) {
         if(!Config.cullFaces) {
-            super.writeToIndexBuffer(piFirst, piCount, renderedMeshesReturn, renderedQuadsReturn, cameraXDiv, cameraYDiv, cameraZDiv);
-            return;
+            return super.writeToIndexBuffer(piFirst, piCount, cameraXDiv, cameraYDiv, cameraZDiv);
         }
         
-        renderedMeshesReturn[0] = 0;
-        renderedQuadsReturn[0] = 0;
+        int renderedMeshes = 0;
         
         int startIndex = -1;
         for(int i = 0; i < NORMAL_ORDER.length + 1; i++) {
@@ -268,12 +265,13 @@ public class ChunkMesh extends Mesh {
                 
                 piFirst.put(iFirst + (startIndex*4));
                 piCount.put((endIndex - startIndex)*4);
-                renderedMeshesReturn[0]++;
-                renderedQuadsReturn[0] += endIndex - startIndex; // TODO remove this, it's redundant
+                renderedMeshes++;
                 
                 startIndex = -1;
             }
         }
+        
+        return renderedMeshes;
     }
     
     private boolean isNormalVisible(QuadNormal normal, int interpXDiv, int interpYDiv, int interpZDiv) {

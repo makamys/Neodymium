@@ -18,10 +18,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Queue;
 import java.util.Set;
-import java.util.concurrent.ConcurrentLinkedQueue;
-
 import org.lwjgl.BufferUtils;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.GL11;
@@ -44,7 +41,6 @@ import net.minecraft.world.ChunkCoordIntPair;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
-import net.minecraftforge.event.world.ChunkEvent;
 
 /** The main renderer class. */
 public class NeoRenderer {
@@ -170,18 +166,17 @@ public class NeoRenderer {
         }
     }
     
-    private static int[] renderedMeshesReturn = new int[1];
-    private static int[] renderedQuadsReturn = new int[1];
-    
     private void initIndexBuffers() {
         for(int i = 0; i < 2; i++) {
             piFirst[i].limit(MAX_MESHES);
             piCount[i].limit(MAX_MESHES);
             for(Mesh mesh : sentMeshes[i]) {
                 if(mesh.visible && (Config.maxMeshesPerFrame == -1 || renderedMeshes < Config.maxMeshesPerFrame)) {
-                    mesh.writeToIndexBuffer(piFirst[i], piCount[i], renderedMeshesReturn, renderedQuadsReturn, interpXDiv, interpYDiv, interpZDiv);
-                    renderedMeshes += renderedMeshesReturn[0];
-                    renderedQuads += renderedQuadsReturn[0];
+                    int meshes = mesh.writeToIndexBuffer(piFirst[i], piCount[i], interpXDiv, interpYDiv, interpZDiv);
+                    renderedMeshes += meshes;
+                    for(int j = piCount[i].position() - meshes; j < piCount[i].position(); j++) {
+                        renderedQuads += piCount[i].get(j) / 4;
+                    }
                 }
             }
             piFirst[i].flip();

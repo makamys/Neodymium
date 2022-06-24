@@ -42,11 +42,10 @@ public abstract class Mesh {
 	    UNSENT, SENT, PENDING_DELETE
 	}
 
-    public void writeToIndexBuffer(IntBuffer piFirst, IntBuffer piCount, int[] renderedMeshesReturn,
-            int[] renderedQuadsReturn, int cameraXDiv, int cameraYDiv, int cameraZDiv) {
-        renderedMeshesReturn[0] = 1;
-        renderedQuadsReturn[0] = quadCount;
+    public int writeToIndexBuffer(IntBuffer piFirst, IntBuffer piCount, int cameraXDiv, int cameraYDiv, int cameraZDiv) {
         piFirst.put(iFirst);
         piCount.put(iCount);
+        
+        return 1;
     }
 }
