@@ -28,7 +28,7 @@ public class NeoChunk {
 	
 	@Override
 	public String toString() {
-		return "LODChunk(" + x + ", " + z + ")";
+		return "NeoChunk(" + x + ", " + z + ")";
 	}
 	
 	public double distSq(Entity entity) {
@@ -51,7 +51,7 @@ public class NeoChunk {
 			}
 		    chunkMeshes[cy * 2 + i] = newChunkMesh;
 		}
-		Neodymium.renderer.lodChunkChanged(this);
+		Neodymium.renderer.neoChunkChanged(this);
 		dirty = true;
 	}
 	
@@ -72,7 +72,7 @@ public class NeoChunk {
         if(lod == this.lod) return;
         
         this.lod = lod;
-        Neodymium.renderer.lodChunkChanged(this);
+        Neodymium.renderer.neoChunkChanged(this);
         if(!dirty) {
             if(lod < 2) {
                 for(int i = 0; i < chunkMeshes.length; i++) {

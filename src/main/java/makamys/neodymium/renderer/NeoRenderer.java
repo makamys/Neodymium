@@ -451,18 +451,18 @@ public class NeoRenderer {
         int x = Math.floorDiv(wr.posX, 16);
         int y = Math.floorDiv(wr.posY, 16);
         int z = Math.floorDiv(wr.posZ, 16);
-        NeoChunk lodChunk = getLODChunk(x, z);
+        NeoChunk neoChunk = getNeoChunk(x, z);
         
-        lodChunk.isSectionVisible[y] = change == WorldRendererChange.VISIBLE;
+        neoChunk.isSectionVisible[y] = change == WorldRendererChange.VISIBLE;
         if(change == WorldRendererChange.DELETED) {
-            removeMesh(lodChunk.chunkMeshes[y]);
-            if(lodChunk.chunkMeshes[y] != null) {
-                lodChunk.chunkMeshes[y].destroy();
-                lodChunk.chunkMeshes[y] = null;
-                lodChunk.region.meshes--;
+            removeMesh(neoChunk.chunkMeshes[y]);
+            if(neoChunk.chunkMeshes[y] != null) {
+                neoChunk.chunkMeshes[y].destroy();
+                neoChunk.chunkMeshes[y] = null;
+                neoChunk.region.meshes--;
             }
         }
-        lodChunkChanged(lodChunk);
+        neoChunkChanged(neoChunk);
     }
     
     public void onWorldRendererPost(WorldRenderer wr) {
@@ -471,13 +471,13 @@ public class NeoRenderer {
         int z = Math.floorDiv(wr.posZ, 16);
         
         if(Minecraft.getMinecraft().theWorld.getChunkFromChunkCoords(x, z).isChunkLoaded) {
-            NeoChunk lodChunk = getLODChunk(x, z);
-            lodChunk.isSectionVisible[y] = ((IWorldRenderer)wr).isDrawn();
-            lodChunk.putChunkMeshes(y, ((IWorldRenderer)wr).getChunkMeshes());
+            NeoChunk neoChunk = getNeoChunk(x, z);
+            neoChunk.isSectionVisible[y] = ((IWorldRenderer)wr).isDrawn();
+            neoChunk.putChunkMeshes(y, ((IWorldRenderer)wr).getChunkMeshes());
         }
     }
     
-    private NeoChunk getLODChunk(int chunkX, int chunkZ) {
+    private NeoChunk getNeoChunk(int chunkX, int chunkZ) {
         return getRegionContaining(chunkX, chunkZ).getChunkAbsolute(chunkX, chunkZ);
     }
     
@@ -495,20 +495,20 @@ public class NeoRenderer {
         setVisible(chunk, visible, false);
     }
     
-    public void setVisible(NeoChunk lodChunk, boolean visible, boolean forceCheck) {
-        if(!forceCheck && visible == lodChunk.visible) return;
+    public void setVisible(NeoChunk neoChunk, boolean visible, boolean forceCheck) {
+        if(!forceCheck && visible == neoChunk.visible) return;
         
-        lodChunk.visible = visible;
-        lodChunkChanged(lodChunk);
+        neoChunk.visible = visible;
+        neoChunkChanged(neoChunk);
     }
     
-    public void lodChunkChanged(NeoChunk lodChunk) {
-        int newLOD = lodChunk.hasChunkMeshes() ? 2 : 0;
+    public void neoChunkChanged(NeoChunk neoChunk) {
+        int newLOD = neoChunk.hasChunkMeshes() ? 2 : 0;
         for(int y = 0; y < 16; y++) {
             for(int pass = 0; pass < 2; pass++) {
-                ChunkMesh cm = lodChunk.chunkMeshes[y * 2 + pass];
+                ChunkMesh cm = neoChunk.chunkMeshes[y * 2 + pass];
                 if(cm != null) {
-                    if(lodChunk.isSectionVisible[y] && newLOD == 2) {
+                    if(neoChunk.isSectionVisible[y] && newLOD == 2) {
                         if(!cm.visible) {
                             setMeshVisible(cm, true);
                         }
@@ -569,10 +569,10 @@ public class NeoRenderer {
         return world != null && !world.provider.isHellWorld;
     }
     
-    public static class LODChunkComparator implements Comparator<NeoChunk> {
+    public static class NeoChunkComparator implements Comparator<NeoChunk> {
         Entity player;
         
-        public LODChunkComparator(Entity player) {
+        public NeoChunkComparator(Entity player) {
             this.player = player;
         }
         

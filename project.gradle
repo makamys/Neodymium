@@ -1,7 +1,7 @@
 jar {
     manifest {
         attributes (
-            'FMLAT': "LODMod_at.cfg"
+            'FMLAT': "neodymium_at.cfg"
         )
     }
 }
