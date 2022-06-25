@@ -42,9 +42,6 @@ public class Neodymium
     
     public static NeoRenderer renderer;
     
-    public static boolean ofFastRender;
-    private static Method ofIsFastRenderMethod;
-    
     @EventHandler
     public void preInit(FMLConstructionEvent event) {
         MCLib.init();
@@ -122,18 +119,6 @@ public class Neodymium
         if(!Config.enabled) return;
         
         if(event.phase == TickEvent.Phase.START) {
-            if(OFUtil.isOptiFinePresent()) {
-                try {
-                    if(ofIsFastRenderMethod == null) {
-                        ofIsFastRenderMethod = Class.forName("Config").getMethod("isFastRender");
-                    }
-                    ofFastRender = (boolean)ofIsFastRenderMethod.invoke(null);
-                } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException
-                        | SecurityException | ClassNotFoundException e) {
-                    // oops
-                }
-            }
-            
             EntityPlayer player = Minecraft.getMinecraft().thePlayer;
             World world = player != null ? player.worldObj : null;
             if(world != getRendererWorld()) {

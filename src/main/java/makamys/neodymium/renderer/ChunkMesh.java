@@ -72,17 +72,12 @@ public class ChunkMesh extends Mesh {
         int yOffset = wr.posY;
         int zOffset = wr.posZ;
         
-        boolean fr = OFUtil.isOptiFinePresent() && Neodymium.ofFastRender;
-        int tessellatorXOffset = fr ? 0 : xOffset;
-        int tessellatorYOffset = fr ? 0 : yOffset;
-        int tessellatorZOffset = fr ? 0 : zOffset;
-        
         ChunkMesh.Flags flags = new ChunkMesh.Flags(t.hasTexture, t.hasBrightness, t.hasColor, t.hasNormals);
         
         quadBuf.reset();
         
         for(int quadI = 0; quadI < t.vertexCount / 4; quadI++) {
-            quadBuf.next().setState(t.rawBuffer, quadI * 32, flags, tessellatorXOffset, tessellatorYOffset, tessellatorZOffset);
+            quadBuf.next().setState(t.rawBuffer, quadI * 32, flags, (float)-t.xOffset, (float)-t.yOffset, (float)-t.zOffset);
         }
         
         List<MeshQuad> quads = quadBuf.getAsList();

@@ -66,7 +66,7 @@ public class MeshQuad {
     private static Vector3f vectorB = new Vector3f();
     private static Vector3f vectorC = new Vector3f();
     
-    private void read(int[] rawBuffer, int offset, int offsetX, int offsetY, int offsetZ) {
+    private void read(int[] rawBuffer, int offset, float offsetX, float offsetY, float offsetZ) {
         for(int vi = 0; vi < 4; vi++) {
             int i = offset + vi * 8;
             
@@ -84,7 +84,7 @@ public class MeshQuad {
         }
     }
     
-    public void setState(int[] rawBuffer, int offset, ChunkMesh.Flags flags, int offsetX, int offsetY, int offsetZ) {
+    public void setState(int[] rawBuffer, int offset, ChunkMesh.Flags flags, float offsetX, float offsetY, float offsetZ) {
         resetState();
         
         read(rawBuffer, offset, offsetX, offsetY, offsetZ);
