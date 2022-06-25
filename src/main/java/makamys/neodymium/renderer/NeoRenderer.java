@@ -375,62 +375,62 @@ public class NeoRenderer {
         return true;
     }
     
-       public void reloadShader(int pass) {
-           Set<String> defines = new HashSet<>();
-           if(Config.renderFog) {
-               defines.add("RENDER_FOG");
-           }
-           if(Config.simplifyChunkMeshes) {
-               defines.add("SIMPLIFY_MESHES");
-           }
-           if(Config.shortUV) {
-               defines.add("SHORT_UV");
-           }
-           if(pass == 0) {
-               defines.add("PASS_0");
-           }
-           
-            boolean errors = false;
-            
-            int vertexShader;
-            vertexShader = glCreateShader(GL_VERTEX_SHADER);
-            
-            glShaderSource(vertexShader, Preprocessor.preprocess(Util.readFile("shaders/chunk.vert"), defines));
-            glCompileShader(vertexShader);
-            
-            if(glGetShaderi(vertexShader, GL_COMPILE_STATUS) == 0) {
-                System.out.println("Error compiling vertex shader: " + glGetShaderInfoLog(vertexShader, 256));
-                errors = true;
-            }
-            
-            int fragmentShader;
-            fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-            
-            glShaderSource(fragmentShader, Preprocessor.preprocess(Util.readFile("shaders/chunk.frag"), defines));
-            glCompileShader(fragmentShader);
-            
-            if(glGetShaderi(fragmentShader, GL_COMPILE_STATUS) == 0) {
-                System.out.println("Error compiling fragment shader: " + glGetShaderInfoLog(fragmentShader, 256));
-                errors = true;
-            }
-            
-            int newShaderProgram = glCreateProgram();
-            glAttachShader(newShaderProgram, vertexShader);
-            glAttachShader(newShaderProgram, fragmentShader);
-            glLinkProgram(newShaderProgram);
-            
-            if(glGetProgrami(newShaderProgram, GL_LINK_STATUS) == 0) {
-                System.out.println("Error linking shader: " + glGetShaderInfoLog(newShaderProgram, 256));
-                errors = true;
-            }
-            
-            if(!errors) {
-                shaderPrograms[pass] = newShaderProgram;
-            }
-            
-            glDeleteShader(vertexShader);
-            glDeleteShader(fragmentShader);
+    public void reloadShader(int pass) {
+        Set<String> defines = new HashSet<>();
+        if(Config.renderFog) {
+            defines.add("RENDER_FOG");
         }
+        if(Config.simplifyChunkMeshes) {
+            defines.add("SIMPLIFY_MESHES");
+        }
+        if(Config.shortUV) {
+            defines.add("SHORT_UV");
+        }
+        if(pass == 0) {
+            defines.add("PASS_0");
+        }
+       
+        boolean errors = false;
+        
+        int vertexShader;
+        vertexShader = glCreateShader(GL_VERTEX_SHADER);
+        
+        glShaderSource(vertexShader, Preprocessor.preprocess(Util.readFile("shaders/chunk.vert"), defines));
+        glCompileShader(vertexShader);
+        
+        if(glGetShaderi(vertexShader, GL_COMPILE_STATUS) == 0) {
+            System.out.println("Error compiling vertex shader: " + glGetShaderInfoLog(vertexShader, 256));
+            errors = true;
+        }
+        
+        int fragmentShader;
+        fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+        
+        glShaderSource(fragmentShader, Preprocessor.preprocess(Util.readFile("shaders/chunk.frag"), defines));
+        glCompileShader(fragmentShader);
+        
+        if(glGetShaderi(fragmentShader, GL_COMPILE_STATUS) == 0) {
+            System.out.println("Error compiling fragment shader: " + glGetShaderInfoLog(fragmentShader, 256));
+            errors = true;
+        }
+        
+        int newShaderProgram = glCreateProgram();
+        glAttachShader(newShaderProgram, vertexShader);
+        glAttachShader(newShaderProgram, fragmentShader);
+        glLinkProgram(newShaderProgram);
+        
+        if(glGetProgrami(newShaderProgram, GL_LINK_STATUS) == 0) {
+            System.out.println("Error linking shader: " + glGetShaderInfoLog(newShaderProgram, 256));
+            errors = true;
+        }
+        
+        if(!errors) {
+            shaderPrograms[pass] = newShaderProgram;
+        }
+        
+        glDeleteShader(vertexShader);
+        glDeleteShader(fragmentShader);
+    }
        
     public void reloadShader() {
         reloadShader(0);
