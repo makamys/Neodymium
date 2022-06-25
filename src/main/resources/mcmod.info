@@ -2,7 +2,7 @@
 {
   "modid": "${modid}",
   "name": "Neodymium",
-  "description": "Improves the framerate by changing the chunk renderer to use modern OpenGL.",
+  "description": "Improves performance by reimplementing chunk rendering using modern OpenGL.",
   "version": "${version}",
   "mcversion": "${minecraft_version}",
   "url": "",
