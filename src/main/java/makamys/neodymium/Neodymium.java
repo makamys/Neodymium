@@ -54,7 +54,6 @@ public class Neodymium
     public void preInit(FMLPreInitializationEvent event)
     {
         MCLibModules.updateCheckAPI.submitModTask(MODID, "@UPDATE_URL@");
-        Config.reloadConfig();
     }
     
     @EventHandler
@@ -167,6 +166,14 @@ public class Neodymium
 
     public static boolean shouldRenderVanillaWorld() {
         return !isActive() || (isActive() && renderer.renderWorld && !renderer.rendererActive);
+    }
+
+    public static String modifySplash(String splash) {
+        if(splash.equals("OpenGL 1.2!")) {
+            return "OpenGL 3.3!";
+        } else {
+            return splash;
+        }
     }
 
 }

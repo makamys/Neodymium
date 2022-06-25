@@ -51,6 +51,9 @@ public class Config {
     @ConfigBoolean(cat="render", def=true, com="Render fog? Slightly reduces framerate.")
     public static boolean renderFog;
     
+    @ConfigBoolean(cat="misc", def=true, com="Replace splash that says 'OpenGL 1.2!' with 'OpenGL 3.3!'. Just for fun.")
+    public static boolean replaceOpenGLSplash;
+    
     @ConfigInt(cat="debug", def=-1, min=-1, max=Integer.MAX_VALUE)
     public static int maxMeshesPerFrame;
     @ConfigInt(cat="debug", def=Keyboard.KEY_F4, min=-1, max=Integer.MAX_VALUE, com="The LWJGL keycode of the key that has to be held down while pressing the debug keybinds. Setting this to 0 will make the keybinds usable without holding anything else down. Setting this to -1 will disable debug keybinds entirely.")

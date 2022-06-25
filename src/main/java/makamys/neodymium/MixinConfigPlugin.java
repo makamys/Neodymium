@@ -14,7 +14,9 @@ import makamys.neodymium.util.OFUtil;
 public class MixinConfigPlugin implements IMixinConfigPlugin {
     
     @Override
-    public void onLoad(String mixinPackage) {}
+    public void onLoad(String mixinPackage) {
+        Config.reloadConfig();
+    }
 
     @Override
     public String getRefMapperConfig() {
@@ -39,6 +41,10 @@ public class MixinConfigPlugin implements IMixinConfigPlugin {
         if (OFUtil.isOptiFinePresent()) {
             System.out.println("Detected OptiFine");
             mixins.add("MixinRenderGlobal_OptiFine");
+        }
+        
+        if(Config.replaceOpenGLSplash) {
+            mixins.add("MixinGuiMainMenu");
         }
         
         return mixins;
