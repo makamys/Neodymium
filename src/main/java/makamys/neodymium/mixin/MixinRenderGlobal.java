@@ -2,6 +2,7 @@ package makamys.neodymium.mixin;
 
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
@@ -11,6 +12,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import makamys.neodymium.Neodymium;
 import net.minecraft.client.renderer.RenderGlobal;
 import net.minecraft.client.renderer.WorldRenderer;
+import net.minecraft.entity.EntityLivingBase;
 
 /** Blocks vanilla chunk rendering while NeoRenderer is active. */
 @Mixin(RenderGlobal.class)
@@ -18,6 +20,9 @@ abstract class MixinRenderGlobal {
     
     @Shadow
     private WorldRenderer[] sortedWorldRenderers;
+    
+    @Unique
+    private boolean isInsideUpdateRenderers;
     
     @Redirect(method = "renderSortedRenderers", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/RenderGlobal;renderAllRenderLists(ID)V"))
     private void redirectRenderAllRenderLists(RenderGlobal thiz, int p1, double p2) {
@@ -38,6 +43,17 @@ abstract class MixinRenderGlobal {
         if(Neodymium.isActive()) {
             Neodymium.renderer.destroy();
             Neodymium.renderer = null;
+        }
+    }
+    
+    @Inject(method = "updateRenderers", at = @At(value = "RETURN"))
+    public void postUpdateRenderers(EntityLivingBase entity, boolean flag, CallbackInfoReturnable<Boolean> cir) {
+        if(Neodymium.isActive() && !isInsideUpdateRenderers) {
+            isInsideUpdateRenderers = true;
+            for(int i = 0; i < Neodymium.renderer.rendererSpeedup; i++) {
+                ((RenderGlobal)(Object)this).updateRenderers(entity, flag);
+            }
+            isInsideUpdateRenderers = false;
         }
     }
 }

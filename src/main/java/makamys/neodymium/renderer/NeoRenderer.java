@@ -49,6 +49,7 @@ public class NeoRenderer {
     public boolean hasInited = false;
     public boolean destroyPending;
     public boolean reloadPending;
+    public int rendererSpeedup;
     
     private static boolean[] wasDown = new boolean[256];
     
@@ -215,6 +216,13 @@ public class NeoRenderer {
             }
             if(Keyboard.isKeyDown(Keyboard.KEY_LEFT) && !wasDown[Keyboard.KEY_LEFT]) {
                 reloadPending = true;
+            }
+            if(Keyboard.isKeyDown(Keyboard.KEY_RIGHT) && !wasDown[Keyboard.KEY_RIGHT]) {
+                if(rendererSpeedup == 0) {
+                    rendererSpeedup = 300;
+                } else {
+                    rendererSpeedup = 0;
+                }
             }
         }
         for(int i = 0; i < 256; i++) {
@@ -558,6 +566,11 @@ public class NeoRenderer {
                 "Meshes: " + ChunkMesh.instances + " (" + ChunkMesh.usedRAM / 1024 / 1024 + "MB)",
                 "Rendered: " + renderedMeshes + " (" + renderedQuads / 1000 + "KQ)"
         ));
+        if(rendererSpeedup > 0) {
+            text.addAll(Arrays.asList(
+                "(!) Renderer speedup active"
+            ));
+        }
         return text;
     }
     
