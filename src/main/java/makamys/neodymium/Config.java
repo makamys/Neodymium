@@ -77,7 +77,7 @@ public class Config {
             e.printStackTrace();
         }
         
-        Configuration config = new Configuration(configFile);
+        Configuration config = new Configuration(configFile, Neodymium.VERSION);
         
         config.load();
         
@@ -86,7 +86,7 @@ public class Config {
             info.needReload = needReload;
         }
         
-        if(config.hasChanged()) {
+        if(config.hasChanged() || (!config.getLoadedConfigVersion().equals(config.getDefinedConfigVersion()))) {
             config.save();
         }
         
