@@ -9,11 +9,9 @@ import net.minecraft.entity.Entity;
 public class NeoChunk {
 	
 	int x, z;
-	public boolean needsChunk = true;
 	int lod = 0;
 	boolean visible;
 	boolean dirty;
-	boolean discardedMesh;
 	NeoRegion region;
 	
 	ChunkMesh[] chunkMeshes = new ChunkMesh[32];
@@ -55,7 +53,6 @@ public class NeoChunk {
 		}
 		Neodymium.renderer.lodChunkChanged(this);
 		dirty = true;
-		discardedMesh = false;
 	}
 	
 	public boolean hasChunkMeshes() {
@@ -83,7 +80,6 @@ public class NeoChunk {
                         chunkMeshes[i].destroy();
                         chunkMeshes[i] = null;
                         region.meshes--;
-                        discardedMesh = true;
                     }
                 }
             }

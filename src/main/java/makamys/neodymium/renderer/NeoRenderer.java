@@ -40,7 +40,6 @@ import net.minecraft.util.EnumFacing;
 import net.minecraft.world.ChunkCoordIntPair;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
-import net.minecraft.world.chunk.Chunk;
 
 /** The main renderer class. */
 public class NeoRenderer {
@@ -65,9 +64,6 @@ public class NeoRenderer {
     private IntBuffer[] piCount = new IntBuffer[2];
     private List<Mesh>[] sentMeshes = (List<Mesh>[])new ArrayList[] {new ArrayList<Mesh>(), new ArrayList<Mesh>()};
     GPUMemoryManager mem;
-    
-    List<Chunk> myChunks = new ArrayList<Chunk>();
-    List<NeoChunk> pendingLODChunks = new ArrayList<>();
     
     private Map<ChunkCoordIntPair, NeoRegion> loadedRegionsMap = new HashMap<>();
     
@@ -541,15 +537,6 @@ public class NeoRenderer {
         mem.deleteMeshFromGPU(mesh);
         sentMeshes[mesh.pass].remove(mesh);
         setMeshVisible(mesh, false);
-    }
-    
-    public Chunk getChunkFromChunkCoords(int x, int z) {
-        for(Chunk chunk : myChunks) {
-            if(chunk.xPosition == x && chunk.zPosition == z) {
-                return chunk;
-            }
-        }
-        return null;
     }
     
     public boolean shouldSideBeRendered(Block block, IBlockAccess ba, int x, int y, int z, int w) {
