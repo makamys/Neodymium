@@ -35,9 +35,9 @@ public class Config {
     public static boolean hotswap;
     
     @NeedsReload
-    @ConfigBoolean(cat="render", def=false, com="Simplify chunk meshes so they are made of less vertices. Reduces vertex count at the cost of increasing shader complexity and slightly increasing memory usage. The optimal setting depends on your hardware.")
+    @ConfigBoolean(cat="render", def=false, com="Simplify chunk meshes so they are made of less vertices. Reduces vertex count at the cost of increasing shader complexity. It seems to reduce performance overall.")
     public static boolean simplifyChunkMeshes;
-    @ConfigBoolean(cat="render", def=true, com="Don't submit faces for rendering if they are facing away from the camera. Reduces GPU workload at the cost of increasing driver overhead. This will improve the framerate most of the time, but may reduce it if you are not fillrate-limited.")
+    @ConfigBoolean(cat="render", def=true, com="Don't submit faces for rendering if they are facing away from the camera. Reduces GPU workload at the cost of increasing driver overhead. This will improve the framerate most of the time, but may reduce it if you are not fillrate-limited (such as when playing on a small resolution).")
     public static boolean cullFaces;
     @NeedsReload
     @ConfigBoolean(cat="render", def=false, com="Store texture coordinates as shorts instead of floats. Slightly reduces memory usage and might improve performance by small amount. Might affect visuals slightly, but it's only noticable if the texture atlas is huge.")
