@@ -20,6 +20,8 @@ def modrinthOK = project.hasProperty("modrinthToken") && project.hasProperty("ga
 
 def debugPublish = project.hasProperty("debugPublish") && project.debugPublish.toBoolean()
 
+def useVPrefixForTag = project.hasProperty("useVPrefixForTag") && project.useVPrefixForTag.toBoolean()
+
 task build {}
 task assemble {}
 
@@ -29,7 +31,7 @@ if(githubOK){
 							 // You get this from your user settings > developer settings > Personal Access Tokens
 		owner project.githubOwner // default is the last part of your group. Eg group: "com.github.breadmoirai" => owner: "breadmoirai"
 		repo project.githubRepo // by default this is set to your project name
-		tagName "v${buildVersion}" // by default this is set to "v${project.version}"
+		tagName (useVPrefixForTag ? "v" : "") + "${buildVersion}" // by default this is set to "${project.version}"
 		targetCommitish "master" // by default this is set to "master"
 		releaseName "${project.releaseName} ${buildVersion}"
 		body changeLog // by default this is empty
