@@ -438,6 +438,8 @@ public class NeoRenderer {
     }
     
     public void destroy() {
+        if(!hasInited) return;
+        
         glDeleteProgram(shaderPrograms[0]);
         glDeleteProgram(shaderPrograms[1]);
         glDeleteVertexArrays(VAO);
