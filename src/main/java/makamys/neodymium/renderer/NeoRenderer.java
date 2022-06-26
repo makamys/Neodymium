@@ -568,7 +568,7 @@ public class NeoRenderer {
     }
     
     private boolean shouldRenderInWorld(World world) {
-        return world != null && !world.provider.isHellWorld;
+        return world != null;
     }
     
     public static class NeoChunkComparator implements Comparator<NeoChunk> {
