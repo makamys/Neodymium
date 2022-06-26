@@ -1,9 +1,10 @@
 {
   "homepage": "https://github.com/makamys/neodymium/releases",
   "1.7.10": {
-    "0.1": ""
+    "0.1": "",
+    "0.1.1": ""
   },
   "promos": {
-    "1.7.10-latest": "0.1"
+    "1.7.10-latest": "0.1.1"
   }
 }
