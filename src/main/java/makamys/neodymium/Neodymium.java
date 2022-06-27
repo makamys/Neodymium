@@ -39,6 +39,8 @@ public class Neodymium
     public static final Logger LOGGER = LogManager.getLogger(MODID);
     
     private static final Config.ReloadInfo CONFIG_RELOAD_INFO = new Config.ReloadInfo();
+
+    private boolean renderDebugText = false;
     
     public static NeoRenderer renderer;
     
@@ -132,19 +134,15 @@ public class Neodymium
     }
     
     @SubscribeEvent
-    public void onRenderOverlay(RenderGameOverlayEvent event) {
-        FontRenderer fontRenderer = RenderManager.instance.getFontRenderer();
-        if(isActive() && event.type == ElementType.TEXT && fontRenderer != null && Minecraft.getMinecraft().gameSettings.showDebugInfo && (Config.debugInfoStartY != -1))
-        {
-            Minecraft mc = Minecraft.getMinecraft();
-            ScaledResolution scaledresolution = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight);
-            int w = scaledresolution.getScaledWidth();
-            int h = scaledresolution.getScaledHeight();
-            
-            int yOffset = 0;
-            for(String s : renderer.getDebugText()) {
-                fontRenderer.drawStringWithShadow(s, w - fontRenderer.getStringWidth(s) - 10, Config.debugInfoStartY + yOffset, 0xFFFFFF);
-                yOffset += 10;
+    public void onRenderOverlay(RenderGameOverlayEvent.Pre event) {
+        if (Config.showDebugInfo && isActive()) {
+            if (event.type.equals(RenderGameOverlayEvent.ElementType.DEBUG)) {
+                renderDebugText = true;
+            } else if (renderDebugText && (event instanceof RenderGameOverlayEvent.Text) && event.type.equals(RenderGameOverlayEvent.ElementType.TEXT)) {
+                renderDebugText = false;
+                RenderGameOverlayEvent.Text text = (RenderGameOverlayEvent.Text) event;
+                text.right.add(null);
+                text.right.addAll(renderer.getDebugText());
             }
         }
     }
