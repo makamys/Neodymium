@@ -50,7 +50,6 @@ The mod increases memory usage, since the chunk meshes have to be stored somewhe
 * The mod is only compatible with FastCraft if OptiFine is also present.
 * The mod is not compatible with OptiFine's Advanced OpenGL (occlusion culling) feature.
 * OptiFine shaders aren't compatible, and probably never will be, as I have neither the knowledge nor the interest to add compatibility for them.
-* Triangulator's triangulation feature is not compatible. Disable `ENABLE_QUAD_TRIANGULATION` in `triangulator.cfg` to disable it.
 * Various coremods may be incompatible with Mixin. Use [Mixingasm](https://github.com/makamys/Mixingasm) to fix this.
 
 ## License
