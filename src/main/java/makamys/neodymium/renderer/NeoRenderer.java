@@ -34,6 +34,7 @@ import makamys.neodymium.util.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.WorldRenderer;
 import net.minecraft.entity.Entity;
+import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.world.ChunkCoordIntPair;
 import net.minecraft.world.World;
 
@@ -548,7 +549,7 @@ public class NeoRenderer {
     public List<String> getDebugText() {
         List<String> text = new ArrayList<>();
         text.addAll(Arrays.asList(
-                "Neodymium " + Neodymium.VERSION
+                (!rendererActive ? EnumChatFormatting.RED + "(OFF) " : "") + "Neodymium " + Neodymium.VERSION
         ));
         text.addAll(mem.getDebugText());
         text.addAll(Arrays.asList(
@@ -557,7 +558,7 @@ public class NeoRenderer {
         ));
         if(rendererSpeedup > 0) {
             text.addAll(Arrays.asList(
-                "(!) Renderer speedup active"
+                EnumChatFormatting.YELLOW + "(!) Renderer speedup active"
             ));
         }
         return text;
