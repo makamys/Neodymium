@@ -58,8 +58,8 @@ public class Config {
     public static int maxMeshesPerFrame;
     @ConfigInt(cat="debug", def=Keyboard.KEY_F4, min=-1, max=Integer.MAX_VALUE, com="The LWJGL keycode of the key that has to be held down while pressing the debug keybinds. Setting this to 0 will make the keybinds usable without holding anything else down. Setting this to -1 will disable debug keybinds entirely.")
     public static int debugPrefix;
-    @ConfigInt(cat="debug", def=110, min=-1, max=Integer.MAX_VALUE, com="The Y position of the first line of the debug info in the F3 overlay. Set this to -1 to disable showing that info.")
-    public static int debugInfoStartY;
+    @ConfigBoolean(cat="debug", def=true, com="Set this to false to stop showing the debug info in the F3 overlay.")
+    public static boolean showDebugInfo;
     @ConfigBoolean(cat="debug", def=false)
     public static boolean wireframe;
     
