@@ -13,5 +13,5 @@ repositories {
 }
 
 dependencies {
-    compileOnly("com.falsepattern:triangulator-mc1.7.10:1.7.0:dev")
+    compileOnly("com.falsepattern:triangulator-mc1.7.10:1.7.0:api")
 }
