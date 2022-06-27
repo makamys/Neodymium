@@ -7,3 +7,11 @@ jar {
 }
 
 apply from: "makalibs.gradle"
+
+repositories {
+    maven { url 'https://maven.falsepattern.com' }
+}
+
+dependencies {
+    compileOnly("com.falsepattern:triangulator-mc1.7.10:1.7.0:dev")
+}
