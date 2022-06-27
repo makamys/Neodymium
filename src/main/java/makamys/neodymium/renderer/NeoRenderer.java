@@ -185,7 +185,7 @@ public class NeoRenderer {
                 NeoRegion v = kv.getValue();
                 
                 if(v.shouldDelete()) {
-                    v.destroy(getSaveDir());
+                    v.destroy();
                     it.remove();
                 } else {
                     v.tick();
@@ -488,7 +488,7 @@ public class NeoRenderer {
         ChunkCoordIntPair key = new ChunkCoordIntPair(Math.floorDiv(chunkX , 32), Math.floorDiv(chunkZ, 32));
         NeoRegion region = loadedRegionsMap.get(key);
         if(region == null) {
-            region = NeoRegion.load(getSaveDir(), Math.floorDiv(chunkX , 32), Math.floorDiv(chunkZ , 32));
+            region = NeoRegion.load(Math.floorDiv(chunkX , 32), Math.floorDiv(chunkZ , 32));
             loadedRegionsMap.put(key, region);
         }
         return region;
@@ -562,10 +562,6 @@ public class NeoRenderer {
             ));
         }
         return text;
-    }
-    
-    private Path getSaveDir(){
-        return Minecraft.getMinecraft().mcDataDir.toPath().resolve("neodymium").resolve(Minecraft.getMinecraft().getIntegratedServer().getFolderName());
     }
     
     private boolean shouldRenderInWorld(World world) {

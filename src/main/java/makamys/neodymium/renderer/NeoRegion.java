@@ -25,7 +25,7 @@ public class NeoRegion {
 		}
 	}
 	
-	public static NeoRegion load(Path saveDir, int regionX, int regionZ) {
+	public static NeoRegion load(int regionX, int regionZ) {
 	    return new NeoRegion(regionX, regionZ);
 	}
 	
@@ -58,7 +58,7 @@ public class NeoRegion {
 		}
 	}
 	
-	public void destroy(Path saveDir) {
+	public void destroy() {
 	    for(int i = 0; i < 32; i++) {
             for(int j = 0; j < 32; j++) {
                 NeoChunk chunk = data[i][j];
