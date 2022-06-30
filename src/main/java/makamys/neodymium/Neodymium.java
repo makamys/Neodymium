@@ -49,6 +49,8 @@ public class Neodymium
     
     public static NeoRenderer renderer;
     
+    private static World rendererWorld;
+    
     @EventHandler
     public void preInit(FMLConstructionEvent event) {
         MCLib.init();
@@ -80,8 +82,7 @@ public class Neodymium
     		Config.reloadConfig();
     	}
     	if(renderer != null) {
-            renderer.destroy();
-            renderer = null;
+            destroyRenderer();
         }
     	if(Config.enabled && newWorld != null) {
     	    List<String> warns = new ArrayList<>();
@@ -114,6 +115,7 @@ public class Neodymium
     	        renderer.hasIncompatibilities = !warns.isEmpty() || !criticalWarns.isEmpty();
     	    }
         }
+    	rendererWorld = newWorld;
     }
     
     @SubscribeEvent
@@ -131,7 +133,7 @@ public class Neodymium
     }
     
     private World getRendererWorld() {
-    	return renderer != null ? renderer.world : null;
+    	return rendererWorld;
     }
     
     @SubscribeEvent
@@ -203,6 +205,12 @@ public class Neodymium
         } else {
             return splash;
         }
+    }
+
+    public static void destroyRenderer() {
+        renderer.destroy();
+        renderer = null;
+        rendererWorld = null;
     }
 
 }
