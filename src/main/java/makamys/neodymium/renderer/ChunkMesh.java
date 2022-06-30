@@ -178,20 +178,24 @@ public class ChunkMesh extends Mesh {
         ByteBuffer buffer = BufferUtils.createByteBuffer(quadCount * 4 * MeshQuad.getStride());
         BufferWriter out = new BufferWriter(buffer);
         
-        quads.sort(MESH_QUAD_RENDER_COMPARATOR);
+        boolean sortByNormals = pass == 0;
+        
+        if(sortByNormals) {
+            quads.sort(MESH_QUAD_RENDER_COMPARATOR);
+        }
         
         try {
             int i = 0;
             for(MeshQuad quad : quads) {
                 if(i < quadCount) {
                     if(MeshQuad.isValid(quad)) {
-                        int subMeshStartIdx = QUAD_NORMAL_TO_NORMAL_ORDER[quad.normal.ordinal()];
+                        int subMeshStartIdx = sortByNormals ? QUAD_NORMAL_TO_NORMAL_ORDER[quad.normal.ordinal()] : 0;
                         if(subMeshStart[subMeshStartIdx] == -1) {
                             subMeshStart[subMeshStartIdx] = i;
                         }
                         quad.writeToBuffer(out);
                         i++;
-                    } else {
+                    } else if(sortByNormals){
                         break;
                     }
                 }
