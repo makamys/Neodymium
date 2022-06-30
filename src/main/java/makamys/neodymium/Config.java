@@ -21,11 +21,16 @@ import java.nio.file.Files;
 import java.nio.file.WatchEvent;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.lwjgl.input.Keyboard;
 
+import cpw.mods.fml.client.config.IConfigElement;
 import net.minecraft.launchwrapper.Launch;
+import net.minecraftforge.common.config.ConfigElement;
 import net.minecraftforge.common.config.Configuration;
+import net.minecraftforge.common.config.Property;
 
 public class Config {
 
@@ -69,6 +74,7 @@ public class Config {
     @ConfigBoolean(cat="debug", def=false)
     public static boolean wireframe;
     
+    private static Configuration config;
     private static File configFile = new File(Launch.minecraftHome, "config/" + MODID + ".cfg");
     private static WatchService watcher;
     
@@ -83,7 +89,7 @@ public class Config {
             e.printStackTrace();
         }
         
-        Configuration config = new Configuration(configFile, Neodymium.VERSION);
+        config = new Configuration(configFile, Neodymium.VERSION);
         
         config.load();
         
@@ -184,6 +190,20 @@ public class Config {
     private static void registerWatchService() throws IOException {
         watcher = FileSystems.getDefault().newWatchService();
         configFile.toPath().getParent().register(watcher, ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY);
+    }
+    
+    public static List<IConfigElement> getElements() {
+        List<IConfigElement> list = new ArrayList<IConfigElement>();
+        for(Property prop : config.getCategory("render").values()) {
+            list.add(new ConfigElement(prop));
+        }
+        return list;
+    }
+    
+    public static void flush() {
+        if(config.hasChanged()) {
+            config.save();
+        }
     }
     
     @Retention(RetentionPolicy.RUNTIME)
