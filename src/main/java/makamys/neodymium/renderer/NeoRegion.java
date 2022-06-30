@@ -1,7 +1,5 @@
 package makamys.neodymium.renderer;
 
-import java.nio.file.Path;
-
 import net.minecraft.entity.Entity;
 
 public class NeoRegion {

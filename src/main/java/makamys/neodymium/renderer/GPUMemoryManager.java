@@ -11,7 +11,6 @@ import makamys.neodymium.config.Config;
 import makamys.neodymium.renderer.Mesh.GPUStatus;
 import makamys.neodymium.util.GuiHelper;
 import makamys.neodymium.util.ChatUtil;
-import net.minecraft.util.EnumChatFormatting;
 
 /** Manages dynamic memory allocation inside a fixed buffer on the GPU. */
 public class GPUMemoryManager {

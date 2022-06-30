@@ -9,11 +9,9 @@ import java.util.Comparator;
 import java.util.List;
 import org.lwjgl.BufferUtils;
 
-import makamys.neodymium.Neodymium;
 import makamys.neodymium.config.Config;
 import makamys.neodymium.ducks.IWorldRenderer;
 import makamys.neodymium.util.BufferWriter;
-import makamys.neodymium.util.OFUtil;
 import makamys.neodymium.util.RecyclingList;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.Tessellator;

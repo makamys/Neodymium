@@ -3,7 +3,6 @@ package makamys.neodymium.config;
 import java.util.Set;
 
 import cpw.mods.fml.client.IModGuiFactory;
-import cpw.mods.fml.client.config.GuiConfig;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
 

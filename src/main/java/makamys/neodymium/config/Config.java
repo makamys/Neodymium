@@ -29,7 +29,6 @@ import org.lwjgl.input.Keyboard;
 import cpw.mods.fml.client.config.IConfigElement;
 import makamys.neodymium.Neodymium;
 import net.minecraft.launchwrapper.Launch;
-import net.minecraftforge.common.config.ConfigElement;
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.common.config.Property;
 
