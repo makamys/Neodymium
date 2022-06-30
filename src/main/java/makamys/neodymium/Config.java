@@ -27,6 +27,7 @@ import java.util.List;
 import org.lwjgl.input.Keyboard;
 
 import cpw.mods.fml.client.config.IConfigElement;
+import makamys.neodymium.config.HumanReadableConfigElement;
 import net.minecraft.launchwrapper.Launch;
 import net.minecraftforge.common.config.ConfigElement;
 import net.minecraftforge.common.config.Configuration;
@@ -195,7 +196,7 @@ public class Config {
     public static List<IConfigElement> getElements() {
         List<IConfigElement> list = new ArrayList<IConfigElement>();
         for(Property prop : config.getCategory("render").values()) {
-            list.add(new ConfigElement(prop));
+            list.add(new HumanReadableConfigElement(prop));
         }
         return list;
     }
