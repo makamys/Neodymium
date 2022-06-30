@@ -68,15 +68,20 @@ public class NeoRenderer {
     
     public World world;
     
-    private double interpX;
-    private double interpY;
-    private double interpZ;
-    private double interpXT;
-    private double interpYT;
-    private double interpZT;
-    int interpXTDiv;
-    int interpYTDiv;
-    int interpZTDiv;
+    // Eye position in world space
+    private double eyePosX;
+    private double eyePosY;
+    private double eyePosZ;
+    
+    // Eye position in world space, transformed by model-view matrix (takes third person camera offset into account)
+    private double eyePosXT;
+    private double eyePosYT;
+    private double eyePosZT;
+    
+    // eyePos?T divided by 16 
+    int eyePosXTDiv;
+    int eyePosYTDiv;
+    int eyePosZTDiv;
     
     private int renderedMeshes, renderedQuads;
     private int frameCount;
@@ -115,17 +120,17 @@ public class NeoRenderer {
                     
                     Entity rve = Minecraft.getMinecraft().renderViewEntity;
                     
-                    interpX = rve.lastTickPosX + (rve.posX - rve.lastTickPosX) * alpha;
-                    interpY = rve.lastTickPosY + (rve.posY - rve.lastTickPosY) * alpha + rve.getEyeHeight();
-                    interpZ = rve.lastTickPosZ + (rve.posZ - rve.lastTickPosZ) * alpha;
+                    eyePosX = rve.lastTickPosX + (rve.posX - rve.lastTickPosX) * alpha;
+                    eyePosY = rve.lastTickPosY + (rve.posY - rve.lastTickPosY) * alpha + rve.getEyeHeight();
+                    eyePosZ = rve.lastTickPosZ + (rve.posZ - rve.lastTickPosZ) * alpha;
                     
-                    interpXT = interpX + transformedOrigin.x;
-                    interpYT = interpY + transformedOrigin.y;
-                    interpZT = interpZ + transformedOrigin.z;
+                    eyePosXT = eyePosX + transformedOrigin.x;
+                    eyePosYT = eyePosY + transformedOrigin.y;
+                    eyePosZT = eyePosZ + transformedOrigin.z;
                     
-                    interpXTDiv = Math.floorDiv((int)Math.floor(interpXT), 16);
-                    interpYTDiv = Math.floorDiv((int)Math.floor(interpYT), 16);
-                    interpZTDiv = Math.floorDiv((int)Math.floor(interpZT), 16);
+                    eyePosXTDiv = Math.floorDiv((int)Math.floor(eyePosXT), 16);
+                    eyePosYTDiv = Math.floorDiv((int)Math.floor(eyePosYT), 16);
+                    eyePosZTDiv = Math.floorDiv((int)Math.floor(eyePosZT), 16);
                     
                     sort(frameCount % 100 == 0, frameCount % Config.sortFrequency == 0);
                     
@@ -163,10 +168,10 @@ public class NeoRenderer {
     
     private void sort(boolean pass0, boolean pass1) {
         if(pass0) {
-            sentMeshes[0].sort(DISTANCE_COMPARATOR.setOrigin(interpX, interpY, interpZ).setInverted(false));
+            sentMeshes[0].sort(DISTANCE_COMPARATOR.setOrigin(eyePosX, eyePosY, eyePosZ).setInverted(false));
         }
         if(pass1) {
-            sentMeshes[1].sort(DISTANCE_COMPARATOR.setOrigin(interpX, interpY, interpZ).setInverted(true));
+            sentMeshes[1].sort(DISTANCE_COMPARATOR.setOrigin(eyePosX, eyePosY, eyePosZ).setInverted(true));
         }
     }
     
@@ -184,7 +189,7 @@ public class NeoRenderer {
             piCount[i].limit(MAX_MESHES);
             for(Mesh mesh : sentMeshes[i]) {
                 if(mesh.visible && (Config.maxMeshesPerFrame == -1 || renderedMeshes < Config.maxMeshesPerFrame)) {
-                    int meshes = mesh.writeToIndexBuffer(piFirst[i], piCount[i], interpXTDiv, interpYTDiv, interpZTDiv);
+                    int meshes = mesh.writeToIndexBuffer(piFirst[i], piCount[i], eyePosXTDiv, eyePosYTDiv, eyePosZTDiv);
                     renderedMeshes += meshes;
                     for(int j = piCount[i].position() - meshes; j < piCount[i].position(); j++) {
                         renderedQuads += piCount[i].get(j) / 4;
@@ -324,11 +329,7 @@ public class NeoRenderer {
         glUniform4(u_fogColor, fogColorBuf);
         glUniform2(u_fogStartEnd, fogStartEnd);
         
-        float originX = 0;
-        float originY = 0;
-        float originZ = 0;
-        
-        glUniform3f(u_playerPos, (float)interpX - originX, (float)interpY - originY, (float)interpZ - originZ);
+        glUniform3f(u_playerPos, (float)eyePosX, (float)eyePosY, (float)eyePosZ);
         
         glUniform1i(u_light, 1);
         
