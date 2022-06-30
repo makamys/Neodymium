@@ -88,44 +88,47 @@ public class NeoRenderer {
     }
     
     public void preRenderSortedRenderers(int renderPass, double alpha, WorldRenderer[] sortedWorldRenderers) {
-        if(renderPass != 0) return;
-        
-        renderedMeshes = 0;
-        renderedQuads = 0;
-        
-        Minecraft.getMinecraft().entityRenderer.enableLightmap((double)alpha);
-        
         if(hasInited) {
-            mainLoop();
-            if(Minecraft.getMinecraft().currentScreen == null) {
-                handleKeyboard();
-            }
-            if(mem.getCoherenceRate() < 0.95f || frameCount % 4 == 0) {
-                mem.runGC(false);
+            if(renderPass == 0) {
+                renderedMeshes = 0;
+                renderedQuads = 0;
+                
+                mainLoop();
+                if(Minecraft.getMinecraft().currentScreen == null) {
+                    handleKeyboard();
+                }
+                if(mem.getCoherenceRate() < 0.95f || frameCount % 4 == 0) {
+                    mem.runGC(false);
+                }
+                
+                if(rendererActive && renderWorld) {
+                    Entity rve = Minecraft.getMinecraft().renderViewEntity;
+                    
+                    interpX = rve.lastTickPosX + (rve.posX - rve.lastTickPosX) * alpha;
+                    interpY = rve.lastTickPosY + (rve.posY - rve.lastTickPosY) * alpha + rve.getEyeHeight();
+                    interpZ = rve.lastTickPosZ + (rve.posZ - rve.lastTickPosZ) * alpha;
+                    
+                    interpXDiv = Math.floorDiv((int)Math.floor(interpX), 16);
+                    interpYDiv = Math.floorDiv((int)Math.floor(interpY), 16);
+                    interpZDiv = Math.floorDiv((int)Math.floor(interpZ), 16);
+                    
+                    sort(frameCount % 100 == 0, frameCount % Config.sortFrequency == 0);
+                    
+                    updateMeshes();
+                    initIndexBuffers();
+                }
+                
+                frameCount++;
             }
             
             if(rendererActive && renderWorld) {
-                Entity rve = Minecraft.getMinecraft().renderViewEntity;
+                Minecraft.getMinecraft().entityRenderer.enableLightmap((double)alpha);
                 
-                interpX = rve.lastTickPosX + (rve.posX - rve.lastTickPosX) * alpha;
-                interpY = rve.lastTickPosY + (rve.posY - rve.lastTickPosY) * alpha + rve.getEyeHeight();
-                interpZ = rve.lastTickPosZ + (rve.posZ - rve.lastTickPosZ) * alpha;
+                render(renderPass, alpha);
                 
-                interpXDiv = Math.floorDiv((int)Math.floor(interpX), 16);
-                interpYDiv = Math.floorDiv((int)Math.floor(interpY), 16);
-                interpZDiv = Math.floorDiv((int)Math.floor(interpZ), 16);
-                
-                sort(frameCount % 100 == 0, frameCount % Config.sortFrequency == 0);
-                
-                updateMeshes();
-                initIndexBuffers();
-                render(alpha);
+                Minecraft.getMinecraft().entityRenderer.disableLightmap((double)alpha);
             }
         }
-        
-        frameCount++;
-        
-        Minecraft.getMinecraft().entityRenderer.disableLightmap((double)alpha);
     }
     
     public void onRenderTickEnd() {
@@ -235,43 +238,23 @@ public class NeoRenderer {
     FloatBuffer fogStartEnd = BufferUtils.createFloatBuffer(2);
     Matrix4f projMatrix = new Matrix4f();
     
-    private void render(double alpha) {
-        if(shaderPrograms[0] == 0 || shaderPrograms[1] == 0) return;
+    private void render(int pass, double alpha) {
+        if(shaderPrograms[pass] == 0) return;
         
-        GL11.glPushAttrib(GL11.GL_ENABLE_BIT);
-        GL11.glDisable(GL11.GL_TEXTURE_2D);
-        
-        glBindVertexArray(VAO);
-        GL11.glDisable(GL11.GL_BLEND);
-        
-        glUseProgram(shaderPrograms[0]);
-        updateUniforms(alpha, 0);
-        if(Config.wireframe) {
-            GL11.glPolygonMode(GL11.GL_FRONT_AND_BACK, GL11.GL_LINE);
-        }
-        glMultiDrawArrays(GL_QUADS, piFirst[0], piCount[0]);
-        if(Config.wireframe) {
-            GL11.glPolygonMode(GL11.GL_FRONT_AND_BACK, GL11.GL_FILL);
-        }
-        
-        glUseProgram(shaderPrograms[1]);
-        updateUniforms(alpha, 1);
-        GL11.glEnable(GL11.GL_BLEND);
-        GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+        glBindVertexArray(VAO);    
+        glUseProgram(shaderPrograms[pass]);
+        updateUniforms(alpha, pass);
         
         if(Config.wireframe) {
             GL11.glPolygonMode(GL11.GL_FRONT_AND_BACK, GL11.GL_LINE);
         }
-        glMultiDrawArrays(GL_QUADS, piFirst[1], piCount[1]);
+        glMultiDrawArrays(GL_QUADS, piFirst[pass], piCount[pass]);
         if(Config.wireframe) {
             GL11.glPolygonMode(GL11.GL_FRONT_AND_BACK, GL11.GL_FILL);
         }
         
         glBindVertexArray(0);
         glUseProgram(0);
-        
-        GL11.glDepthMask(true);
-        GL11.glPopAttrib();
     }
     
     private void updateUniforms(double alpha, int pass) {
