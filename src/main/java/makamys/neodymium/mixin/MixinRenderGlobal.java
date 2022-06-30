@@ -21,8 +21,7 @@ abstract class MixinRenderGlobal {
     @Shadow
     private WorldRenderer[] sortedWorldRenderers;
     
-    @Unique
-    private boolean isInsideUpdateRenderers;
+    private boolean nd$isInsideUpdateRenderers;
     
     @Redirect(method = "renderSortedRenderers", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/RenderGlobal;renderAllRenderLists(ID)V"))
     private void redirectRenderAllRenderLists(RenderGlobal thiz, int p1, double p2) {
@@ -48,12 +47,12 @@ abstract class MixinRenderGlobal {
     
     @Inject(method = "updateRenderers", at = @At(value = "RETURN"))
     public void postUpdateRenderers(EntityLivingBase entity, boolean flag, CallbackInfoReturnable<Boolean> cir) {
-        if(Neodymium.isActive() && !isInsideUpdateRenderers) {
-            isInsideUpdateRenderers = true;
+        if(Neodymium.isActive() && !nd$isInsideUpdateRenderers) {
+            nd$isInsideUpdateRenderers = true;
             for(int i = 0; i < Neodymium.renderer.rendererSpeedup; i++) {
                 ((RenderGlobal)(Object)this).updateRenderers(entity, flag);
             }
-            isInsideUpdateRenderers = false;
+            nd$isInsideUpdateRenderers = false;
         }
     }
 }

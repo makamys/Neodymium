@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -31,19 +32,19 @@ abstract class MixinWorldRenderer implements IWorldRenderer {
     @Shadow
     public boolean needsUpdate;
     
-    boolean savedDrawnStatus;
+    private boolean nd$savedDrawnStatus;
     
-    public List<ChunkMesh> chunkMeshes;
+    private List<ChunkMesh> nd$chunkMeshes;
     
     @Inject(method = {"updateRenderer", "updateRendererSort"}, at = @At(value = "HEAD"))
     private void preUpdateRenderer(CallbackInfo ci) {
         saveDrawnStatus();
         
         if(Neodymium.isActive()) {
-            if(chunkMeshes != null) {
-                Collections.fill(chunkMeshes, null);
+            if(nd$chunkMeshes != null) {
+                Collections.fill(nd$chunkMeshes, null);
             } else {
-                chunkMeshes = Lists.newArrayList(null, null);
+                nd$chunkMeshes = Lists.newArrayList(null, null);
             }
         }
     }
@@ -53,9 +54,9 @@ abstract class MixinWorldRenderer implements IWorldRenderer {
         notifyIfDrawnStatusChanged();
         
         if(Neodymium.isActive()) {
-            if(chunkMeshes != null) {
+            if(nd$chunkMeshes != null) {
                 Neodymium.renderer.onWorldRendererPost(WorldRenderer.class.cast(this));
-                Collections.fill(chunkMeshes, null);
+                Collections.fill(nd$chunkMeshes, null);
             }
         }
     }
@@ -63,8 +64,8 @@ abstract class MixinWorldRenderer implements IWorldRenderer {
     @Inject(method = "postRenderBlocks", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/Tessellator;draw()I"))
     private void prePostRenderBlocks(int pass, EntityLivingBase entity, CallbackInfo ci) {
         if(Neodymium.isActive()) {
-            if(chunkMeshes != null) {
-                chunkMeshes.set(pass, ChunkMesh.fromTessellator(pass, WorldRenderer.class.cast(this), Tessellator.instance));
+            if(nd$chunkMeshes != null) {
+                nd$chunkMeshes.set(pass, ChunkMesh.fromTessellator(pass, WorldRenderer.class.cast(this), Tessellator.instance));
             }
         }
     }
@@ -78,7 +79,7 @@ abstract class MixinWorldRenderer implements IWorldRenderer {
     
     @Override
     public List<ChunkMesh> getChunkMeshes() {
-        return chunkMeshes;
+        return nd$chunkMeshes;
     }
     
     @Inject(method = "updateInFrustum", at = @At(value = "HEAD"))
@@ -91,13 +92,15 @@ abstract class MixinWorldRenderer implements IWorldRenderer {
         notifyIfDrawnStatusChanged();
     }
     
+    @Unique
     private void saveDrawnStatus() {
-        savedDrawnStatus = isDrawn();
+        nd$savedDrawnStatus = isDrawn();
     }
     
+    @Unique
     private void notifyIfDrawnStatusChanged() {
         boolean drawn = isDrawn();
-        if(Neodymium.isActive() && drawn != savedDrawnStatus) {
+        if(Neodymium.isActive() && drawn != nd$savedDrawnStatus) {
             Neodymium.renderer.onWorldRendererChanged(WorldRenderer.class.cast(this), drawn ? NeoRenderer.WorldRendererChange.VISIBLE : NeoRenderer.WorldRendererChange.INVISIBLE);
         }
     }
