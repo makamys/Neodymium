@@ -188,7 +188,7 @@ public class NeoRenderer {
             piFirst[i].limit(MAX_MESHES);
             piCount[i].limit(MAX_MESHES);
             for(Mesh mesh : sentMeshes[i]) {
-                if(mesh.visible && (Config.maxMeshesPerFrame == -1 || renderedMeshes < Config.maxMeshesPerFrame)) {
+                if(shouldRenderMesh(mesh)) {
                     int meshes = mesh.writeToIndexBuffer(piFirst[i], piCount[i], eyePosXTDiv, eyePosYTDiv, eyePosZTDiv);
                     renderedMeshes += meshes;
                     for(int j = piCount[i].position() - meshes; j < piCount[i].position(); j++) {
@@ -199,6 +199,15 @@ public class NeoRenderer {
             piFirst[i].flip();
             piCount[i].flip();
         }
+    }
+    
+    private boolean shouldRenderMesh(Mesh mesh) {
+        if(mesh.visible && (Config.maxMeshesPerFrame == -1 || renderedMeshes < Config.maxMeshesPerFrame)) {
+            if(!Config.renderFog || !Config.fogOcclusion || mesh.distSq(eyePosX / 16.0, mesh.y + 0.5, eyePosZ / 16.0) < Math.pow((fogStartEnd.get(1)) / 16.0 + 1.0, 2)) {
+                return true;
+            }
+        }
+        return false;
     }
     
     private void mainLoop() {
@@ -300,13 +309,9 @@ public class NeoRenderer {
         glGetFloat(GL_FOG_COLOR, fogColorBuf);
         fogColorBuf.limit(4);
         
-        if(Config.renderFog) {
-            fogStartEnd.put(glGetFloat(GL_FOG_START));
-            fogStartEnd.put(glGetFloat(GL_FOG_END));
-        } else {
-            fogStartEnd.put(-1);
-            fogStartEnd.put(-1);
-        }
+        fogStartEnd.put(glGetFloat(GL_FOG_START));
+        fogStartEnd.put(glGetFloat(GL_FOG_END));
+        
         fogStartEnd.flip();
     }
     
