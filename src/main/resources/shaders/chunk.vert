@@ -47,8 +47,9 @@ void main()
 		float s = fogStartEnd.x;
 		float e = fogStartEnd.y;
 		vec4 eyePos = (modelView * (vec4(aPos - playerPos, 1.0) + vec4(0, 0.12, 0, 0)));
+		float c = length(eyePos);
 		
-		float fogFactor = clamp((e - length(eyePos)) / (e - s), 0, 1);
+		float fogFactor = clamp((e - c) / (e - s), 0, 1);
 		
 		FogFactor = fogFactor;	
 	} else {
