@@ -1,4 +1,4 @@
-package makamys.neodymium;
+package makamys.neodymium.config;
 
 import static makamys.neodymium.Neodymium.MODID;
 

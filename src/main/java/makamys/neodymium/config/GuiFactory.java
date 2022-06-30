@@ -1,4 +1,4 @@
-package makamys.neodymium;
+package makamys.neodymium.config;
 
 import java.util.Set;
 

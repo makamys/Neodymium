@@ -6,8 +6,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import makamys.neodymium.Config;
 import makamys.neodymium.Neodymium;
+import makamys.neodymium.config.Config;
 import makamys.neodymium.renderer.Mesh.GPUStatus;
 import makamys.neodymium.util.GuiHelper;
 import makamys.neodymium.util.ChatUtil;

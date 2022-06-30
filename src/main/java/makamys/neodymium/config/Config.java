@@ -1,4 +1,4 @@
-package makamys.neodymium;
+package makamys.neodymium.config;
 
 import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
@@ -27,7 +27,7 @@ import java.util.List;
 import org.lwjgl.input.Keyboard;
 
 import cpw.mods.fml.client.config.IConfigElement;
-import makamys.neodymium.config.HumanReadableConfigElement;
+import makamys.neodymium.Neodymium;
 import net.minecraft.launchwrapper.Launch;
 import net.minecraftforge.common.config.ConfigElement;
 import net.minecraftforge.common.config.Configuration;
@@ -236,7 +236,7 @@ public class Config {
     }
     
     public static class ReloadInfo {
-        boolean needReload;
+        public boolean needReload;
     }
     
 }

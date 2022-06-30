@@ -7,7 +7,7 @@ import java.util.Locale;
 
 import org.lwjgl.util.vector.Vector3f;
 
-import makamys.neodymium.Config;
+import makamys.neodymium.config.Config;
 import makamys.neodymium.util.BufferWriter;
 
 /*

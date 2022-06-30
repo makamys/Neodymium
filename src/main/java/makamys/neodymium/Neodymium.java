@@ -22,6 +22,7 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import makamys.mclib.core.MCLib;
 import makamys.mclib.core.MCLibModules;
+import makamys.neodymium.config.Config;
 import makamys.neodymium.renderer.NeoRenderer;
 import makamys.neodymium.util.ChatUtil;
 import makamys.neodymium.util.OFUtil;
@@ -37,7 +38,7 @@ import net.minecraftforge.client.event.RenderGameOverlayEvent.ElementType;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.world.WorldEvent;
 
-@Mod(modid = Neodymium.MODID, version = Neodymium.VERSION, guiFactory = "makamys.neodymium.GuiFactory")
+@Mod(modid = Neodymium.MODID, version = Neodymium.VERSION, guiFactory = "makamys.neodymium.config.GuiFactory")
 public class Neodymium
 {
     public static final String MODID = "neodymium";

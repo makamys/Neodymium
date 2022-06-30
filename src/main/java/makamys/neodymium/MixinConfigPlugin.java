@@ -9,6 +9,7 @@ import org.spongepowered.asm.lib.tree.ClassNode;
 import org.spongepowered.asm.mixin.extensibility.IMixinConfigPlugin;
 import org.spongepowered.asm.mixin.extensibility.IMixinInfo;
 
+import makamys.neodymium.config.Config;
 import makamys.neodymium.util.OFUtil;
 
 public class MixinConfigPlugin implements IMixinConfigPlugin {
