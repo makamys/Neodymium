@@ -14,6 +14,8 @@ uniform mat4 projInv;
 uniform vec4 viewport;
 uniform vec4 fogColor;
 uniform vec2 fogStartEnd;
+uniform int fogMode;
+uniform float fogDensity;
 
 uniform vec3 playerPos;
 
@@ -49,7 +51,10 @@ void main()
 		vec4 eyePos = (modelView * (vec4(aPos - playerPos, 1.0) + vec4(0, 0.12, 0, 0)));
 		float c = length(eyePos);
 		
-		float fogFactor = clamp((e - c) / (e - s), 0, 1);
+		float fogFactor = fogMode == 0x2601
+						? clamp((e - c) / (e - s), 0, 1) /* GL_LINEAR */
+						: exp(-fogDensity * c); /* GL_EXP */
+						
 		
 		FogFactor = fogFactor;	
 	} else {

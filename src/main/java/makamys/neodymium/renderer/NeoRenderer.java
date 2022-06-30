@@ -332,6 +332,8 @@ public class NeoRenderer {
         int u_projInv = glGetUniformLocation(shaderProgram, "projInv");
         int u_fogColor = glGetUniformLocation(shaderProgram, "fogColor");
         int u_fogStartEnd = glGetUniformLocation(shaderProgram, "fogStartEnd");
+        int u_fogMode = glGetUniformLocation(shaderProgram, "fogMode");
+        int u_fogDensity = glGetUniformLocation(shaderProgram, "fogDensity");
         
         glUniformMatrix4(u_modelView, false, modelView);
         glUniformMatrix4(u_proj, false, projBuf);
@@ -339,6 +341,8 @@ public class NeoRenderer {
         glUniform4f(u_viewport, viewportBuf.get(0),viewportBuf.get(1),viewportBuf.get(2),viewportBuf.get(3));
         glUniform4(u_fogColor, fogColorBuf);
         glUniform2(u_fogStartEnd, fogStartEnd);
+        glUniform1i(u_fogMode, glGetInteger(GL_FOG_MODE));
+        glUniform1f(u_fogDensity, glGetFloat(GL_FOG_DENSITY));
         
         glUniform3f(u_playerPos, (float)eyePosX, (float)eyePosY, (float)eyePosZ);
         
