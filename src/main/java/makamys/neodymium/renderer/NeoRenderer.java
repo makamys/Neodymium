@@ -55,10 +55,13 @@ public class NeoRenderer {
     public boolean rendererActive;
     private boolean showMemoryDebugger;
     
+    public boolean forceRenderFog;
+    
     private static int MAX_MESHES = 100000;
     
     private int VAO;
-    private int[] shaderPrograms = {0, 0};
+    private int[] shaderProgramsFog = {0, 0};
+    private int[] shaderProgramsNoFog = {0, 0};
     private IntBuffer[] piFirst = new IntBuffer[2];
     private IntBuffer[] piCount = new IntBuffer[2];
     private List<Mesh>[] sentMeshes = (List<Mesh>[])new ArrayList[] {new ArrayList<Mesh>(), new ArrayList<Mesh>()};
@@ -276,10 +279,12 @@ public class NeoRenderer {
     Matrix4f projMatrix = new Matrix4f();
     
     private void render(int pass, double alpha) {
-        if(shaderPrograms[pass] == 0) return;
+        int shader = getShaderProgram(pass);
+        
+        if(shader == 0) return;
         
         glBindVertexArray(VAO);    
-        glUseProgram(shaderPrograms[pass]);
+        glUseProgram(shader);
         updateUniforms(alpha, pass);
         
         if(Config.wireframe) {
@@ -322,7 +327,7 @@ public class NeoRenderer {
     }
     
     private void updateUniforms(double alpha, int pass) {
-        int shaderProgram = shaderPrograms[pass];
+        int shaderProgram = getShaderProgram(pass);
         
         int u_modelView = glGetUniformLocation(shaderProgram, "modelView");
         int u_proj = glGetUniformLocation(shaderProgram, "proj");
@@ -399,60 +404,62 @@ public class NeoRenderer {
     }
     
     public void reloadShader(int pass) {
-        Set<String> defines = new HashSet<>();
-        if(Config.renderFog) {
-            defines.add("RENDER_FOG");
+        for(int hasFog = 0; hasFog <= 1; hasFog++) {
+            Set<String> defines = new HashSet<>();
+            if(hasFog == 1) {
+                defines.add("RENDER_FOG");
+            }
+            if(Config.simplifyChunkMeshes) {
+                defines.add("SIMPLIFY_MESHES");
+            }
+            if(Config.shortUV) {
+                defines.add("SHORT_UV");
+            }
+            if(pass == 0) {
+                defines.add("PASS_0");
+            }
+           
+            boolean errors = false;
+            
+            int vertexShader;
+            vertexShader = glCreateShader(GL_VERTEX_SHADER);
+            
+            glShaderSource(vertexShader, Preprocessor.preprocess(Util.readFile("shaders/chunk.vert"), defines));
+            glCompileShader(vertexShader);
+            
+            if(glGetShaderi(vertexShader, GL_COMPILE_STATUS) == 0) {
+                System.out.println("Error compiling vertex shader: " + glGetShaderInfoLog(vertexShader, 256));
+                errors = true;
+            }
+            
+            int fragmentShader;
+            fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+            
+            glShaderSource(fragmentShader, Preprocessor.preprocess(Util.readFile("shaders/chunk.frag"), defines));
+            glCompileShader(fragmentShader);
+            
+            if(glGetShaderi(fragmentShader, GL_COMPILE_STATUS) == 0) {
+                System.out.println("Error compiling fragment shader: " + glGetShaderInfoLog(fragmentShader, 256));
+                errors = true;
+            }
+            
+            int newShaderProgram = glCreateProgram();
+            glAttachShader(newShaderProgram, vertexShader);
+            glAttachShader(newShaderProgram, fragmentShader);
+            glLinkProgram(newShaderProgram);
+            
+            if(glGetProgrami(newShaderProgram, GL_LINK_STATUS) == 0) {
+                System.out.println("Error linking shader: " + glGetShaderInfoLog(newShaderProgram, 256));
+                errors = true;
+            }
+            
+            if(!errors) {
+                ((hasFog == 1) ? shaderProgramsFog : shaderProgramsNoFog)[pass] = newShaderProgram;
+            }
+            
+            glDeleteShader(vertexShader);
+            glDeleteShader(fragmentShader);
         }
-        if(Config.simplifyChunkMeshes) {
-            defines.add("SIMPLIFY_MESHES");
-        }
-        if(Config.shortUV) {
-            defines.add("SHORT_UV");
-        }
-        if(pass == 0) {
-            defines.add("PASS_0");
-        }
-       
-        boolean errors = false;
-        
-        int vertexShader;
-        vertexShader = glCreateShader(GL_VERTEX_SHADER);
-        
-        glShaderSource(vertexShader, Preprocessor.preprocess(Util.readFile("shaders/chunk.vert"), defines));
-        glCompileShader(vertexShader);
-        
-        if(glGetShaderi(vertexShader, GL_COMPILE_STATUS) == 0) {
-            System.out.println("Error compiling vertex shader: " + glGetShaderInfoLog(vertexShader, 256));
-            errors = true;
-        }
-        
-        int fragmentShader;
-        fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-        
-        glShaderSource(fragmentShader, Preprocessor.preprocess(Util.readFile("shaders/chunk.frag"), defines));
-        glCompileShader(fragmentShader);
-        
-        if(glGetShaderi(fragmentShader, GL_COMPILE_STATUS) == 0) {
-            System.out.println("Error compiling fragment shader: " + glGetShaderInfoLog(fragmentShader, 256));
-            errors = true;
-        }
-        
-        int newShaderProgram = glCreateProgram();
-        glAttachShader(newShaderProgram, vertexShader);
-        glAttachShader(newShaderProgram, fragmentShader);
-        glLinkProgram(newShaderProgram);
-        
-        if(glGetProgrami(newShaderProgram, GL_LINK_STATUS) == 0) {
-            System.out.println("Error linking shader: " + glGetShaderInfoLog(newShaderProgram, 256));
-            errors = true;
-        }
-        
-        if(!errors) {
-            shaderPrograms[pass] = newShaderProgram;
-        }
-        
-        glDeleteShader(vertexShader);
-        glDeleteShader(fragmentShader);
     }
        
     public void reloadShader() {
@@ -463,8 +470,10 @@ public class NeoRenderer {
     public void destroy() {
         if(!hasInited) return;
         
-        glDeleteProgram(shaderPrograms[0]);
-        glDeleteProgram(shaderPrograms[1]);
+        glDeleteProgram(shaderProgramsFog[0]);
+        glDeleteProgram(shaderProgramsFog[1]);
+        glDeleteProgram(shaderProgramsNoFog[0]);
+        glDeleteProgram(shaderProgramsNoFog[1]);
         glDeleteVertexArrays(VAO);
         mem.destroy();
         
@@ -500,6 +509,10 @@ public class NeoRenderer {
             neoChunk.isSectionVisible[y] = ((IWorldRenderer)wr).isDrawn();
             neoChunk.putChunkMeshes(y, ((IWorldRenderer)wr).getChunkMeshes(), sort);
         }
+    }
+    
+    public void onRenderFog() {
+        forceRenderFog = false;
     }
     
     private NeoChunk getNeoChunk(int chunkX, int chunkZ) {
@@ -584,6 +597,10 @@ public class NeoRenderer {
             ));
         }
         return text;
+    }
+    
+    private int getShaderProgram(int pass) {
+        return ((forceRenderFog || Config.renderFog) ? shaderProgramsFog : shaderProgramsNoFog)[pass];
     }
     
     private boolean shouldRenderInWorld(World world) {

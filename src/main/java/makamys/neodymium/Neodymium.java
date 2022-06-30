@@ -25,6 +25,7 @@ import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.world.World;
+import net.minecraftforge.client.event.EntityViewRenderEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent.ElementType;
 import net.minecraftforge.common.MinecraftForge;
@@ -127,6 +128,10 @@ public class Neodymium
             if(world != getRendererWorld()) {
                 onPlayerWorldChanged(world);
             }
+            
+            if(isActive()) {
+                renderer.forceRenderFog = true;
+            }
         } else if(event.phase == TickEvent.Phase.END) {
             if(isActive()) {
                 renderer.onRenderTickEnd();
@@ -145,6 +150,13 @@ public class Neodymium
                 text.right.add(null);
                 text.right.addAll(renderer.getDebugText());
             }
+        }
+    }
+    
+    @SubscribeEvent
+    public void onRenderFog(EntityViewRenderEvent.RenderFogEvent event) {
+        if(isActive()) {
+            renderer.forceRenderFog = false;
         }
     }
 
