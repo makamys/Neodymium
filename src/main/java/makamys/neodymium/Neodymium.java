@@ -3,6 +3,7 @@ package makamys.neodymium;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -93,31 +94,10 @@ public class Neodymium
             destroyRenderer();
         }
     	if(Config.enabled && newWorld != null) {
-    	    List<String> warns = new ArrayList<>();
-    	    List<String> criticalWarns = new ArrayList<>();
+    	    Pair<List<String>, List<String>> warnsAndCriticalWarns = checkCompat();
+    	    List<String> warns = warnsAndCriticalWarns.getLeft();
+    	    List<String> criticalWarns = warnsAndCriticalWarns.getRight();
     	    
-    	    Compat.getCompatibilityWarnings(warns, criticalWarns);
-    	    
-    	    if(!criticalWarns.isEmpty()) {
-    	        criticalWarns.add("Neodymium has been disabled due to a critical incompatibility.");
-    	    }
-    	    
-    	    if(!Config.ignoreIncompatibilities) {
-        	    for(String warn : warns) {
-        	        ChatUtil.showNeoChatMessage(warn, ChatUtil.MessageVerbosity.WARNING, true);
-        	    }
-        	    for(String fatalWarn : criticalWarns) {
-                    ChatUtil.showNeoChatMessage(fatalWarn, ChatUtil.MessageVerbosity.ERROR, true);
-                }
-    	    }
-    	    
-    	    for(String warn : warns) {
-                LOGGER.warn(warn);
-            }
-            for(String criticalWarn : criticalWarns) {
-                LOGGER.warn("Critical: " + criticalWarn);
-            }
-            
     	    if(criticalWarns.isEmpty() || Config.ignoreIncompatibilities) {
     	        renderer = new NeoRenderer(newWorld);
     	        renderer.hasIncompatibilities = !warns.isEmpty() || !criticalWarns.isEmpty();
@@ -156,6 +136,15 @@ public class Neodymium
     	            } else if(renderer != null) {
     	                renderer.reloadShader();
     	            }
+    	        }
+    	    }
+    	}
+    	
+    	if(event.phase == TickEvent.Phase.START) {
+    	    if(Compat.hasChanged()) {
+    	        Pair<List<String>, List<String>> warns = checkCompat();
+    	        if(renderer != null) {
+    	            renderer.hasIncompatibilities = !warns.getLeft().isEmpty() || !warns.getRight().isEmpty();
     	        }
     	    }
     	}
@@ -221,6 +210,35 @@ public class Neodymium
             renderer = null;
         }
         rendererWorld = null;
+    }
+    
+    private static Pair<List<String>, List<String>> checkCompat() {
+        List<String> warns = new ArrayList<>();
+        List<String> criticalWarns = new ArrayList<>();
+        
+        Compat.getCompatibilityWarnings(warns, criticalWarns);
+        
+        if(!criticalWarns.isEmpty()) {
+            criticalWarns.add("Neodymium has been disabled due to a critical incompatibility.");
+        }
+        
+        if(!Config.ignoreIncompatibilities) {
+            for(String warn : warns) {
+                ChatUtil.showNeoChatMessage(warn, ChatUtil.MessageVerbosity.WARNING, true);
+            }
+            for(String fatalWarn : criticalWarns) {
+                ChatUtil.showNeoChatMessage(fatalWarn, ChatUtil.MessageVerbosity.ERROR, true);
+            }
+        }
+        
+        for(String warn : warns) {
+            LOGGER.warn(warn);
+        }
+        for(String criticalWarn : criticalWarns) {
+            LOGGER.warn("Critical: " + criticalWarn);
+        }
+        
+        return Pair.of(warns, criticalWarns);
     }
 
 }

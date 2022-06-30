@@ -13,6 +13,9 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.Tessellator;
 
 public class Compat {
+    
+    private static boolean wasAdvancedOpenGLEnabled;
+    
     public static void applyCompatibilityTweaks() {
         if (Loader.isModLoaded("triangulator")) {
             disableTriangulator();
@@ -50,5 +53,17 @@ public class Compat {
         if(!GLContext.getCapabilities().OpenGL33) {
             criticalWarns.add("OpenGL 3.3 is not supported.");
         }
+    }
+
+    public static boolean hasChanged() {
+        boolean changed = false;
+        
+        boolean advGL = Minecraft.getMinecraft().gameSettings.advancedOpengl;
+        if(advGL != wasAdvancedOpenGLEnabled) {
+            changed = true;
+        }
+        wasAdvancedOpenGLEnabled = advGL;
+        
+        return changed;
     }
 }
