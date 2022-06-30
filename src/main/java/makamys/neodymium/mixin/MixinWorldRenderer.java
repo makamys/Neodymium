@@ -36,8 +36,18 @@ abstract class MixinWorldRenderer implements IWorldRenderer {
     
     private List<ChunkMesh> nd$chunkMeshes;
     
-    @Inject(method = {"updateRenderer", "updateRendererSort"}, at = @At(value = "HEAD"))
+    @Inject(method = {"updateRenderer"}, at = @At(value = "HEAD"))
     private void preUpdateRenderer(CallbackInfo ci) {
+        preUpdateRenderer(false);
+    }
+    
+    @Inject(method = {"updateRendererSort"}, at = @At(value = "HEAD"))
+    private void preUpdateRendererSort(CallbackInfo ci) {
+        preUpdateRenderer(true);
+    }
+    
+    @Unique
+    private void preUpdateRenderer(boolean sort) {
         saveDrawnStatus();
         
         if(Neodymium.isActive()) {
@@ -49,13 +59,23 @@ abstract class MixinWorldRenderer implements IWorldRenderer {
         }
     }
     
-    @Inject(method = {"updateRenderer", "updateRendererSort"}, at = @At(value = "RETURN"))
+    @Inject(method = {"updateRenderer"}, at = @At(value = "RETURN"))
     private void postUpdateRenderer(CallbackInfo ci) {
+        postUpdateRenderer(false);
+    }
+    
+    @Inject(method = {"updateRendererSort"}, at = @At(value = "RETURN"))
+    private void postUpdateRendererSort(CallbackInfo ci) {
+        postUpdateRenderer(true);
+    }
+    
+    @Unique
+    private void postUpdateRenderer(boolean sort) {
         notifyIfDrawnStatusChanged();
         
         if(Neodymium.isActive()) {
             if(nd$chunkMeshes != null) {
-                Neodymium.renderer.onWorldRendererPost(WorldRenderer.class.cast(this));
+                Neodymium.renderer.onWorldRendererPost(WorldRenderer.class.cast(this), sort);
                 Collections.fill(nd$chunkMeshes, null);
             }
         }

@@ -35,11 +35,11 @@ public class NeoChunk {
 		return Math.pow(entity.posX - x * 16, 2) + Math.pow(entity.posZ - z * 16, 2);
 	}
 	
-	public void putChunkMeshes(int cy, List<ChunkMesh> newChunkMeshes) {
+	public void putChunkMeshes(int cy, List<ChunkMesh> newChunkMeshes, boolean addOnly) {
 		for(int i = 0; i < 2; i++) {
 		    ChunkMesh newChunkMesh = newChunkMeshes.size() > i ? newChunkMeshes.get(i) : null;
 		    
-		    if(newChunkMesh != null) {
+		    if(!addOnly || newChunkMesh != null) {
     		    if(chunkMeshes[cy * 2 + i] != null) {
     			    if(newChunkMesh != null) {
     			        // ??? why is this needed?

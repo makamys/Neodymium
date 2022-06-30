@@ -486,7 +486,7 @@ public class NeoRenderer {
         neoChunkChanged(neoChunk);
     }
     
-    public void onWorldRendererPost(WorldRenderer wr) {
+    public void onWorldRendererPost(WorldRenderer wr, boolean sort) {
         int x = Math.floorDiv(wr.posX, 16);
         int y = Math.floorDiv(wr.posY, 16);
         int z = Math.floorDiv(wr.posZ, 16);
@@ -494,7 +494,7 @@ public class NeoRenderer {
         if(Minecraft.getMinecraft().theWorld.getChunkFromChunkCoords(x, z).isChunkLoaded) {
             NeoChunk neoChunk = getNeoChunk(x, z);
             neoChunk.isSectionVisible[y] = ((IWorldRenderer)wr).isDrawn();
-            neoChunk.putChunkMeshes(y, ((IWorldRenderer)wr).getChunkMeshes());
+            neoChunk.putChunkMeshes(y, ((IWorldRenderer)wr).getChunkMeshes(), sort);
         }
     }
     
