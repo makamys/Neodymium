@@ -1,6 +1,6 @@
 package makamys.neodymium.mixin;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.spongepowered.asm.mixin.Mixin;
@@ -8,6 +8,8 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+
+import com.google.common.collect.Lists;
 
 import makamys.neodymium.Neodymium;
 import makamys.neodymium.ducks.IWorldRenderer;
@@ -30,46 +32,39 @@ abstract class MixinWorldRenderer implements IWorldRenderer {
     public boolean needsUpdate;
     
     boolean savedDrawnStatus;
-    private boolean insideUpdateRenderer;
     
     public List<ChunkMesh> chunkMeshes;
     
-    @Inject(method = "updateRenderer", at = @At(value = "HEAD"))
+    @Inject(method = {"updateRenderer", "updateRendererSort"}, at = @At(value = "HEAD"))
     private void preUpdateRenderer(CallbackInfo ci) {
         saveDrawnStatus();
-        insideUpdateRenderer = true;
         
         if(Neodymium.isActive()) {
-            if(needsUpdate) {
-                if(chunkMeshes != null) {
-                    chunkMeshes.clear();
-                } else {
-                    chunkMeshes = new ArrayList<>();
-                }
+            if(chunkMeshes != null) {
+                Collections.fill(chunkMeshes, null);
             } else {
-                chunkMeshes = null;
+                chunkMeshes = Lists.newArrayList(null, null);
             }
         }
     }
     
-    @Inject(method = "updateRenderer", at = @At(value = "RETURN"))
+    @Inject(method = {"updateRenderer", "updateRendererSort"}, at = @At(value = "RETURN"))
     private void postUpdateRenderer(CallbackInfo ci) {
         notifyIfDrawnStatusChanged();
-        insideUpdateRenderer = false;
         
         if(Neodymium.isActive()) {
             if(chunkMeshes != null) {
                 Neodymium.renderer.onWorldRendererPost(WorldRenderer.class.cast(this));
-                chunkMeshes.clear();
+                Collections.fill(chunkMeshes, null);
             }
         }
     }
     
-    @Inject(method = "postRenderBlocks", at = @At(value = "HEAD"))
+    @Inject(method = "postRenderBlocks", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/Tessellator;draw()I"))
     private void prePostRenderBlocks(int pass, EntityLivingBase entity, CallbackInfo ci) {
-        if(insideUpdateRenderer && Neodymium.isActive()) {
+        if(Neodymium.isActive()) {
             if(chunkMeshes != null) {
-                chunkMeshes.add(ChunkMesh.fromTessellator(pass, WorldRenderer.class.cast(this), Tessellator.instance));
+                chunkMeshes.set(pass, ChunkMesh.fromTessellator(pass, WorldRenderer.class.cast(this), Tessellator.instance));
             }
         }
     }

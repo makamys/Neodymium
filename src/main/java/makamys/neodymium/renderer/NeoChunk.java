@@ -38,21 +38,26 @@ public class NeoChunk {
 	public void putChunkMeshes(int cy, List<ChunkMesh> newChunkMeshes) {
 		for(int i = 0; i < 2; i++) {
 		    ChunkMesh newChunkMesh = newChunkMeshes.size() > i ? newChunkMeshes.get(i) : null;
-		    if(chunkMeshes[cy * 2 + i] != null) {
-			    if(newChunkMesh != null) {
-			        // ??? why is this needed?
-	                newChunkMesh.pass = i;
-			    }
-			    
-			    renderer.removeMesh(chunkMeshes[cy * 2 + i]);
-			    chunkMeshes[cy * 2 + i].destroy();
-			} else {
-			    region.meshes++;
-			}
-		    chunkMeshes[cy * 2 + i] = newChunkMesh;
+		    
+		    if(newChunkMesh != null) {
+    		    if(chunkMeshes[cy * 2 + i] != null) {
+    			    if(newChunkMesh != null) {
+    			        // ??? why is this needed?
+    	                newChunkMesh.pass = i;
+    			    }
+    			    
+    			    renderer.removeMesh(chunkMeshes[cy * 2 + i]);
+    			    chunkMeshes[cy * 2 + i].destroy();
+    			} else {
+    			    region.meshes++;
+    			}
+    		    chunkMeshes[cy * 2 + i] = newChunkMesh;
+    		    dirty = true;
+		    }
 		}
-		Neodymium.renderer.neoChunkChanged(this);
-		dirty = true;
+		if(dirty) {
+		    Neodymium.renderer.neoChunkChanged(this);
+		}
 	}
 	
 	public boolean hasChunkMeshes() {
