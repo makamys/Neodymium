@@ -2,6 +2,9 @@ package makamys.neodymium;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import cpw.mods.fml.common.FMLCommonHandler;
@@ -18,6 +21,7 @@ import cpw.mods.fml.relauncher.SideOnly;
 import makamys.mclib.core.MCLib;
 import makamys.mclib.core.MCLibModules;
 import makamys.neodymium.renderer.NeoRenderer;
+import makamys.neodymium.util.ChatUtil;
 import makamys.neodymium.util.OFUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
@@ -68,6 +72,7 @@ public class Neodymium
     public void onServerAboutToStart(FMLServerAboutToStartEvent event)
     {
         Config.reloadConfig();
+        ChatUtil.resetShownChatMessages();
     }
     
     private void onPlayerWorldChanged(World newWorld) {
@@ -79,7 +84,35 @@ public class Neodymium
             renderer = null;
         }
     	if(Config.enabled && newWorld != null) {
-            renderer = new NeoRenderer(newWorld);
+    	    List<String> warns = new ArrayList<>();
+    	    List<String> criticalWarns = new ArrayList<>();
+    	    
+    	    Compat.getCompatibilityWarnings(warns, criticalWarns);
+    	    
+    	    if(!criticalWarns.isEmpty()) {
+    	        criticalWarns.add("Neodymium has been disabled due to a critical incompatibility.");
+    	    }
+    	    
+    	    if(!Config.ignoreIncompatibilities) {
+        	    for(String warn : warns) {
+        	        ChatUtil.showNeoChatMessage(warn, ChatUtil.MessageVerbosity.WARNING, true);
+        	    }
+        	    for(String fatalWarn : criticalWarns) {
+                    ChatUtil.showNeoChatMessage(fatalWarn, ChatUtil.MessageVerbosity.ERROR, true);
+                }
+    	    }
+    	    
+    	    for(String warn : warns) {
+                LOGGER.warn(warn);
+            }
+            for(String criticalWarn : criticalWarns) {
+                LOGGER.warn("Critical: " + criticalWarn);
+            }
+            
+    	    if(criticalWarns.isEmpty() || Config.ignoreIncompatibilities) {
+    	        renderer = new NeoRenderer(newWorld);
+    	        renderer.hasIncompatibilities = !warns.isEmpty() || !criticalWarns.isEmpty();
+    	    }
         }
     }
     

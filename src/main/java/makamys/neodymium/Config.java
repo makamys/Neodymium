@@ -57,6 +57,8 @@ public class Config {
     
     @ConfigBoolean(cat="misc", def=true, com="Replace splash that says 'OpenGL 1.2!' with 'OpenGL 3.3!'. Just for fun.")
     public static boolean replaceOpenGLSplash;
+    @ConfigBoolean(cat="misc", def=false, com="Don't warn about incompatibilities in chat, and activate renderer even in spite of critical ones.")
+    public static boolean ignoreIncompatibilities;
     
     @ConfigInt(cat="debug", def=-1, min=-1, max=Integer.MAX_VALUE)
     public static int maxMeshesPerFrame;

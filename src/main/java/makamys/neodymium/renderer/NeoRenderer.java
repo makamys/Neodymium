@@ -56,6 +56,7 @@ public class NeoRenderer {
     private boolean showMemoryDebugger;
     
     public boolean forceRenderFog;
+    public boolean hasIncompatibilities;
     
     private static int MAX_MESHES = 100000;
     
@@ -594,6 +595,11 @@ public class NeoRenderer {
         if(rendererSpeedup > 0) {
             text.addAll(Arrays.asList(
                 EnumChatFormatting.YELLOW + "(!) Renderer speedup active"
+            ));
+        }
+        if(hasIncompatibilities) {
+            text.addAll(Arrays.asList(
+                EnumChatFormatting.YELLOW + "(!) Incompatibilities"
             ));
         }
         return text;
