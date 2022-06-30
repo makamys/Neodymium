@@ -198,7 +198,7 @@ public class Neodymium
 
     public static String modifySplash(String splash) {
         if(splash.equals("OpenGL 1.2!")) {
-            return "OpenGL 3.3!";
+            return "OpenGL 3.3 (if supported)!";
         } else {
             return splash;
         }
