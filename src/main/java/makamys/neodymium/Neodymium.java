@@ -222,8 +222,10 @@ public class Neodymium
     }
 
     public static void destroyRenderer() {
-        renderer.destroy();
-        renderer = null;
+        if(renderer != null) {
+            renderer.destroy();
+            renderer = null;
+        }
         rendererWorld = null;
     }
 
