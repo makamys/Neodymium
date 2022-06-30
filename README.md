@@ -47,8 +47,8 @@ There are also some additional optimizations:
 The mod increases memory usage, since the chunk meshes have to be stored somewhere. On Normal render distance in a vanilla world, it uses ~70-150 MB, both in RAM and VRAM.
 
 ## Incompatibilities
+* The mod performs poorly if Advanced OpenGL (occlusion culling) is turned on.
 * The mod is only compatible with FastCraft if OptiFine is also present.
-* The mod is not compatible with OptiFine's Advanced OpenGL (occlusion culling) feature.
 * OptiFine shaders aren't compatible, and probably never will be, as I have neither the knowledge nor the interest to add compatibility for them.
 * Various coremods may be incompatible with Mixin. Use [Mixingasm](https://github.com/makamys/Mixingasm) to fix this.
 
