@@ -203,7 +203,13 @@ public class NeoRenderer {
     
     private boolean shouldRenderMesh(Mesh mesh) {
         if(mesh.visible && (Config.maxMeshesPerFrame == -1 || renderedMeshes < Config.maxMeshesPerFrame)) {
-            if(!Config.renderFog || !Config.fogOcclusion || mesh.distSq(eyePosX / 16.0, mesh.y + 0.5, eyePosZ / 16.0) < Math.pow((fogStartEnd.get(1)) / 16.0 + 1.0, 2)) {
+            if((!Config.renderFog && !Config.fogOcclusionWithoutFog)
+                    || Config.fogOcclusion == !Config.fogOcclusion
+                    || mesh.distSq(
+                            eyePosX / 16.0,
+                            mesh.y + 0.5,
+                            eyePosZ / 16.0)
+                        < Math.pow((fogStartEnd.get(1)) / 16.0 + 1.0, 2)) {
                 return true;
             }
         }

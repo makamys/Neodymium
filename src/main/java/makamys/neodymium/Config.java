@@ -46,6 +46,8 @@ public class Config {
     public static int sortFrequency;
     @ConfigBoolean(cat="render", def=true, com="Don't render meshes that are shrouded in fog. OptiFine also does this when fog is turned on, this setting makes Neodymium follow suit.")
     public static boolean fogOcclusion;
+    @ConfigBoolean(cat="render", def=false, com="Do fog occlusion even if fog is disabled.")
+    public static boolean fogOcclusionWithoutFog;
     
     @NeedsReload
     @ConfigInt(cat="render", def=512, min=1, max=Integer.MAX_VALUE, com="VRAM buffer size (MB). 512 seems to be a good value on Normal render distance. Increase this if you encounter warnings about the VRAM getting full. Does not affect RAM usage.")
