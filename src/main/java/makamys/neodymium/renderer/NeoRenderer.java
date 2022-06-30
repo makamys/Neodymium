@@ -23,6 +23,7 @@ import org.lwjgl.BufferUtils;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.util.vector.Matrix4f;
+import org.lwjgl.util.vector.Vector4f;
 
 import makamys.neodymium.Config;
 import makamys.neodymium.Neodymium;
@@ -70,9 +71,12 @@ public class NeoRenderer {
     private double interpX;
     private double interpY;
     private double interpZ;
-    int interpXDiv;
-    int interpYDiv;
-    int interpZDiv;
+    private double interpXT;
+    private double interpYT;
+    private double interpZT;
+    int interpXTDiv;
+    int interpYTDiv;
+    int interpZTDiv;
     
     private int renderedMeshes, renderedQuads;
     private int frameCount;
@@ -86,6 +90,8 @@ public class NeoRenderer {
         renderWorld = true;
         rendererActive = true;
     }
+    
+    Vector4f transformedOrigin = new Vector4f();
     
     public void preRenderSortedRenderers(int renderPass, double alpha, WorldRenderer[] sortedWorldRenderers) {
         if(hasInited) {
@@ -102,15 +108,24 @@ public class NeoRenderer {
                 }
                 
                 if(rendererActive && renderWorld) {
+                    updateGLValues();
+                    
+                    transformedOrigin.set(0, 0, 0, 1);
+                    Matrix4f.transform(modelViewMatrixInv, transformedOrigin, transformedOrigin);
+                    
                     Entity rve = Minecraft.getMinecraft().renderViewEntity;
                     
                     interpX = rve.lastTickPosX + (rve.posX - rve.lastTickPosX) * alpha;
                     interpY = rve.lastTickPosY + (rve.posY - rve.lastTickPosY) * alpha + rve.getEyeHeight();
                     interpZ = rve.lastTickPosZ + (rve.posZ - rve.lastTickPosZ) * alpha;
                     
-                    interpXDiv = Math.floorDiv((int)Math.floor(interpX), 16);
-                    interpYDiv = Math.floorDiv((int)Math.floor(interpY), 16);
-                    interpZDiv = Math.floorDiv((int)Math.floor(interpZ), 16);
+                    interpXT = interpX + transformedOrigin.x;
+                    interpYT = interpY + transformedOrigin.y;
+                    interpZT = interpZ + transformedOrigin.z;
+                    
+                    interpXTDiv = Math.floorDiv((int)Math.floor(interpXT), 16);
+                    interpYTDiv = Math.floorDiv((int)Math.floor(interpYT), 16);
+                    interpZTDiv = Math.floorDiv((int)Math.floor(interpZT), 16);
                     
                     sort(frameCount % 100 == 0, frameCount % Config.sortFrequency == 0);
                     
@@ -169,7 +184,7 @@ public class NeoRenderer {
             piCount[i].limit(MAX_MESHES);
             for(Mesh mesh : sentMeshes[i]) {
                 if(mesh.visible && (Config.maxMeshesPerFrame == -1 || renderedMeshes < Config.maxMeshesPerFrame)) {
-                    int meshes = mesh.writeToIndexBuffer(piFirst[i], piCount[i], interpXDiv, interpYDiv, interpZDiv);
+                    int meshes = mesh.writeToIndexBuffer(piFirst[i], piCount[i], interpXTDiv, interpYTDiv, interpZTDiv);
                     renderedMeshes += meshes;
                     for(int j = piCount[i].position() - meshes; j < piCount[i].position(); j++) {
                         renderedQuads += piCount[i].get(j) / 4;
@@ -236,6 +251,8 @@ public class NeoRenderer {
     FloatBuffer projInvBuf = BufferUtils.createFloatBuffer(16);
     FloatBuffer fogColorBuf = BufferUtils.createFloatBuffer(16);
     FloatBuffer fogStartEnd = BufferUtils.createFloatBuffer(2);
+    Matrix4f modelViewMatrix = new Matrix4f();
+    Matrix4f modelViewMatrixInv = new Matrix4f();
     Matrix4f projMatrix = new Matrix4f();
     
     private void render(int pass, double alpha) {
@@ -257,18 +274,7 @@ public class NeoRenderer {
         glUseProgram(0);
     }
     
-    private void updateUniforms(double alpha, int pass) {
-        int shaderProgram = shaderPrograms[pass];
-        
-        int u_modelView = glGetUniformLocation(shaderProgram, "modelView");
-        int u_proj = glGetUniformLocation(shaderProgram, "proj");
-        int u_playerPos = glGetUniformLocation(shaderProgram, "playerPos");
-        int u_light = glGetUniformLocation(shaderProgram, "lightTex");
-        int u_viewport = glGetUniformLocation(shaderProgram, "viewport");
-        int u_projInv = glGetUniformLocation(shaderProgram, "projInv");
-        int u_fogColor = glGetUniformLocation(shaderProgram, "fogColor");
-        int u_fogStartEnd = glGetUniformLocation(shaderProgram, "fogStartEnd");
-        
+    private void updateGLValues() {
         glGetFloat(GL_MODELVIEW_MATRIX, modelView);
         
         glGetFloat(GL_PROJECTION_MATRIX, projBuf);
@@ -280,6 +286,10 @@ public class NeoRenderer {
         projMatrix.invert();
         projMatrix.store(projInvBuf);
         projInvBuf.flip();
+        
+        modelViewMatrix.load(modelView);
+        modelView.flip();
+        modelViewMatrixInv.load(modelViewMatrix).invert();
         
         fogColorBuf.limit(16);
         glGetFloat(GL_FOG_COLOR, fogColorBuf);
@@ -293,6 +303,19 @@ public class NeoRenderer {
             fogStartEnd.put(-1);
         }
         fogStartEnd.flip();
+    }
+    
+    private void updateUniforms(double alpha, int pass) {
+        int shaderProgram = shaderPrograms[pass];
+        
+        int u_modelView = glGetUniformLocation(shaderProgram, "modelView");
+        int u_proj = glGetUniformLocation(shaderProgram, "proj");
+        int u_playerPos = glGetUniformLocation(shaderProgram, "playerPos");
+        int u_light = glGetUniformLocation(shaderProgram, "lightTex");
+        int u_viewport = glGetUniformLocation(shaderProgram, "viewport");
+        int u_projInv = glGetUniformLocation(shaderProgram, "projInv");
+        int u_fogColor = glGetUniformLocation(shaderProgram, "fogColor");
+        int u_fogStartEnd = glGetUniformLocation(shaderProgram, "fogStartEnd");
         
         glUniformMatrix4(u_modelView, false, modelView);
         glUniformMatrix4(u_proj, false, projBuf);
