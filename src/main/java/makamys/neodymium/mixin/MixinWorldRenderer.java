@@ -13,6 +13,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import com.google.common.collect.Lists;
 
 import makamys.neodymium.Neodymium;
+import makamys.neodymium.ducks.ITessellator;
 import makamys.neodymium.ducks.IWorldRenderer;
 import makamys.neodymium.renderer.ChunkMesh;
 import makamys.neodymium.renderer.NeoRenderer;
@@ -81,12 +82,34 @@ abstract class MixinWorldRenderer implements IWorldRenderer {
         }
     }
     
+    @Inject(method = "preRenderBlocks", at = @At("HEAD"))
+    private void prePreRenderBlocks(int pass, CallbackInfo ci) {
+        if(Neodymium.isActive()) {
+            ((ITessellator)Tessellator.instance).enableMeshCapturing(true);
+            ChunkMesh cm = new ChunkMesh((WorldRenderer)(Object)this, pass);
+            nd$chunkMeshes.set(pass, cm);
+            ChunkMesh.setCaptureTarget(cm);
+        }
+    }
+    
     @Inject(method = "postRenderBlocks", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/Tessellator;draw()I"))
     private void prePostRenderBlocks(int pass, EntityLivingBase entity, CallbackInfo ci) {
-        if(Neodymium.isActive()) {
+        /*if(Neodymium.isActive()) {
             if(nd$chunkMeshes != null) {
-                nd$chunkMeshes.set(pass, ChunkMesh.fromTessellator(pass, WorldRenderer.class.cast(this), Tessellator.instance));
+                if(nd$chunkMeshes.get(pass) == null) {
+                    nd$chunkMeshes.set(pass, ChunkMesh.fromTessellator(pass, WorldRenderer.class.cast(this)));
+                }
+                nd$chunkMeshes.get(pass).addTessellatorData(Tessellator.instance);
             }
+        }*/
+    }
+    
+    @Inject(method = "postRenderBlocks", at = @At("RETURN"))
+    private void postPostRenderBlocks(int pass, EntityLivingBase entity, CallbackInfo ci) {
+        if(Neodymium.isActive()) {
+            nd$chunkMeshes.get(pass).finishConstruction();
+            ((ITessellator)Tessellator.instance).enableMeshCapturing(false);
+            ChunkMesh.setCaptureTarget(null);
         }
     }
     

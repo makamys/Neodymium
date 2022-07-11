@@ -37,7 +37,8 @@ public class MixinConfigPlugin implements IMixinConfigPlugin {
         List<String> mixins = new ArrayList<>();
         mixins.addAll(Arrays.asList(
         "MixinRenderGlobal",
-        "MixinWorldRenderer"));
+        "MixinWorldRenderer",
+        "MixinTessellator"));
         
         if (OFUtil.isOptiFinePresent()) {
             System.out.println("Detected OptiFine");

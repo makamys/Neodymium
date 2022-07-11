@@ -1,5 +1,7 @@
 package makamys.neodymium.renderer;
 
+import static makamys.neodymium.Neodymium.LOGGER;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
@@ -8,6 +10,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import org.lwjgl.BufferUtils;
+import org.lwjgl.opengl.GL11;
 
 import makamys.neodymium.config.Config;
 import makamys.neodymium.ducks.IWorldRenderer;
@@ -22,7 +25,6 @@ import net.minecraft.tileentity.TileEntity;
 /** A mesh for a 16x16x16 region of the world. */
 public class ChunkMesh extends Mesh {
     
-    Flags flags;
     WorldRenderer wr;
     
     private int[] subMeshStart = new int[NORMAL_ORDER.length]; 
@@ -32,9 +34,13 @@ public class ChunkMesh extends Mesh {
     
     private static RecyclingList<MeshQuad> quadBuf = new RecyclingList<>(() -> new MeshQuad());
     
+    private static ChunkMesh meshCaptureTarget;
+    
     private static final QuadNormal[] NORMAL_ORDER = new QuadNormal[] {QuadNormal.NONE, QuadNormal.POSITIVE_Y, QuadNormal.POSITIVE_X, QuadNormal.POSITIVE_Z, QuadNormal.NEGATIVE_X, QuadNormal.NEGATIVE_Z, QuadNormal.NEGATIVE_Y};
     private static final Comparator<MeshQuad> MESH_QUAD_RENDER_COMPARATOR = new MeshQuadRenderOrderComparator();
     private static final int[] QUAD_NORMAL_TO_NORMAL_ORDER;
+    
+    private static final Flags FLAGS = new Flags(true, true, true, false);
     
     static {
         QUAD_NORMAL_TO_NORMAL_ORDER = new int[QuadNormal.values().length];
@@ -47,39 +53,52 @@ public class ChunkMesh extends Mesh {
         }
     }
     
-    public ChunkMesh(WorldRenderer wr, Flags flags, int quadCount, List<MeshQuad> quads, int pass) {
+    public ChunkMesh(WorldRenderer wr, int pass) {
         this.x = wr.posX / 16;
         this.y = wr.posY / 16;
         this.z = wr.posZ / 16;
         this.wr = wr;
-        this.flags = flags;
-        this.quadCount = quadCount;
         this.pass = pass;
         Arrays.fill(subMeshStart, -1);
         
-        buffer = createBuffer(quads, quadCount);
-        usedRAM += buffer.limit();
         instances++;
+        
+        if(!quadBuf.getAsList().isEmpty()) {
+            LOGGER.error("Invalid state: tried to construct a chunk mesh before the previous one has finished constructing!");
+        }
     }
     
-    public static ChunkMesh fromTessellator(int pass, WorldRenderer wr, Tessellator t) {
-        if(t.vertexCount % 4 != 0) {
-            System.out.println("Error: Vertex count is not a multiple of 4");
-            return null;
+    public static void preTessellatorDraw(Tessellator t) {
+        if(meshCaptureTarget != null) {
+            meshCaptureTarget.addTessellatorData(t);
         }
+    }
+    
+    private void addTessellatorData(Tessellator t) {
+        // TODO triangle support
         
-        int xOffset = wr.posX;
-        int yOffset = wr.posY;
-        int zOffset = wr.posZ;
-        
-        ChunkMesh.Flags flags = new ChunkMesh.Flags(t.hasTexture, t.hasBrightness, t.hasColor, t.hasNormals);
-        
-        quadBuf.reset();
+        if(t.vertexCount == 0) {
+            // Sometimes the tessellator has no vertices and weird flags. Don't warn in this case, just silently return.
+            return;
+        }
+        if(t.vertexCount % 4 != 0) {
+            LOGGER.error("Error: Vertex count is not a multiple of 4");
+            return;
+        }
+        if(t.drawMode != GL11.GL_QUADS) {
+            LOGGER.error("Error: Unsupported draw mode: " + t.drawMode);
+        }
+        if(!t.hasTexture || !t.hasBrightness || !t.hasColor || t.hasNormals) {
+            LOGGER.error("Error: Unsupported tessellator flags");
+            return;
+        }
         
         for(int quadI = 0; quadI < t.vertexCount / 4; quadI++) {
-            quadBuf.next().setState(t.rawBuffer, quadI * 32, flags, (float)-t.xOffset, (float)-t.yOffset, (float)-t.zOffset);
+            quadBuf.next().setState(t.rawBuffer, quadI * 32, FLAGS, (float)-t.xOffset, (float)-t.yOffset, (float)-t.zOffset);
         }
-        
+    }
+    
+    public void finishConstruction() {
         List<MeshQuad> quads = quadBuf.getAsList();
         
         if(Config.simplifyChunkMeshes) {
@@ -110,16 +129,11 @@ public class ChunkMesh extends Mesh {
             }
         }
         
-        int quadCount = countValidQuads(quads);
+        quadCount = countValidQuads(quads);
+        buffer = createBuffer(quads, quadCount);
+        usedRAM += buffer.limit();
         
-        if(quadCount > 0) {
-            return new ChunkMesh(
-                    wr,
-                    new ChunkMesh.Flags(t.hasTexture, t.hasBrightness, t.hasColor, t.hasNormals),
-                    quadCount, quads, pass);
-        } else {
-            return null;
-        }
+        quadBuf.reset();
     }
     
     private static void simplifyPlane(List<MeshQuad> planeQuads) {
@@ -298,6 +312,10 @@ public class ChunkMesh extends Mesh {
         int centerZ = z * 16 + 8;
         
         return player.getDistanceSq(centerX, centerY, centerZ); 
+    }
+    
+    public static void setCaptureTarget(ChunkMesh cm) {
+        meshCaptureTarget = cm;
     }
     
     public static class Flags {
