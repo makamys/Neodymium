@@ -82,15 +82,11 @@ public class ChunkMesh extends Mesh {
             return;
         }
         boolean errors = false;
-        if(t.vertexCount % 4 != 0) {
-            LOGGER.error("Error in chunk " + tessellatorToString(t) + ": Vertex count is not a multiple of 4");
-            errors = true;
-        }
-        if(t.drawMode != GL11.GL_QUADS) {
+        if(t.drawMode != GL11.GL_QUADS && t.drawMode != GL11.GL_TRIANGLES) {
             LOGGER.error("Error in chunk " + tessellatorToString(t) + ": Unsupported draw mode: " + t.drawMode);
             errors = true;
         }
-        if(!t.hasTexture || !t.hasBrightness || !t.hasColor || t.hasNormals) {
+        if(!t.hasTexture || !t.hasBrightness || !t.hasColor /*|| t.hasNormals*/) {
             LOGGER.error("Error in chunk " + tessellatorToString(t) + ": Unsupported tessellator flags");
             errors = true;
         }
@@ -99,8 +95,10 @@ public class ChunkMesh extends Mesh {
             return;
         }
         
-        for(int quadI = 0; quadI < t.vertexCount / 4; quadI++) {
-            quadBuf.next().setState(t.rawBuffer, quadI * 32, FLAGS, (float)-t.xOffset, (float)-t.yOffset, (float)-t.zOffset);
+        int verticesPerPrimitive = t.drawMode == GL11.GL_QUADS ? 4 : 3;
+        
+        for(int quadI = 0; quadI < t.vertexCount / verticesPerPrimitive; quadI++) {
+            quadBuf.next().setState(t.rawBuffer, quadI * (verticesPerPrimitive * 8), FLAGS, t.drawMode, (float)-t.xOffset, (float)-t.yOffset, (float)-t.zOffset);
         }
     }
     

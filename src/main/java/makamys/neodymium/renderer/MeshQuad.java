@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Locale;
 
+import org.lwjgl.opengl.GL11;
 import org.lwjgl.util.vector.Vector3f;
 
 import makamys.neodymium.config.Config;
@@ -66,8 +67,9 @@ public class MeshQuad {
     private static Vector3f vectorB = new Vector3f();
     private static Vector3f vectorC = new Vector3f();
     
-    private void read(int[] rawBuffer, int offset, float offsetX, float offsetY, float offsetZ) {
-        for(int vi = 0; vi < 4; vi++) {
+    private void read(int[] rawBuffer, int offset, float offsetX, float offsetY, float offsetZ, int drawMode) {
+        int vertices = drawMode == GL11.GL_TRIANGLES ? 3 : 4;
+        for(int vi = 0; vi < vertices; vi++) {
             int i = offset + vi * 8;
             
             xs[vi] = Float.intBitsToFloat(rawBuffer[i + 0]) + offsetX;
@@ -82,12 +84,25 @@ public class MeshQuad {
             
             i += 8;
         }
+        
+        if(vertices == 3) {
+            // Quadrangulate! 
+            xs[3] = xs[2];
+            ys[3] = ys[2];
+            zs[3] = zs[2];
+            
+            us[3] = us[2];
+            vs[3] = vs[2];
+            
+            bs[3] = bs[2];
+            cs[3] = cs[2];
+        }
     }
     
-    public void setState(int[] rawBuffer, int offset, ChunkMesh.Flags flags, float offsetX, float offsetY, float offsetZ) {
+    public void setState(int[] rawBuffer, int offset, ChunkMesh.Flags flags, int drawMode, float offsetX, float offsetY, float offsetZ) {
         resetState();
         
-        read(rawBuffer, offset, offsetX, offsetY, offsetZ);
+        read(rawBuffer, offset, offsetX, offsetY, offsetZ, drawMode);
         
         uDirectionIs01 = us[0] != us[1];
         
