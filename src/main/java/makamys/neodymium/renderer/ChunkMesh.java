@@ -81,21 +81,31 @@ public class ChunkMesh extends Mesh {
             // Sometimes the tessellator has no vertices and weird flags. Don't warn in this case, just silently return.
             return;
         }
+        boolean errors = false;
         if(t.vertexCount % 4 != 0) {
-            LOGGER.error("Error: Vertex count is not a multiple of 4");
-            return;
+            LOGGER.error("Error in chunk " + tessellatorToString(t) + ": Vertex count is not a multiple of 4");
+            errors = true;
         }
         if(t.drawMode != GL11.GL_QUADS) {
-            LOGGER.error("Error: Unsupported draw mode: " + t.drawMode);
+            LOGGER.error("Error in chunk " + tessellatorToString(t) + ": Unsupported draw mode: " + t.drawMode);
+            errors = true;
         }
         if(!t.hasTexture || !t.hasBrightness || !t.hasColor || t.hasNormals) {
-            LOGGER.error("Error: Unsupported tessellator flags");
+            LOGGER.error("Error in chunk " + tessellatorToString(t) + ": Unsupported tessellator flags");
+            errors = true;
+        }
+        if(errors) {
+            LOGGER.error("Skipping chunk due to errors.");
             return;
         }
         
         for(int quadI = 0; quadI < t.vertexCount / 4; quadI++) {
             quadBuf.next().setState(t.rawBuffer, quadI * 32, FLAGS, (float)-t.xOffset, (float)-t.yOffset, (float)-t.zOffset);
         }
+    }
+    
+    private static String tessellatorToString(Tessellator t) {
+        return "(" + t.xOffset + ", " + t.yOffset + ", " + t.zOffset + ")";
     }
     
     public void finishConstruction() {
