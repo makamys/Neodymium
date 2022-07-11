@@ -23,6 +23,7 @@ import net.minecraft.tileentity.TileEntity;
 public class ChunkMesh extends Mesh {
     
     Flags flags;
+    WorldRenderer wr;
     
     private int[] subMeshStart = new int[NORMAL_ORDER.length]; 
     
@@ -46,10 +47,11 @@ public class ChunkMesh extends Mesh {
         }
     }
     
-    public ChunkMesh(int x, int y, int z, Flags flags, int quadCount, List<MeshQuad> quads, int pass) {
-        this.x = x;
-        this.y = y;
-        this.z = z;
+    public ChunkMesh(WorldRenderer wr, Flags flags, int quadCount, List<MeshQuad> quads, int pass) {
+        this.x = wr.posX / 16;
+        this.y = wr.posY / 16;
+        this.z = wr.posZ / 16;
+        this.wr = wr;
         this.flags = flags;
         this.quadCount = quadCount;
         this.pass = pass;
@@ -112,7 +114,7 @@ public class ChunkMesh extends Mesh {
         
         if(quadCount > 0) {
             return new ChunkMesh(
-                    (int)(xOffset / 16), (int)(yOffset / 16), (int)(zOffset / 16),
+                    wr,
                     new ChunkMesh.Flags(t.hasTexture, t.hasBrightness, t.hasColor, t.hasNormals),
                     quadCount, quads, pass);
         } else {

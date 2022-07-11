@@ -191,7 +191,8 @@ public class NeoRenderer {
             piFirst[i].limit(MAX_MESHES);
             piCount[i].limit(MAX_MESHES);
             for(Mesh mesh : sentMeshes[i]) {
-                if(shouldRenderMesh(mesh)) {
+                WorldRenderer wr = ((ChunkMesh)mesh).wr;
+                if(mesh.visible && wr.isVisible && shouldRenderMesh(mesh)) {
                     int meshes = mesh.writeToIndexBuffer(piFirst[i], piCount[i], eyePosXTDiv, eyePosYTDiv, eyePosZTDiv);
                     renderedMeshes += meshes;
                     for(int j = piCount[i].position() - meshes; j < piCount[i].position(); j++) {
@@ -205,7 +206,7 @@ public class NeoRenderer {
     }
     
     private boolean shouldRenderMesh(Mesh mesh) {
-        if(mesh.visible && (Config.maxMeshesPerFrame == -1 || renderedMeshes < Config.maxMeshesPerFrame)) {
+        if((Config.maxMeshesPerFrame == -1 || renderedMeshes < Config.maxMeshesPerFrame)) {
             if((!Config.renderFog && !Config.fogOcclusionWithoutFog)
                     || Config.fogOcclusion == !Config.fogOcclusion
                     || mesh.distSq(
