@@ -222,15 +222,6 @@ public class Neodymium
             criticalWarns.add("Neodymium has been disabled due to a critical incompatibility.");
         }
         
-        if(!Config.ignoreIncompatibilities) {
-            for(String warn : warns) {
-                ChatUtil.showNeoChatMessage(warn, ChatUtil.MessageVerbosity.WARNING, true);
-            }
-            for(String fatalWarn : criticalWarns) {
-                ChatUtil.showNeoChatMessage(fatalWarn, ChatUtil.MessageVerbosity.ERROR, true);
-            }
-        }
-        
         for(String warn : warns) {
             LOGGER.warn(warn);
         }
