@@ -11,4 +11,8 @@ if os.path.exists(versionPath):
 else:
     ver = subprocess.run(["git", "describe", "--tags", "--dirty"], capture_output=True, text=True).stdout or "UNKNOWN-" + subprocess.run(["git", "describe", "--always", "--dirty"], capture_output=True, text=True).stdout or "UNKNOWN"
 
-print(ver.strip())
+ver = ver.strip()
+if ver[0] == "v":
+    ver = ver[1:]
+
+print(ver)
