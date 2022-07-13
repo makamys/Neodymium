@@ -2,8 +2,27 @@
 
 apply plugin: 'forge'
 
+ext.publishDir = project.multiproject_structure.toBoolean() ? "${projectDir}/../publish" : "${projectDir}/publish"
 
-project.version = new File(project.multiproject_structure.toBoolean() ? "${projectDir}/../version.txt" : "${projectDir}/publish/version.txt").getText('UTF-8').trim()
+def getCommitVersion(){
+	try {
+		def commitHashProc = "python3 ${ext.publishDir}/get_version.py".execute()
+		commitHashProc.waitFor()
+		if(commitHashProc.exitValue() == 0){
+			def commitHash = commitHashProc.text.trim()
+			
+			return commitHash
+		} else {
+			println commitHashProc.err.text
+			throw new Exception("get_version.py exited with non-zero return value")
+		}
+	} catch(Exception e){
+		println "Failed to run get_version.py: " + e.getMessage()
+	}
+	return "UNKNOWN" // fallback
+}
+
+project.version = getCommitVersion()
 
 group = project.group
 archivesBaseName = "${project.archives_base}-${project.minecraft_version}"

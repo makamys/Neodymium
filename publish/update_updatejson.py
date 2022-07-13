@@ -7,7 +7,7 @@ jsonPath = "../updatejson/update.json"
 fullFormat = "updateJsonFullVersionFormat=true" in open("gradle.properties", "r", encoding="utf8").read()
 
 data = json.load(open(jsonPath, "r", encoding="utf8"))
-ver = open("version.txt", "r").read().strip()
+ver = subprocess.run("python3 get_version.py", capture_output=True, text=True).stdout.strip()
 
 for gameVer in json.load(open("gameVersions.json", "r")).keys():
     modVer = "{}".format(ver) if not fullFormat else "{}-{}".format(gameVer, ver)
