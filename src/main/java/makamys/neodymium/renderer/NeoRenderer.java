@@ -207,7 +207,7 @@ public class NeoRenderer {
     
     private boolean shouldRenderMesh(Mesh mesh) {
         if((Config.maxMeshesPerFrame == -1 || renderedMeshes < Config.maxMeshesPerFrame)) {
-            if((!Config.renderFog && !Config.fogOcclusionWithoutFog)
+            if((!isFogEnabled() && !Config.fogOcclusionWithoutFog)
                     || Config.fogOcclusion == !Config.fogOcclusion
                     || mesh.distSq(
                             eyePosX / 16.0,
@@ -606,7 +606,18 @@ public class NeoRenderer {
     }
     
     private int getShaderProgram(int pass) {
-        return ((forceRenderFog || Config.renderFog) ? shaderProgramsFog : shaderProgramsNoFog)[pass];
+        return ((forceRenderFog || isFogEnabled()) ? shaderProgramsFog : shaderProgramsNoFog)[pass];
+    }
+    
+    private static boolean isFogEnabled() {
+        switch(Config.renderFog) {
+        case TRUE:
+            return true;
+        case FALSE:
+            return false;
+        default:
+            return GL11.glIsEnabled(GL11.GL_FOG);
+        }
     }
     
     private boolean shouldRenderInWorld(World world) {

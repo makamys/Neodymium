@@ -22,15 +22,20 @@ import java.nio.file.WatchEvent;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
+import org.apache.commons.lang3.EnumUtils;
 import org.lwjgl.input.Keyboard;
 
 import cpw.mods.fml.client.config.IConfigElement;
 import makamys.neodymium.Neodymium;
 import net.minecraft.launchwrapper.Launch;
+import net.minecraftforge.common.config.ConfigCategory;
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.common.config.Property;
+import net.minecraftforge.common.config.Property.Type;
 
 public class Config {
 
@@ -57,8 +62,8 @@ public class Config {
     @NeedsReload
     @ConfigInt(cat="render", def=512, min=1, max=Integer.MAX_VALUE, com="VRAM buffer size (MB). 512 seems to be a good value on Normal render distance. Increase this if you encounter warnings about the VRAM getting full. Does not affect RAM usage.")
     public static int VRAMSize;
-    @ConfigBoolean(cat="render", def=true, com="Render fog? Slightly reduces framerate.")
-    public static boolean renderFog;
+    @ConfigEnum(cat="render", def="auto", clazz=AutomatableBoolean.class, com="Render fog? Slightly reduces framerate. `auto` means the OpenGL setting will be respected (as set by mods like OptiFine).\nValid values: true, false, auto")
+    public static AutomatableBoolean renderFog;
     
     @ConfigBoolean(cat="misc", def=true, com="Replace splash that says 'OpenGL 1.2!' with 'OpenGL 3.3!'. Just for fun.")
     public static boolean replaceOpenGLSplash;
@@ -124,6 +129,7 @@ public class Config {
             NeedsReload needsReload = null;
             ConfigBoolean configBoolean = null;
             ConfigInt configInt = null;
+            ConfigEnum configEnum = null;
             
             for(Annotation an : field.getAnnotations()) {
                 if(an instanceof NeedsReload) {
@@ -132,10 +138,12 @@ public class Config {
                     configInt = (ConfigInt) an;
                 } else if(an instanceof ConfigBoolean) {
                     configBoolean = (ConfigBoolean) an;
+                } else if(an instanceof ConfigEnum) {
+                    configEnum = (ConfigEnum) an;
                 }
             }
             
-            if(configBoolean == null && configInt == null) continue;
+            if(configBoolean == null && configInt == null && configEnum == null) continue;
             
             Object currentValue = null;
             Object newValue = null;
@@ -151,6 +159,40 @@ public class Config {
                 newValue = config.getBoolean(field.getName(), configBoolean.cat(), configBoolean.def(), configBoolean.com());
             } else if(configInt != null) {
                 newValue = config.getInt(field.getName(), configInt.cat(), configInt.def(), configInt.min(), configInt.max(), configInt.com()); 
+            } else if(configEnum != null) {
+                boolean lowerCase = true;
+                
+                Class<? extends Enum> configClass = configEnum.clazz();
+                Map<String, ? extends Enum> enumMap = EnumUtils.getEnumMap(configClass);
+                String[] valuesStrUpper = (String[])enumMap.keySet().stream().toArray(String[]::new);
+                String[] valuesStr = Arrays.stream(valuesStrUpper).map(s -> lowerCase ? s.toLowerCase() : s).toArray(String[]::new);
+                
+                // allow upgrading boolean to string list
+                ConfigCategory cat = config.getCategory(configEnum.cat());
+                Property oldProp = cat.get(field.getName());
+                String oldVal = null;
+                if(oldProp != null && oldProp.getType() != Type.STRING) {
+                    oldVal = oldProp.getString();
+                    cat.remove(field.getName());
+                }
+                
+                String newValueStr = config.getString(field.getName(), configEnum.cat(),
+                        lowerCase ? configEnum.def().toLowerCase() : configEnum.def().toUpperCase(), configEnum.com(), valuesStr);
+                if(oldVal != null) {
+                    newValueStr = oldVal;
+                }
+                if(!enumMap.containsKey(newValueStr.toUpperCase())) {
+                    newValueStr = configEnum.def().toUpperCase();
+                    if(lowerCase) {
+                        newValueStr = newValueStr.toLowerCase();
+                    }
+                }
+                newValue = enumMap.get(newValueStr.toUpperCase());
+                
+                Property newProp = cat.get(field.getName());
+                if(!newProp.getString().equals(newValueStr)) {
+                    newProp.set(newValueStr);
+                }
             }
             
             if(needsReload != null && !newValue.equals(currentValue)) {
@@ -234,8 +276,23 @@ public class Config {
 
     }
     
+    @Retention(RetentionPolicy.RUNTIME)
+    @Target(ElementType.FIELD)
+    public static @interface ConfigEnum {
+
+        String cat();
+        String def();
+        String com() default "";
+        Class<? extends Enum> clazz();
+
+    }
+    
     public static class ReloadInfo {
         public boolean needReload;
+    }
+    
+    public static enum AutomatableBoolean {
+        FALSE, TRUE, AUTO
     }
     
 }
