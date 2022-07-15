@@ -43,6 +43,7 @@ public class MixinConfigPlugin implements IMixinConfigPlugin {
         if (OFUtil.isOptiFinePresent()) {
             System.out.println("Detected OptiFine");
             mixins.add("MixinRenderGlobal_OptiFine");
+            mixins.add("MixinGameSettings_OptiFine");
         }
         
         if(Config.replaceOpenGLSplash) {

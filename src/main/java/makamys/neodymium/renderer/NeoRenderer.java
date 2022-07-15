@@ -29,6 +29,7 @@ import makamys.neodymium.config.Config;
 import makamys.neodymium.ducks.IWorldRenderer;
 import makamys.neodymium.renderer.Mesh.GPUStatus;
 import makamys.neodymium.util.GuiHelper;
+import makamys.neodymium.util.OFUtil;
 import makamys.neodymium.util.Preprocessor;
 import makamys.neodymium.util.Util;
 import net.minecraft.client.Minecraft;
@@ -616,7 +617,7 @@ public class NeoRenderer {
         case FALSE:
             return false;
         default:
-            return GL11.glIsEnabled(GL11.GL_FOG);
+            return GL11.glIsEnabled(GL11.GL_FOG) && !OFUtil.isFogOff();
         }
     }
     
