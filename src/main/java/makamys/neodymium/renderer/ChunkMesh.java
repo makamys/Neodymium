@@ -86,9 +86,12 @@ public class ChunkMesh extends Mesh {
             LOGGER.error("Error in chunk " + tessellatorToString(t) + ": Unsupported draw mode: " + t.drawMode);
             errors = true;
         }
-        if(!t.hasTexture || !t.hasBrightness || !t.hasColor /*|| t.hasNormals*/) {
+        if(!t.hasTexture || !t.hasBrightness || !t.hasColor) {
             LOGGER.error("Error in chunk " + tessellatorToString(t) + ": Unsupported tessellator flags");
             errors = true;
+        }
+        if(t.hasNormals && GL11.glIsEnabled(GL11.GL_LIGHTING)) {
+            LOGGER.warn("Warning in chunk " + tessellatorToString(t) + ": Chunk uses GL lighting, this is not implemented.");
         }
         if(errors) {
             LOGGER.error("Skipping chunk due to errors.");
@@ -378,6 +381,6 @@ public class ChunkMesh extends Mesh {
         }
         
     }
-    
+
 }
 
