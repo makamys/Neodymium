@@ -68,12 +68,13 @@ public class GPUMemoryManager {
                 mesh.offset = offset;
             } else if(mesh.gpuStatus == GPUStatus.PENDING_DELETE) {
                 mesh.iFirst = mesh.offset = -1;
-                mesh.visible = false;
                 mesh.gpuStatus = GPUStatus.UNSENT;
                 
                 sentMeshes.remove(nextMesh);
                 
-                mesh.destroyBuffer();
+                if(!mesh.inUse) {
+                    mesh.destroyBuffer();
+                }
                 
                 if(nextMesh > 0) {
                     nextMesh--;

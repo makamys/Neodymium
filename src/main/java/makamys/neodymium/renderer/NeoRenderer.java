@@ -194,11 +194,16 @@ public class NeoRenderer {
             for(Mesh mesh : sentMeshes[i]) {
                 WorldRenderer wr = ((ChunkMesh)mesh).wr;
                 if(mesh.visible && wr.isVisible && shouldRenderMesh(mesh)) {
+                    if(mesh.gpuStatus != GPUStatus.SENT) {
+                        mem.sendMeshToGPU(mesh);
+                    }
                     int meshes = mesh.writeToIndexBuffer(piFirst[i], piCount[i], eyePosXTDiv, eyePosYTDiv, eyePosZTDiv);
                     renderedMeshes += meshes;
                     for(int j = piCount[i].position() - meshes; j < piCount[i].position(); j++) {
                         renderedQuads += piCount[i].get(j) / 4;
                     }
+                } else {
+                    mem.deleteMeshFromGPU(mesh);
                 }
             }
             piFirst[i].flip();
@@ -568,8 +573,8 @@ public class NeoRenderer {
         if(mesh.visible != visible) {
             mesh.visible = visible;
             
-            if(mesh.gpuStatus == GPUStatus.UNSENT) {
-                mem.sendMeshToGPU(mesh);
+            if(!mesh.inUse) {
+                mesh.inUse = true;
                 sentMeshes[mesh.pass].add(mesh);
             }
         }
@@ -578,9 +583,10 @@ public class NeoRenderer {
     public void removeMesh(Mesh mesh) {
         if(mesh == null) return;
         
-        mem.deleteMeshFromGPU(mesh);
         sentMeshes[mesh.pass].remove(mesh);
         setMeshVisible(mesh, false);
+        mem.deleteMeshFromGPU(mesh);
+        mesh.inUse = false;
     }
     
     public List<String> getDebugText() {
