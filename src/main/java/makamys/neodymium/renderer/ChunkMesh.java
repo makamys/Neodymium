@@ -75,8 +75,6 @@ public class ChunkMesh extends Mesh {
     }
     
     private void addTessellatorData(Tessellator t) {
-        // TODO triangle support
-        
         if(t.vertexCount == 0) {
             // Sometimes the tessellator has no vertices and weird flags. Don't warn in this case, just silently return.
             return;
