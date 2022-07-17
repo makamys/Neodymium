@@ -14,7 +14,7 @@ public abstract class Mesh {
 	public boolean visible;
 	public GPUStatus gpuStatus = GPUStatus.UNSENT;
 	public int iFirst = -1, iCount = -1;
-	public int offset = -1;
+	public long offset = -1;
 	public int pass;
 	int x, y, z;
 	public QuadNormal normal = QuadNormal.NONE;
@@ -29,7 +29,7 @@ public abstract class Mesh {
 	    return buffer == null ? 0 : buffer.limit();
 	}
 	
-	public int getEnd() {
+	public long getEnd() {
 	    return offset + bufferSize();
 	}
 	

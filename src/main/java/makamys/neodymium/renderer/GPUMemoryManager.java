@@ -15,7 +15,7 @@ import makamys.neodymium.util.ChatUtil;
 /** Manages dynamic memory allocation inside a fixed buffer on the GPU. */
 public class GPUMemoryManager {
     
-    private int bufferSize;
+    private long bufferSize;
     
     public int VBO;
     
@@ -23,14 +23,14 @@ public class GPUMemoryManager {
     
     private List<Mesh> sentMeshes = new ArrayList<>();
     
-    private int usedVRAM;
+    private long usedVRAM;
     private long lastUsedVRAMUpdate;
     private static final long USED_VRAM_UPDATE_RATE = 1_000_000_000;
     
     public GPUMemoryManager() {
         VBO = glGenBuffers();
         
-        bufferSize = Config.VRAMSize * 1024 * 1024;
+        bufferSize = ((long)Config.VRAMSize) * 1024 * 1024;
         
         glBindBuffer(GL_ARRAY_BUFFER, VBO);
         
@@ -59,15 +59,16 @@ public class GPUMemoryManager {
             Mesh mesh = sentMeshes.get(nextMesh);
             
             if(mesh.gpuStatus == GPUStatus.SENT) {
-                int offset = nextMesh == 0 ? 0 : sentMeshes.get(nextMesh - 1).getEnd();
+                long offset = nextMesh == 0 ? 0 : sentMeshes.get(nextMesh - 1).getEnd();
                 if(mesh.offset != offset) {
                     glBufferSubData(GL_ARRAY_BUFFER, offset, mesh.buffer);
                     moved++;
                 }
-                mesh.iFirst = offset / mesh.getStride();
+                mesh.iFirst = (int)(offset / mesh.getStride());
                 mesh.offset = offset;
             } else if(mesh.gpuStatus == GPUStatus.PENDING_DELETE) {
-                mesh.iFirst = mesh.offset = -1;
+                mesh.iFirst = -1;
+                mesh.offset = -1;
                 mesh.visible = false;
                 mesh.gpuStatus = GPUStatus.UNSENT;
                 
@@ -84,7 +85,7 @@ public class GPUMemoryManager {
         glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
     
-    private int end() {
+    private long end() {
         return (sentMeshes.isEmpty() ? 0 : sentMeshes.get(sentMeshes.size() - 1).getEnd());
     }
     
@@ -107,7 +108,7 @@ public class GPUMemoryManager {
         int size = mesh.bufferSize();
         int insertIndex = -1;
         
-        int nextBase = -1;
+        long nextBase = -1;
         if(!sentMeshes.isEmpty()) {
             if(nextMesh < sentMeshes.size() - 1) {
                 Mesh next = sentMeshes.get(nextMesh);
@@ -138,7 +139,7 @@ public class GPUMemoryManager {
             glBindBuffer(GL_ARRAY_BUFFER, VBO);
             
             glBufferSubData(GL_ARRAY_BUFFER, nextBase, mesh.buffer);
-            mesh.iFirst = nextBase / mesh.getStride();
+            mesh.iFirst = (int)(nextBase / mesh.getStride());
             mesh.iCount = mesh.quadCount * 4;
             mesh.offset = nextBase;
             
@@ -183,14 +184,14 @@ public class GPUMemoryManager {
         int rowLength = 512;
         int yOff = 20;
         
-        int height = (bufferSize / scale) / rowLength;
+        int height = (int)(bufferSize / scale) / rowLength;
         GuiHelper.drawRectangle(0, yOff, rowLength, height, 0x000000, 50);
         
         int meshI = 0;
         for(Mesh mesh : sentMeshes) {
             
-            int o = mesh.offset / 10000;
-            int o2 = (mesh.offset + mesh.bufferSize()) / 10000;
+            int o = (int)(mesh.offset / 10000);
+            int o2 = (int)((mesh.offset + mesh.bufferSize()) / 10000);
             if(o / rowLength == o2 / rowLength) {
                 if(mesh.gpuStatus != Mesh.GPUStatus.PENDING_DELETE) {
                     GuiHelper.drawRectangle(o % rowLength, o / rowLength + yOff, mesh.buffer.limit() / scale + 1, 1, meshI == nextMesh ? 0x00FF00 : 0xFFFFFF);
@@ -207,7 +208,7 @@ public class GPUMemoryManager {
             meshI++;
         }
         GuiHelper.drawRectangle(0 % rowLength, 0 + yOff, 4, 4, 0x00FF00);
-        GuiHelper.drawRectangle((bufferSize / scale) % rowLength, (bufferSize / scale) / rowLength + yOff, 4, 4, 0xFF0000);
+        GuiHelper.drawRectangle((int)(bufferSize / scale) % rowLength, (int)(bufferSize / scale) / rowLength + yOff, 4, 4, 0xFF0000);
     }
     
     public float getCoherenceRate() {
