@@ -58,7 +58,7 @@ public class NeoRenderer {
     public boolean forceRenderFog;
     public boolean hasIncompatibilities;
     
-    private static int MAX_MESHES = 100000;
+    private static int MAX_MESHES;
     
     private int VAO;
     private int[] shaderProgramsFog = {0, 0};
@@ -364,6 +364,10 @@ public class NeoRenderer {
     }
     
     public boolean init() {
+        // The average mesh is 60 KB. Let's be safe and assume 8 KB per mesh.
+        // This means 1 MB of index data per 512 MB of VRAM.
+        MAX_MESHES = Config.VRAMSize * 128;
+        
         reloadShader();
         
         VAO = glGenVertexArrays();
