@@ -194,7 +194,7 @@ public class NeoRenderer {
             for(Mesh mesh : sentMeshes[i]) {
                 WorldRenderer wr = ((ChunkMesh)mesh).wr;
                 if(mesh.visible && wr.isVisible && shouldRenderMesh(mesh)) {
-                    int meshes = mesh.writeToIndexBuffer(piFirst[i], piCount[i], eyePosXTDiv, eyePosYTDiv, eyePosZTDiv);
+                    int meshes = mesh.writeToIndexBuffer(piFirst[i], piCount[i], eyePosXTDiv, eyePosYTDiv, eyePosZTDiv, i);
                     renderedMeshes += meshes;
                     for(int j = piCount[i].position() - meshes; j < piCount[i].position(); j++) {
                         renderedQuads += piCount[i].get(j) / 4;
