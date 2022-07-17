@@ -23,6 +23,8 @@ Tests were made staying in one place without moving the camera, on Peaceful diff
 
 Just drop it in your mods folder. You can confirm that the mod is working by pressing F3 and looking at the right side of the screen. The number of rendered meshes will be shown, along with the amount of used memory.
 
+If an incompatibility is detected, "**(!) Incompatibilities**" will be shown in the overlay, or the mod may disable itself entirely. The cause of the incompatibility will be printed to the log.
+
 In the mod's config file you can find various options you can use to fine-tune the mod to suit your hardware. The config is reloaded when the chunks are reloaded (e.g. when you press F3+A), or immediately upon saving the config file if the hot swap feature is enabled.
 
 ### Debug
