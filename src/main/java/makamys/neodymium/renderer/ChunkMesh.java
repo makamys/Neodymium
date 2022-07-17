@@ -16,6 +16,7 @@ import makamys.neodymium.config.Config;
 import makamys.neodymium.ducks.IWorldRenderer;
 import makamys.neodymium.util.BufferWriter;
 import makamys.neodymium.util.RecyclingList;
+import makamys.neodymium.util.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.WorldRenderer;
@@ -266,9 +267,9 @@ public class ChunkMesh extends Mesh {
     }
     
     @Override
-    public int writeToIndexBuffer(IntBuffer piFirst, IntBuffer piCount, int cameraXDiv, int cameraYDiv, int cameraZDiv) {
+    public int writeToIndexBuffer(IntBuffer piFirst, IntBuffer piCount, int cameraXDiv, int cameraYDiv, int cameraZDiv, int pass) {
         if(!Config.cullFaces) {
-            return super.writeToIndexBuffer(piFirst, piCount, cameraXDiv, cameraYDiv, cameraZDiv);
+            return super.writeToIndexBuffer(piFirst, piCount, cameraXDiv, cameraYDiv, cameraZDiv, pass);
         }
         
         int renderedMeshes = 0;
@@ -278,7 +279,7 @@ public class ChunkMesh extends Mesh {
             if(i < subMeshStart.length && subMeshStart[i] == -1) continue;
             
             QuadNormal normal = i < NORMAL_ORDER.length ? NORMAL_ORDER[i] : null;
-            boolean isVisible = normal != null && isNormalVisible(normal, cameraXDiv, cameraYDiv, cameraZDiv);
+            boolean isVisible = normal != null && isNormalVisible(normal, cameraXDiv, cameraYDiv, cameraZDiv, pass);
             
             if(isVisible && startIndex == -1) {
                 startIndex = subMeshStart[QUAD_NORMAL_TO_NORMAL_ORDER[normal.ordinal()]];
@@ -296,7 +297,7 @@ public class ChunkMesh extends Mesh {
         return renderedMeshes;
     }
     
-    private boolean isNormalVisible(QuadNormal normal, int interpXDiv, int interpYDiv, int interpZDiv) {
+    private boolean isNormalVisible(QuadNormal normal, int interpXDiv, int interpYDiv, int interpZDiv, int pass) {
         switch(normal) {
         case POSITIVE_X:
             return interpXDiv >= ((x + 0));
@@ -311,7 +312,8 @@ public class ChunkMesh extends Mesh {
         case NEGATIVE_Z:
             return interpZDiv < ((z + 1));
         default:
-            return true;
+            return pass != 0 || Config.maxUnalignedQuadDistance == Integer.MAX_VALUE
+            || Util.distSq(interpXDiv, interpYDiv, interpZDiv, x, y, z) < Math.pow((double)Config.maxUnalignedQuadDistance, 2);
         }
     }
     

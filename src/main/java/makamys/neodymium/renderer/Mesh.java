@@ -43,7 +43,7 @@ public abstract class Mesh {
 	    UNSENT, SENT, PENDING_DELETE
 	}
 
-    public int writeToIndexBuffer(IntBuffer piFirst, IntBuffer piCount, int cameraXDiv, int cameraYDiv, int cameraZDiv) {
+    public int writeToIndexBuffer(IntBuffer piFirst, IntBuffer piCount, int cameraXDiv, int cameraYDiv, int cameraZDiv, int pass) {
         piFirst.put(iFirst);
         piCount.put(iCount);
         
