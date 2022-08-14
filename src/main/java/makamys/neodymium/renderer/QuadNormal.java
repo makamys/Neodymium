@@ -8,23 +8,23 @@ public enum QuadNormal {
     public static QuadNormal fromVector(Vector3f normal) {
         if(normal.getX() == 0f) {
             if(normal.getY() == 0f) {
-                if(normal.getZ() == 1f) {
+                if(normal.getZ() > 0) {
                     return POSITIVE_Z;
-                } else if(normal.getZ() == -1f) {
+                } else if(normal.getZ() < 0) {
                     return NEGATIVE_Z;
                 }
             } else if(normal.getZ() == 0f) {
-                if(normal.getY() == 1f) {
+                if(normal.getY() > 0) {
                     return POSITIVE_Y;
-                } else if(normal.getY() == -1f) {
+                } else if(normal.getY() < 0) {
                     return NEGATIVE_Y;
                 }
             }
         } else if(normal.getY() == 0f) {
             if(normal.getZ() == 0f) {
-                if(normal.getX() == 1f) {
+                if(normal.getX() > 0) {
                     return POSITIVE_X;
-                } else if(normal.getX() == -1f) {
+                } else if(normal.getX() < 0) {
                     return NEGATIVE_X;
                 }
             }
