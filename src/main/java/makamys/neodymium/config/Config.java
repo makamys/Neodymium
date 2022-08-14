@@ -80,6 +80,8 @@ public class Config {
     public static boolean showDebugInfo;
     @ConfigBoolean(cat="debug", def=false)
     public static boolean wireframe;
+    @ConfigBoolean(cat="debug", def=false, com="Enable building of vanilla chunk meshes. Makes it possible to switch to the vanilla renderer on the fly, at the cost of reducing chunk update performance.")
+    public static boolean enableVanillaChunkMeshes;
     
     private static Configuration config;
     private static File configFile = new File(Launch.minecraftHome, "config/" + MODID + ".cfg");
