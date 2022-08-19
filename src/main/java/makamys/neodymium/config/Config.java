@@ -71,6 +71,8 @@ public class Config {
     public static boolean replaceOpenGLSplash;
     @ConfigBoolean(cat="misc", def=false, com="Don't warn about incompatibilities in chat, and activate renderer even in spite of critical ones.")
     public static boolean ignoreIncompatibilities;
+    @ConfigBoolean(cat="misc", def=false, com="Don't print non-critical rendering errors.")
+    public static boolean silenceErrors;
     
     @ConfigInt(cat="debug", def=-1, min=-1, max=Integer.MAX_VALUE)
     public static int maxMeshesPerFrame;

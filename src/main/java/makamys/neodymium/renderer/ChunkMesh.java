@@ -94,18 +94,20 @@ public class ChunkMesh extends Mesh {
             errors.add("Chunk uses GL lighting, this is not implemented.");
         }
         if(!errors.isEmpty()) {
-            try {
-                // Generate a stack trace
-                throw new IllegalArgumentException();
-            } catch(IllegalArgumentException e) {
-                LOGGER.error("Errors in chunk ({}, {}, {})", x, y, z);
-                for(String error : errors) {
-                    LOGGER.error("Error: " + error);
+            if(!Config.silenceErrors) {
+                try {
+                    // Generate a stack trace
+                    throw new IllegalArgumentException();
+                } catch(IllegalArgumentException e) {
+                    LOGGER.error("Errors in chunk ({}, {}, {})", x, y, z);
+                    for(String error : errors) {
+                        LOGGER.error("Error: " + error);
+                    }
+                    LOGGER.error("(World renderer pos: ({}, {}, {}), Tessellator pos: ({}, {}, {}), Tessellation count: {}", wr.posX, wr.posY, wr.posZ, t.xOffset, t.yOffset, t.zOffset, tesselatorDataCount);
+                    LOGGER.error("Stack trace:");
+                    e.printStackTrace();
+                    LOGGER.error("Skipping chunk due to errors.");
                 }
-                LOGGER.error("(World renderer pos: ({}, {}, {}), Tessellator pos: ({}, {}, {}), Tessellation count: {}", wr.posX, wr.posY, wr.posZ, t.xOffset, t.yOffset, t.zOffset, tesselatorDataCount);
-                LOGGER.error("Stack trace:");
-                e.printStackTrace();
-                LOGGER.error("Skipping chunk due to errors.");
             }
             return;
         }
