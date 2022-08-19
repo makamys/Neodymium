@@ -27,6 +27,7 @@ import net.minecraft.tileentity.TileEntity;
 public class ChunkMesh extends Mesh {
     
     WorldRenderer wr;
+    private int tesselatorDataCount;
     
     private int[] subMeshStart = new int[NORMAL_ORDER.length]; 
     
@@ -76,24 +77,36 @@ public class ChunkMesh extends Mesh {
     }
     
     private void addTessellatorData(Tessellator t) {
+        tesselatorDataCount++;
+        
         if(t.vertexCount == 0) {
             // Sometimes the tessellator has no vertices and weird flags. Don't warn in this case, just silently return.
             return;
         }
-        boolean errors = false;
+        List<String> errors = new ArrayList<>();
         if(t.drawMode != GL11.GL_QUADS && t.drawMode != GL11.GL_TRIANGLES) {
-            LOGGER.error("Error in chunk " + tessellatorToString(t) + ": Unsupported draw mode: " + t.drawMode);
-            errors = true;
+            errors.add("Unsupported draw mode: " + t.drawMode);
         }
         if(!t.hasTexture || !t.hasBrightness || !t.hasColor) {
-            LOGGER.error("Error in chunk " + tessellatorToString(t) + ": Unsupported tessellator flags");
-            errors = true;
+            errors.add(String.format("Unsupported tessellator flags: (hasTexture=%b, hasBrightness=%b, hasColor=%b)", t.hasTexture, t.hasBrightness, t.hasColor));
         }
         if(t.hasNormals && GL11.glIsEnabled(GL11.GL_LIGHTING)) {
-            LOGGER.warn("Warning in chunk " + tessellatorToString(t) + ": Chunk uses GL lighting, this is not implemented.");
+            errors.add("Chunk uses GL lighting, this is not implemented.");
         }
-        if(errors) {
-            LOGGER.error("Skipping chunk due to errors.");
+        if(!errors.isEmpty()) {
+            try {
+                // Generate a stack trace
+                throw new IllegalArgumentException();
+            } catch(IllegalArgumentException e) {
+                LOGGER.error("Errors in chunk ({}, {}, {})", x, y, z);
+                for(String error : errors) {
+                    LOGGER.error("Error: " + error);
+                }
+                LOGGER.error("(World renderer pos: ({}, {}, {}), Tessellator pos: ({}, {}, {}), Tessellation count: {}", wr.posX, wr.posY, wr.posZ, t.xOffset, t.yOffset, t.zOffset, tesselatorDataCount);
+                LOGGER.error("Stack trace:");
+                e.printStackTrace();
+                LOGGER.error("Skipping chunk due to errors.");
+            }
             return;
         }
         
