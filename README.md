@@ -55,6 +55,9 @@ The mod increases memory usage, since the chunk meshes have to be stored somewhe
 * OptiFine shaders aren't compatible, and will probably never be unless someone contributes a PR, as I have neither the knowledge nor the interest to add compatibility for them.
 * Various coremods may be incompatible with Mixin. Use [Mixingasm](https://github.com/makamys/Mixingasm) to fix this.
 
+## Suggested mods
+For more 1.7.10 performance mods, refer to [this list](https://gist.github.com/makamys/7cb74cd71d93a4332d2891db2624e17c).
+
 ## License
 
 This mod is licensed under version 3 of the GNU Lesser General Public License. See [LICENSE](LICENSE) for additional information.
