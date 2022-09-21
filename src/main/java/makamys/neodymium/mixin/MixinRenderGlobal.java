@@ -23,10 +23,10 @@ abstract class MixinRenderGlobal {
     
     private boolean nd$isInsideUpdateRenderers;
     
-    @Redirect(method = "renderSortedRenderers", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/RenderGlobal;renderAllRenderLists(ID)V"))
-    private void redirectRenderAllRenderLists(RenderGlobal thiz, int p1, double p2) {
-        if(Neodymium.shouldRenderVanillaWorld()) {
-            thiz.renderAllRenderLists(p1, p2);
+    @Inject(method = "renderAllRenderLists", at = @At(value = "HEAD"), cancellable = true)
+    private void preRenderAllRenderLists(int p1, double p2, CallbackInfo ci) {
+        if(!Neodymium.shouldRenderVanillaWorld()) {
+            ci.cancel();
         }
     }
     
