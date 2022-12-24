@@ -2,31 +2,19 @@
     unless you have to. Edit project.gradle instead. */
 
 buildscript {
-    repositories {
-        mavenCentral()
-        maven {
-            name = "forge"
-            url = "https://maven.minecraftforge.net/"
-        }
-        maven {
-            name = "sonatype"
-            url = "https://oss.sonatype.org/content/repositories/snapshots/"
-        }
-    }
-    dependencies {
-        classpath 'net.minecraftforge.gradle:ForgeGradle:1.2-SNAPSHOT'
-    }
+	repositories {
+		mavenCentral()
+		maven {
+			name = "forge"
+			url = "https://maven.minecraftforge.net/"
+		}
+		maven {
+			url = "https://jitpack.io"
+		}
+	}
+	dependencies {
+		classpath 'com.github.GTNewHorizons:ForgeGradle:1.2.11'
+	}
 }
-
-plugins {
-    id 'java-library'
-    id 'maven-publish'
-}
-
-dependencies {
-	compile "codechicken:CodeChickenLib:1.7.10-1.1.3.140:dev"
-	compile "codechicken:CodeChickenCore:1.7.10-1.0.7.47:dev"
-}
-
 
 apply from: "buildscript/forge-1.7.gradle"

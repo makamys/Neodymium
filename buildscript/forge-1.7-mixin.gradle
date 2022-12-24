@@ -7,9 +7,21 @@ repositories {
 	}
 }
 
+def embedMixin = !project.hasProperty("nomixin");
+
+if(!embedMixin){
+	project.version += "+nomixin"
+}
+
 dependencies {
-	embed('org.spongepowered:mixin:0.7.11-SNAPSHOT'){
-		setTransitive false
+	if(embedMixin){
+		embed('org.spongepowered:mixin:0.7.11-SNAPSHOT'){
+			setTransitive false
+		}
+	} else {
+		compile('org.spongepowered:mixin:0.7.11-SNAPSHOT'){
+			setTransitive false
+		}
 	}
 }
 

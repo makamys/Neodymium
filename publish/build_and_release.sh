@@ -28,7 +28,6 @@ MODRINTH_TOKEN=$3
 # release
 py prepare_publish.py
 ./gradlew githubRelease -PgithubToken=$GITHUB_TOKEN
-py update_updatejson.py
 
 if [ -n "$CURSEFORGE_TOKEN" ]
 then
@@ -41,3 +40,5 @@ if [ -n "$MODRINTH_TOKEN" ]
 then
 	./modrinth_all.sh -PmodrinthToken=$MODRINTH_TOKEN
 fi
+
+py update_updatejson.py

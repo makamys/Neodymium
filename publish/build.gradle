@@ -28,8 +28,9 @@ def getCommitVersion(){
 }
 
 def buildVersion = getCommitVersion()
-def changeLog = new File("${projectDir}/changelog.md").getText('UTF-8')
-def gameVersionsMap = new JsonSlurper().parseText(file("gameVersions.json").getText('UTF-8'))
+def changeLogFile = new File("${projectDir}/changelog.md")
+def changeLog = changeLogFile.exists() ? changeLogFile.getText('UTF-8') : ""
+ext.gameVersionsMap = new JsonSlurper().parseText(file("gameVersions.json").getText('UTF-8'))
 ext.gameVersions = gameVersionsMap.keySet()
 
 def githubOK = project.hasProperty("githubToken")
@@ -165,11 +166,18 @@ task listFiles {
 	}
 }
 
-project.gameVersions.collect({toBaseVersion(it)}).each { ver ->
-	def dir = getVersionProjectPath(ver)
-	task ("cleanBuild-$ver", type: Exec) {
+def getBuildArgumentSets(ver) {
+	def projectConfig = new Properties()
+	projectConfig.load(file("../gradle.properties").newReader())
+	return projectConfig.enable_mixin ? ["", "-Pnomixin"] : [""]
+}
+
+project.gameVersions.each { ver ->
+	def baseVer = toBaseVersion(ver)
+	def dir = getVersionProjectPath(baseVer)
+	task ("cleanBuild-$baseVer", type: Exec) {
 		workingDir dir
-		commandLine 'sh', '-c', "rm -f build/libs/* && ./gradlew build"
+		commandLine 'sh', '-c', "rm -f build/libs/* && " + String.join(" && ", getBuildArgumentSets(ver).collect({"./gradlew build ${it}"}))
 	}
 }
 
