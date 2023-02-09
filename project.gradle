@@ -7,7 +7,9 @@ jar {
 }
 
 repositories {
-    maven { url 'https://maven.falsepattern.com' }
+    maven {
+        url = "https://mvn.falsepattern.com/releases"
+    }
 }
 
 dependencies {
@@ -15,3 +17,4 @@ dependencies {
 }
 
 apply from: "makalibs.gradle"
+	
