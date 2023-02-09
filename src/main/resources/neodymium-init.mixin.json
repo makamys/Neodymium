@@ -1,0 +1,12 @@
+{
+    "required": true,
+    "minVersion": "0.6",
+    "package": "makamys.neodymium.mixin",
+    "refmap": "neodymium.mixin.refmap.json",
+    "compatibilityLevel": "JAVA_8",
+    "mixins": [
+        
+    ],
+    "plugin": "makamys.neodymium.MixinConfigPlugin",
+    "target": "@env(INIT)"
+}

@@ -2,6 +2,8 @@ package makamys.neodymium;
 
 import static makamys.neodymium.Neodymium.LOGGER;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.util.List;
 
 import org.lwjgl.opengl.GLContext;
@@ -9,6 +11,8 @@ import org.lwjgl.opengl.GLContext;
 import com.falsepattern.triangulator.api.ToggleableTessellator;
 import cpw.mods.fml.common.Loader;
 import makamys.neodymium.util.OFUtil;
+import makamys.neodymium.util.virtualjar.IVirtualJar;
+import makamys.neodymium.util.virtualjar.VirtualJar;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.Tessellator;
 
@@ -29,10 +33,6 @@ public class Compat {
     public static void getCompatibilityWarnings(List<String> warns, List<String> criticalWarns){
         if(Minecraft.getMinecraft().gameSettings.advancedOpengl) {
             warns.add("Advanced OpenGL is enabled, performance may be poor.");
-        }
-        
-        if(Loader.isModLoaded("FastCraft") && !OFUtil.isOptiFinePresent()) {
-            criticalWarns.add("FastCraft is present without OptiFine, this is not supported.");
         }
         
         try {
@@ -65,5 +65,33 @@ public class Compat {
         wasAdvancedOpenGLEnabled = advGL;
         
         return changed;
+    }
+
+    public static void forceEnableOptiFineDetectionOfFastCraft() {
+        if(Compat.class.getResource("/fastcraft/Tweaker.class") != null) {
+            // If OptiFine is present, it's already on the class path at this point, so our virtual jar won't override it.
+            LOGGER.info("FastCraft is present, applying hack to forcingly enable FastCraft's OptiFine compat");
+            VirtualJar.add(new OptiFineStubVirtualJar());
+        }
+    }
+    
+    private static class OptiFineStubVirtualJar implements IVirtualJar {
+
+        @Override
+        public String getName() {
+            return "optifine-stub";
+        }
+
+        @Override
+        public InputStream getInputStream(String path) {
+            if(path.equals("/optifine/OptiFineForgeTweaker.class")) {
+                // Dummy file to make FastCraft think OptiFine is present.
+                LOGGER.info("Returning a dummy /optifine/OptiFineForgeTweaker.class to force FastCraft compat.");
+                return new ByteArrayInputStream(new byte[0]);
+            } else {
+                return null;
+            }
+        }
+        
     }
 }

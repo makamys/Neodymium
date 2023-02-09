@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Set;
 
 import org.spongepowered.asm.lib.tree.ClassNode;
+import org.spongepowered.asm.mixin.MixinEnvironment;
+import org.spongepowered.asm.mixin.MixinEnvironment.Phase;
 import org.spongepowered.asm.mixin.extensibility.IMixinConfigPlugin;
 import org.spongepowered.asm.mixin.extensibility.IMixinInfo;
 
@@ -17,6 +19,11 @@ public class MixinConfigPlugin implements IMixinConfigPlugin {
     @Override
     public void onLoad(String mixinPackage) {
         Config.reloadConfig();
+        
+        Phase phase = MixinEnvironment.getCurrentEnvironment().getPhase();
+        if(phase == Phase.INIT) {
+            Compat.forceEnableOptiFineDetectionOfFastCraft();
+        }
     }
 
     @Override
@@ -35,19 +42,22 @@ public class MixinConfigPlugin implements IMixinConfigPlugin {
     @Override
     public List<String> getMixins() {
         List<String> mixins = new ArrayList<>();
-        mixins.addAll(Arrays.asList(
-        "MixinRenderGlobal",
-        "MixinWorldRenderer",
-        "MixinTessellator"));
-        
-        if (OFUtil.isOptiFinePresent()) {
-            System.out.println("Detected OptiFine");
-            mixins.add("MixinRenderGlobal_OptiFine");
-            mixins.add("MixinGameSettings_OptiFine");
-        }
-        
-        if(Config.replaceOpenGLSplash) {
-            mixins.add("MixinGuiMainMenu");
+        Phase phase = MixinEnvironment.getCurrentEnvironment().getPhase();
+        if(phase == Phase.DEFAULT) {
+            mixins.addAll(Arrays.asList(
+                "MixinRenderGlobal",
+                "MixinWorldRenderer",
+                "MixinTessellator"));
+                
+            if (OFUtil.isOptiFinePresent()) {
+                System.out.println("Detected OptiFine");
+                mixins.add("MixinRenderGlobal_OptiFine");
+                mixins.add("MixinGameSettings_OptiFine");
+            }
+            
+            if(Config.replaceOpenGLSplash) {
+                mixins.add("MixinGuiMainMenu");
+            }
         }
         
         return mixins;
