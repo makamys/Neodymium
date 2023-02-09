@@ -1,5 +1,7 @@
 package makamys.neodymium.renderer;
 
+import static makamys.neodymium.Constants.VERSION;
+
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL14.*;
 import static org.lwjgl.opengl.GL15.*;
@@ -590,7 +592,7 @@ public class NeoRenderer {
     public List<String> getDebugText() {
         List<String> text = new ArrayList<>();
         text.addAll(Arrays.asList(
-                (!rendererActive ? EnumChatFormatting.RED + "(OFF) " : "") + "Neodymium " + Neodymium.VERSION
+                (!rendererActive ? EnumChatFormatting.RED + "(OFF) " : "") + "Neodymium " + VERSION
         ));
         text.addAll(mem.getDebugText());
         text.addAll(Arrays.asList(

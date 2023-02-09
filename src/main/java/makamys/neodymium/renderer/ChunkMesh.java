@@ -1,6 +1,6 @@
 package makamys.neodymium.renderer;
 
-import static makamys.neodymium.Neodymium.LOGGER;
+import static makamys.neodymium.Constants.LOGGER;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
