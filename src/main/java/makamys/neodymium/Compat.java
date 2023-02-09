@@ -1,6 +1,6 @@
 package makamys.neodymium;
 
-import static makamys.neodymium.Neodymium.LOGGER;
+import static makamys.neodymium.Constants.LOGGER;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;

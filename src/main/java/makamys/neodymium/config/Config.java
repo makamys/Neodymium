@@ -4,8 +4,9 @@ import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
 
-import static makamys.neodymium.Neodymium.LOGGER;
-import static makamys.neodymium.Neodymium.MODID;
+import static makamys.neodymium.Constants.LOGGER;
+import static makamys.neodymium.Constants.MODID;
+import static makamys.neodymium.Constants.VERSION;
 
 import java.io.File;
 import java.io.IOException;
@@ -100,7 +101,7 @@ public class Config {
             e.printStackTrace();
         }
         
-        config = new Configuration(configFile, Neodymium.VERSION);
+        config = new Configuration(configFile, VERSION);
         
         config.load();
         

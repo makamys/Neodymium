@@ -1,6 +1,6 @@
 package makamys.neodymium.config;
 
-import static makamys.neodymium.Neodymium.MODID;
+import static makamys.neodymium.Constants.MODID;
 
 import cpw.mods.fml.client.config.GuiConfig;
 import net.minecraft.client.gui.GuiScreen;

@@ -1,5 +1,9 @@
 package makamys.neodymium;
 
+import static makamys.neodymium.Constants.LOGGER;
+import static makamys.neodymium.Constants.MODID;
+import static makamys.neodymium.Constants.VERSION;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,13 +36,9 @@ import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.world.WorldEvent;
 
-@Mod(modid = Neodymium.MODID, version = Neodymium.VERSION, guiFactory = "makamys.neodymium.config.GuiFactory")
+@Mod(modid = MODID, version = VERSION, guiFactory = "makamys.neodymium.config.GuiFactory")
 public class Neodymium
 {
-    public static final String MODID = "neodymium";
-    public static final String VERSION = "@VERSION@";
-    
-    public static final Logger LOGGER = LogManager.getLogger(MODID);
     
     private static final Config.ReloadInfo CONFIG_RELOAD_INFO = new Config.ReloadInfo();
 

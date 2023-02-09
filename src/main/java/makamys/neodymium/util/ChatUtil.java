@@ -1,7 +1,7 @@
 package makamys.neodymium.util;
 
-import static makamys.neodymium.Neodymium.LOGGER;
-import static makamys.neodymium.Neodymium.MODID;
+import static makamys.neodymium.Constants.LOGGER;
+import static makamys.neodymium.Constants.MODID;
 
 import java.util.HashSet;
 import java.util.Set;
