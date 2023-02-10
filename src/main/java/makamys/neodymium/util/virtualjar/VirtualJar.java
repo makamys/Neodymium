@@ -3,6 +3,7 @@ package makamys.neodymium.util.virtualjar;
 import static makamys.neodymium.Constants.MODID;
 import static makamys.neodymium.Constants.PROTOCOL;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -65,35 +66,56 @@ public class VirtualJar {
     public static class StreamHandlerImpl implements Handler.IURLStreamHandlerImpl {
 
         @Override
-        public URLConnection openConnection(URL url) {
-            return new URLConnection(url) {
-                public void connect() {
-                    
+        public URLConnection openConnection(URL url) throws IOException {
+            return new VirtualJarConnection(url);
+        }
+        
+        public static class VirtualJarConnection extends URLConnection {
+            
+            IVirtualJar jar;
+            private String filePath;
+            
+            public VirtualJarConnection(URL url) throws IOException {
+                super(url);
+                
+                String path = url.getPath();
+                String nameSuffix = ".jar!";
+                int nameEnd = path.indexOf(nameSuffix);
+                String name = path.substring(0, nameEnd);
+                
+                jar = jars.get(name);
+                
+                if(jar == null) {
+                    throw new IOException();
                 }
+                
+                filePath = path.substring(nameEnd + nameSuffix.length());
+                
+                if(!jar.hasFile(filePath)) {
+                    throw new IOException();
+                }
+            }
+            
+            public void connect() throws IOException {
+                
+            }
 
-                public Object getContent() throws IOException {
-                    return super.getContent();
-                }
+            public Object getContent() throws IOException {
+                return super.getContent();
+            }
 
-                public String getHeaderField(String name) {
-                    return super.getHeaderField(name);
-                }
+            public String getHeaderField(String name) {
+                return super.getHeaderField(name);
+            }
 
-                public InputStream getInputStream() {
-                    String path = getURL().getPath();
-                    String nameSuffix = ".jar!";
-                    int nameEnd = path.indexOf(nameSuffix);
-                    String name = path.substring(0, nameEnd);
-                    
-                    IVirtualJar jar = jars.get(name);
-                    
-                    return jar.getInputStream(path.substring(nameEnd + nameSuffix.length()));
-                }
+            public InputStream getInputStream() {
+                return jar.getInputStream(filePath);
+            }
 
-                public java.io.OutputStream getOutputStream() throws IOException {
-                    return super.getOutputStream();
-                }
-            };
+            public java.io.OutputStream getOutputStream() throws IOException {
+                return super.getOutputStream();
+            }
+            
         }
     }
     

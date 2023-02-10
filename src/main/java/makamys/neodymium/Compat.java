@@ -86,7 +86,7 @@ public class Compat {
         public InputStream getInputStream(String path) {
             if(path.equals("/optifine/OptiFineForgeTweaker.class")) {
                 // Dummy file to make FastCraft think OptiFine is present.
-                LOGGER.info("Returning a dummy /optifine/OptiFineForgeTweaker.class to force FastCraft compat.");
+                LOGGER.debug("Returning a dummy /optifine/OptiFineForgeTweaker.class to force FastCraft compat.");
                 return new ByteArrayInputStream(new byte[0]);
             } else {
                 return null;
