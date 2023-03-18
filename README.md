@@ -2,6 +2,8 @@
 
 Neodymium is a mod that reimplements chunk rendering in Minecraft 1.7.10 using modern OpenGL. This should improve performance on most hardware.
 
+As a side effect, it has also been reported to fix the [graphical errors](https://www.minecraftforum.net/forums/support/java-edition-support/3148472-weird-bug-with-1-7-10-and-only-1-7-10) that occur when running Minecraft with an integrated Intel GPU.
+
 ## Benchmarks
 
 Tests were made staying in one place without moving the camera, on Peaceful difficulty. The FPS was measured once the chunk update number had reached the single digits and the FPS had stabilized.
@@ -23,7 +25,7 @@ Tests were made staying in one place without moving the camera, on Peaceful diff
 
 Just drop it in your mods folder. You can confirm that the mod is working by pressing F3 and looking at the right side of the screen. The number of rendered meshes will be shown, along with the amount of used memory.
 
-If an incompatibility is detected, "**(!) Incompatibilities**" will be shown in the overlay, or the mod may disable itself entirely. The cause of the incompatibility will be printed to the log.
+If an incompatibility is detected, "**(!) Incompatibilities**" will be shown in the overlay, or the mod may disable itself entirely. The cause of the incompatibility will be printed to the log. You can also view them using the `/neodymium status` command.
 
 In the mod's config file you can find various options you can use to fine-tune the mod to suit your hardware. The config is reloaded when the chunks are reloaded (e.g. when you press F3+A), or immediately upon saving the config file if the hot swap feature is enabled.
 
@@ -32,7 +34,9 @@ In the mod's config file you can find various options you can use to fine-tune t
 There are some debug key combinations provided. You have to hold down the *debug prefix key* (F4 by default) while pressing them.
 
 * **F**: switch between Neodymium's renderer and the vanilla chunk renderer. Can be used to compare the difference the mod makes.
+    * *(Only usable in creative mode or dev.)*
 * **V**: toggle whether the world is rendered or not. Can be used to see the theoretical maximum FPS that can be achieved via chunk renderer optimization.
+    * *(Only usable in creative mode or dev.)*
 * **M**: show the VRAM debugger. The positions of the white pixels shown correspond to the offsets of memory sections allocated in the vertex buffer on the GPU.
 * **Left**: reload renderers. Provided for convenience because F3+A makes you strafe left.
 * **Right**: toggle renderer update speedup. While this is enabled, chunk updates will be sped up 300x. This kills your FPS but reduces the time you have to wait until all the renderers have loaded.
