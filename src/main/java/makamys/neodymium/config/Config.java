@@ -92,7 +92,7 @@ public class Config {
     
     public static void reloadConfig(ReloadInfo info) {
         try {
-            if(Files.size(configFile.toPath()) == 0) {
+            if(configFile.exists() && Files.size(configFile.toPath()) == 0) {
                 // Sometimes the watcher fires twice, and the first time the file is empty.
                 // I don't know why. This is the workaround.
                 return;
