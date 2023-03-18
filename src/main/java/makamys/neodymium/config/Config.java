@@ -110,6 +110,8 @@ public class Config {
             info.needReload = needReload;
         }
         
+        config.setCategoryComment("debug", "Note: Some debug features are only available in creative mode or dev environments.");
+        
         if(config.hasChanged() || (!config.getLoadedConfigVersion().equals(config.getDefinedConfigVersion()))) {
             config.save();
         }

@@ -30,6 +30,7 @@ import makamys.neodymium.Neodymium;
 import makamys.neodymium.config.Config;
 import makamys.neodymium.ducks.IWorldRenderer;
 import makamys.neodymium.renderer.Mesh.GPUStatus;
+import makamys.neodymium.util.CheatHelper;
 import makamys.neodymium.util.GuiHelper;
 import makamys.neodymium.util.OFUtil;
 import makamys.neodymium.util.Preprocessor;
@@ -241,11 +242,13 @@ public class NeoRenderer {
     
     private void handleKeyboard() {
         if(Config.debugPrefix == 0 || (Config.debugPrefix != -1 && Keyboard.isKeyDown(Config.debugPrefix))) {
-            if(Keyboard.isKeyDown(Keyboard.KEY_F) && !wasDown[Keyboard.KEY_F]) {
-                rendererActive = !rendererActive;
-            }
-            if(Keyboard.isKeyDown(Keyboard.KEY_V) && !wasDown[Keyboard.KEY_V]) {
-                renderWorld = !renderWorld;
+            if(CheatHelper.canCheat()) {
+                if(Keyboard.isKeyDown(Keyboard.KEY_F) && !wasDown[Keyboard.KEY_F]) {
+                    rendererActive = !rendererActive;
+                }
+                if(Keyboard.isKeyDown(Keyboard.KEY_V) && !wasDown[Keyboard.KEY_V]) {
+                    renderWorld = !renderWorld;
+                }
             }
             if(Keyboard.isKeyDown(Keyboard.KEY_R) && !wasDown[Keyboard.KEY_R]) {
                 reloadShader();
@@ -291,11 +294,11 @@ public class NeoRenderer {
         glUseProgram(shader);
         updateUniforms(alpha, pass);
         
-        if(Config.wireframe) {
+        if(isWireframeEnabled()) {
             GL11.glPolygonMode(GL11.GL_FRONT_AND_BACK, GL11.GL_LINE);
         }
         glMultiDrawArrays(GL_QUADS, piFirst[pass], piCount[pass]);
-        if(Config.wireframe) {
+        if(isWireframeEnabled()) {
             GL11.glPolygonMode(GL11.GL_FRONT_AND_BACK, GL11.GL_FILL);
         }
         
@@ -629,6 +632,10 @@ public class NeoRenderer {
     
     private boolean shouldRenderInWorld(World world) {
         return world != null;
+    }
+    
+    private static boolean isWireframeEnabled() {
+        return Config.wireframe && CheatHelper.canCheat();
     }
     
     public static class NeoChunkComparator implements Comparator<NeoChunk> {
