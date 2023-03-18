@@ -159,17 +159,20 @@ public class NeoRenderer {
     }
     
     public void onRenderTickEnd() {
-        if(destroyPending) {
+        if(Neodymium.isActive()) {
+            if(reloadPending) {
+                Minecraft.getMinecraft().renderGlobal.loadRenderers();
+            }
+            if(showMemoryDebugger && mem != null) {
+                GuiHelper.begin();
+                mem.drawInfo();
+                GuiHelper.end();
+            }
+        } else if(destroyPending) {
             destroy();
+            destroyPending = false;
             Neodymium.renderer = null;
-            return;
-        } else if(reloadPending) {
             Minecraft.getMinecraft().renderGlobal.loadRenderers();
-        }
-        if(showMemoryDebugger && mem != null) {
-            GuiHelper.begin();
-            mem.drawInfo();
-            GuiHelper.end();
         }
     }
     

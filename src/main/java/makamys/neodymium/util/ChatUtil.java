@@ -31,7 +31,7 @@ public class ChatUtil {
     }
     
     public static void showNeoChatMessage(String text, MessageVerbosity verbosity, boolean once) {
-        if(shownChatMessages.contains(text)) return;
+        if(once && shownChatMessages.contains(text)) return;
         
         String verbosityText =
                 verbosity == MessageVerbosity.WARNING

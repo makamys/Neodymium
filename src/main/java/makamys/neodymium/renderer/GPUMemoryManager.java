@@ -6,11 +6,14 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import makamys.neodymium.Compat;
 import makamys.neodymium.Neodymium;
 import makamys.neodymium.config.Config;
 import makamys.neodymium.renderer.Mesh.GPUStatus;
 import makamys.neodymium.util.GuiHelper;
 import makamys.neodymium.util.ChatUtil;
+
+import static makamys.neodymium.Constants.LOGGER;
 
 /** Manages dynamic memory allocation inside a fixed buffer on the GPU. */
 public class GPUMemoryManager {
@@ -25,7 +28,10 @@ public class GPUMemoryManager {
     
     private long usedVRAM;
     private long lastUsedVRAMUpdate;
-    private static final long USED_VRAM_UPDATE_RATE = 1_000_000_000;
+    private static final long USED_VRAM_UPDATE_RATE = 1_000_000_000L;
+    
+    private static final long MAX_VRAM_FULLNESS_INTERVAL = 30L * 1_000_000_000L;
+    private static long lastVRAMFullness = -1;
     
     public GPUMemoryManager() {
         VBO = glGenBuffers();
@@ -99,9 +105,18 @@ public class GPUMemoryManager {
         }
         
         if(end() + mesh.bufferSize() >= bufferSize) {
-            ChatUtil.showNeoChatMessage("VRAM is full! Reverting to vanilla renderer. Try increasing the VRAM buffer size in the config, if possible.", ChatUtil.MessageVerbosity.ERROR);
             Neodymium.renderer.destroyPending = true;
-            // TODO restart renderer with more VRAM allocated when this happens.
+            
+            long t = System.nanoTime();
+            
+            if(lastVRAMFullness != -1 && t - lastVRAMFullness < MAX_VRAM_FULLNESS_INTERVAL) {
+                ChatUtil.showNeoChatMessage("VRAM keeps getting full! Reverting to vanilla renderer. Try increasing the VRAM buffer size in the config, if possible.", ChatUtil.MessageVerbosity.ERROR, false);
+                Compat.onNotEnoughVRAM(Config.VRAMSize);
+            } else {
+                LOGGER.debug("Reloading renderer because VRAM is full.");
+                // TODO restart renderer with more VRAM allocated when this happens.
+            }
+            lastVRAMFullness = t;
             return;
         }
         

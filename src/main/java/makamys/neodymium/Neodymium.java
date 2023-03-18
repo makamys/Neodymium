@@ -86,6 +86,7 @@ public class Neodymium
     {
         Config.reloadConfig();
         ChatUtil.resetShownChatMessages();
+        Compat.reset();
     }
     
     private void onPlayerWorldChanged(World newWorld) {
@@ -167,7 +168,7 @@ public class Neodymium
                 renderer.forceRenderFog = true;
             }
         } else if(event.phase == TickEvent.Phase.END) {
-            if(isActive()) {
+            if(renderer != null) {
                 renderer.onRenderTickEnd();
             }
         }

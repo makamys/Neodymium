@@ -10,6 +10,7 @@ import org.lwjgl.opengl.GLContext;
 
 import com.falsepattern.triangulator.api.ToggleableTessellator;
 import cpw.mods.fml.common.Loader;
+import makamys.neodymium.config.Config;
 import makamys.neodymium.util.OFUtil;
 import makamys.neodymium.util.virtualjar.IVirtualJar;
 import makamys.neodymium.util.virtualjar.VirtualJar;
@@ -19,6 +20,8 @@ import net.minecraft.client.renderer.Tessellator;
 public class Compat {
     
     private static boolean wasAdvancedOpenGLEnabled;
+    
+    private static int notEnoughVRAMAmountMB = -1;
     
     public static void applyCompatibilityTweaks() {
         if (Loader.isModLoaded("triangulator")) {
@@ -53,6 +56,9 @@ public class Compat {
         if(!GLContext.getCapabilities().OpenGL33) {
             criticalWarns.add("OpenGL 3.3 is not supported.");
         }
+        if(detectedNotEnoughVRAM()) {
+            criticalWarns.add("Not enough VRAM");
+        }
     }
 
     public static boolean hasChanged() {
@@ -65,6 +71,18 @@ public class Compat {
         wasAdvancedOpenGLEnabled = advGL;
         
         return changed;
+    }
+    
+    public static void onNotEnoughVRAM(int amountMB) {
+        notEnoughVRAMAmountMB = amountMB;
+    }
+    
+    public static void reset() {
+        notEnoughVRAMAmountMB = -1;
+    }
+    
+    private static boolean detectedNotEnoughVRAM() {
+        return Config.VRAMSize == notEnoughVRAMAmountMB;
     }
 
     public static void forceEnableOptiFineDetectionOfFastCraft() {
