@@ -609,7 +609,8 @@ public class NeoRenderer {
         }
         if(hasIncompatibilities) {
             text.addAll(Arrays.asList(
-                EnumChatFormatting.YELLOW + "(!) Incompatibilities"
+                EnumChatFormatting.YELLOW + "(!) Incompatibilities",
+                EnumChatFormatting.YELLOW + "Type '/neodymium status'"
             ));
         }
         return text;

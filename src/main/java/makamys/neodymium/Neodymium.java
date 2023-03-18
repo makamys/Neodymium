@@ -25,6 +25,7 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import makamys.mclib.core.MCLib;
 import makamys.mclib.core.MCLibModules;
+import makamys.neodymium.command.NeodymiumCommand;
 import makamys.neodymium.config.Config;
 import makamys.neodymium.renderer.NeoRenderer;
 import makamys.neodymium.util.ChatUtil;
@@ -70,6 +71,7 @@ public class Neodymium
     {
         FMLCommonHandler.instance().bus().register(this);
         MinecraftForge.EVENT_BUS.register(this);
+        NeodymiumCommand.init();
     }
     
     @SubscribeEvent
@@ -212,7 +214,7 @@ public class Neodymium
         rendererWorld = null;
     }
     
-    private static Pair<List<String>, List<String>> checkCompat() {
+    public static Pair<List<String>, List<String>> checkCompat() {
         List<String> warns = new ArrayList<>();
         List<String> criticalWarns = new ArrayList<>();
         
