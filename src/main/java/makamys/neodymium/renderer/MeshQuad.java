@@ -104,6 +104,12 @@ public class MeshQuad {
         
         read(rawBuffer, offset, offsetX, offsetY, offsetZ, drawMode);
         
+        if(xs[0] == xs[1] && xs[1] == xs[2] && xs[2] == xs[3] && ys[0] == ys[1] && ys[1] == ys[2] && ys[2] == ys[3]) {
+            // ignore empty quads (e.g. alpha pass of EnderIO item conduits)
+            deleted = true;
+            return;
+        }
+        
         uDirectionIs01 = us[0] != us[1];
         
         updateMinMaxXYZ();

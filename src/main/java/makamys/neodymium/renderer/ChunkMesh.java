@@ -93,29 +93,37 @@ public class ChunkMesh extends Mesh {
         if(t.hasNormals && GL11.glIsEnabled(GL11.GL_LIGHTING)) {
             errors.add("Chunk uses GL lighting, this is not implemented.");
         }
-        if(!errors.isEmpty()) {
-            if(!Config.silenceErrors) {
-                try {
-                    // Generate a stack trace
-                    throw new IllegalArgumentException();
-                } catch(IllegalArgumentException e) {
-                    LOGGER.error("Errors in chunk ({}, {}, {})", x, y, z);
-                    for(String error : errors) {
-                        LOGGER.error("Error: " + error);
-                    }
-                    LOGGER.error("(World renderer pos: ({}, {}, {}), Tessellator pos: ({}, {}, {}), Tessellation count: {}", wr.posX, wr.posY, wr.posZ, t.xOffset, t.yOffset, t.zOffset, tesselatorDataCount);
-                    LOGGER.error("Stack trace:");
-                    e.printStackTrace();
-                    LOGGER.error("Skipping chunk due to errors.");
-                }
-            }
-            return;
-        }
         
         int verticesPerPrimitive = t.drawMode == GL11.GL_QUADS ? 4 : 3;
         
         for(int quadI = 0; quadI < t.vertexCount / verticesPerPrimitive; quadI++) {
-            quadBuf.next().setState(t.rawBuffer, quadI * (verticesPerPrimitive * 8), FLAGS, t.drawMode, (float)-t.xOffset, (float)-t.yOffset, (float)-t.zOffset);
+            MeshQuad quad = quadBuf.next();
+            quad.setState(t.rawBuffer, quadI * (verticesPerPrimitive * 8), FLAGS, t.drawMode, (float)-t.xOffset, (float)-t.yOffset, (float)-t.zOffset);
+            if(quad.deleted) {
+                quadBuf.remove();
+            }
+        }
+        
+        if(!quadBuf.isEmpty()) {
+            // Only show errors if we're actually supposed to be drawing something
+            if(!errors.isEmpty()) {
+                if(!Config.silenceErrors) {
+                    try {
+                        // Generate a stack trace
+                        throw new IllegalArgumentException();
+                    } catch(IllegalArgumentException e) {
+                        LOGGER.error("Errors in chunk ({}, {}, {})", x, y, z);
+                        for(String error : errors) {
+                            LOGGER.error("Error: " + error);
+                        }
+                        LOGGER.error("(World renderer pos: ({}, {}, {}), Tessellator pos: ({}, {}, {}), Tessellation count: {}", wr.posX, wr.posY, wr.posZ, t.xOffset, t.yOffset, t.zOffset, tesselatorDataCount);
+                        LOGGER.error("Stack trace:");
+                        e.printStackTrace();
+                        LOGGER.error("Skipping chunk due to errors.");
+                    }
+                }
+                return;
+            }
         }
     }
     

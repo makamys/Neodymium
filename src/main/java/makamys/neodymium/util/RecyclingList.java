@@ -27,6 +27,17 @@ public class RecyclingList<T> {
         return get(nextIndex++);
     }
     
+    public void remove() {
+        if(nextIndex == 0) {
+            throw new IllegalStateException("Tried to remove from empty list");
+        }
+        nextIndex--;
+    }
+    
+    public boolean isEmpty() {
+        return nextIndex == 0;
+    }
+    
     public void reset() {
         nextIndex = 0;
     }
