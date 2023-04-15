@@ -183,7 +183,7 @@ public class Neodymium
                 renderDebugText = false;
                 RenderGameOverlayEvent.Text text = (RenderGameOverlayEvent.Text) event;
                 text.right.add(null);
-                text.right.addAll(renderer.getDebugText());
+                text.right.addAll(renderer.getDebugText(false));
             }
         }
     }

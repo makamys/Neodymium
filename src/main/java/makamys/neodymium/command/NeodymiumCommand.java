@@ -88,9 +88,8 @@ public class NeodymiumCommand extends CommandBase {
         @Override
         public void processCommand(ICommandSender sender, String[] args) {
             if(Neodymium.renderer != null) {
-                List<String> text = Neodymium.renderer.getDebugText();
-                addColoredChatMessage(sender, text.get(0), EnumChatFormatting.LIGHT_PURPLE);
-                addChatMessages(sender, text.subList(1, text.size()));
+                List<String> text = Neodymium.renderer.getDebugText(true);
+                addChatMessages(sender, text);
             }
             Pair<List<String>, List<String>> allWarns = Neodymium.checkCompat();
             List<String> warns = allWarns.getLeft();

@@ -595,26 +595,26 @@ public class NeoRenderer {
         setMeshVisible(mesh, false);
     }
     
-    public List<String> getDebugText() {
+    public List<String> getDebugText(boolean statusCommand) {
         List<String> text = new ArrayList<>();
-        text.addAll(Arrays.asList(
-                (!rendererActive ? EnumChatFormatting.RED + "(OFF) " : "") + "Neodymium " + VERSION
-        ));
+        text.add(
+                (!rendererActive ? EnumChatFormatting.RED + "(OFF) " : "")
+                + (statusCommand ? EnumChatFormatting.LIGHT_PURPLE : "")
+                + "Neodymium " + VERSION
+        );
         text.addAll(mem.getDebugText());
         text.addAll(Arrays.asList(
                 "Meshes: " + ChunkMesh.instances + " (" + ChunkMesh.usedRAM / 1024 / 1024 + "MB)",
                 "Rendered: " + renderedMeshes + " (" + renderedQuads / 1000 + "KQ)"
         ));
         if(rendererSpeedup > 0) {
-            text.addAll(Arrays.asList(
-                EnumChatFormatting.YELLOW + "(!) Renderer speedup active"
-            ));
+            text.add(EnumChatFormatting.YELLOW + "(!) Renderer speedup active");
         }
         if(hasIncompatibilities) {
-            text.addAll(Arrays.asList(
-                EnumChatFormatting.YELLOW + "(!) Incompatibilities",
-                EnumChatFormatting.YELLOW + "Type '/neodymium status'"
-            ));
+            text.add(EnumChatFormatting.YELLOW + "(!) Incompatibilities");
+            if(!statusCommand) {
+                text.add(EnumChatFormatting.YELLOW + "Type '/neodymium status'");
+            }
         }
         return text;
     }
