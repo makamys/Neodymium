@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 import org.apache.commons.lang3.tuple.Pair;
+import org.lwjgl.input.Mouse;
 
 import makamys.neodymium.Compat;
 import makamys.neodymium.Compat.Warning;
@@ -68,7 +69,14 @@ public class NeodymiumCommand extends CommandBase {
                 return;
             }
         }
-        throw new WrongUsageException(getCommandName() + " <" + String.join("|", subCommands.keySet()) + ">", new Object[0]);
+        throw new WrongUsageException(getCommandName() + " <" + String.join("|", getNonSecretSubCommands()) + ">", new Object[0]);
+    }
+    
+    private String[] getNonSecretSubCommands() {
+        return subCommands.entrySet()
+                .stream()
+                .filter(e -> !e.getValue().isSecret())
+                .map(e -> e.getKey()).toArray(String[]::new);
     }
     
     public static void addChatMessage(ICommandSender sender, String text) {
@@ -88,8 +96,9 @@ public class NeodymiumCommand extends CommandBase {
         sender.addChatMessage(msg);
     }
     
+    @SuppressWarnings("unchecked")
     public List<String> addTabCompletionOptions(ICommandSender sender, String[] args) {
-        return args.length == 1 ? getListOfStringsMatchingLastWord(args, subCommands.keySet().toArray(new String[0])) : null;
+        return args.length == 1 ? getListOfStringsMatchingLastWord(args, getNonSecretSubCommands()) : null;
     }
     
     public static class StatusCommand implements ISubCommand {
@@ -130,11 +139,20 @@ public class NeodymiumCommand extends CommandBase {
 
         @Override
         public void processCommand(ICommandSender sender, String[] args) {
+            Minecraft mc = Minecraft.getMinecraft();
             if(Compat.disableAdvancedOpenGL()) {
-                Minecraft.getMinecraft().getSoundHandler().playSound(PositionedSoundRecord.func_147674_a(new ResourceLocation("gui.button.press"), 1.0F));
+                mc.getSoundHandler().playSound(PositionedSoundRecord.func_147674_a(new ResourceLocation("gui.button.press"), 1.0F));
                 ChatUtil.showNeoChatMessage(EnumChatFormatting.AQUA + "Disabled Advanced OpenGL.", MessageVerbosity.INFO);
-                Minecraft.getMinecraft().renderGlobal.loadRenderers();
+                mc.renderGlobal.loadRenderers();
+            } else {
+                float x = Mouse.getX() / (float)Minecraft.getMinecraft().displayWidth;
+                mc.getSoundHandler().playSound(PositionedSoundRecord.func_147674_a(new ResourceLocation("note.bass"), 0.7F + x * 0.2F));
             }
+        }
+        
+        @Override
+        public boolean isSecret() {
+            return true;
         }
         
     }
