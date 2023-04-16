@@ -25,6 +25,7 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import makamys.mclib.core.MCLib;
 import makamys.mclib.core.MCLibModules;
+import makamys.neodymium.Compat.Warning;
 import makamys.neodymium.command.NeodymiumCommand;
 import makamys.neodymium.config.Config;
 import makamys.neodymium.renderer.NeoRenderer;
@@ -97,11 +98,11 @@ public class Neodymium
             destroyRenderer();
         }
     	if(Config.enabled && newWorld != null) {
-    	    Pair<List<String>, List<String>> warnsAndCriticalWarns = checkCompat();
-    	    List<String> warns = warnsAndCriticalWarns.getLeft();
-    	    List<String> criticalWarns = warnsAndCriticalWarns.getRight();
+    	    Pair<List<Warning>, List<Warning>> warnsAndCriticalWarns = showCompatStatus(false);
+    	    List<Warning> warns = warnsAndCriticalWarns.getLeft();
+    	    List<Warning> criticalWarns = warnsAndCriticalWarns.getRight();
     	    
-    	    if(criticalWarns.isEmpty() || Config.ignoreIncompatibilities) {
+    	    if(criticalWarns.isEmpty()) {
     	        renderer = new NeoRenderer(newWorld);
     	        renderer.hasIncompatibilities = !warns.isEmpty() || !criticalWarns.isEmpty();
     	    }
@@ -145,7 +146,7 @@ public class Neodymium
     	
     	if(event.phase == TickEvent.Phase.START) {
     	    if(Compat.hasChanged()) {
-    	        Pair<List<String>, List<String>> warns = checkCompat();
+    	        Pair<List<Warning>, List<Warning>> warns = showCompatStatus(false);
     	        if(renderer != null) {
     	            renderer.hasIncompatibilities = !warns.getLeft().isEmpty() || !warns.getRight().isEmpty();
     	        }
@@ -215,21 +216,21 @@ public class Neodymium
         rendererWorld = null;
     }
     
-    public static Pair<List<String>, List<String>> checkCompat() {
-        List<String> warns = new ArrayList<>();
-        List<String> criticalWarns = new ArrayList<>();
+    public static Pair<List<Warning>, List<Warning>> showCompatStatus(boolean statusCommand) {
+        List<Warning> warns = new ArrayList<>();
+        List<Warning> criticalWarns = new ArrayList<>();
         
-        Compat.getCompatibilityWarnings(warns, criticalWarns);
+        Compat.getCompatibilityWarnings(warns, criticalWarns, statusCommand);
         
-        if(!criticalWarns.isEmpty()) {
-            criticalWarns.add("Neodymium has been disabled due to a critical incompatibility.");
+        if(!criticalWarns.isEmpty() && !Config.ignoreIncompatibilities) {
+            criticalWarns.add(new Warning("Neodymium has been disabled due to a critical incompatibility."));
         }
         
-        for(String warn : warns) {
-            LOGGER.warn(warn);
+        for(Warning warn : warns) {
+            LOGGER.warn(warn.text);
         }
-        for(String criticalWarn : criticalWarns) {
-            LOGGER.warn("Critical: " + criticalWarn);
+        for(Warning criticalWarn : criticalWarns) {
+            LOGGER.warn("Critical: " + criticalWarn.text);
         }
         
         return Pair.of(warns, criticalWarns);

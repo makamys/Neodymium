@@ -8,12 +8,20 @@ import java.util.function.Consumer;
 
 import org.apache.commons.lang3.tuple.Pair;
 
+import makamys.neodymium.Compat;
+import makamys.neodymium.Compat.Warning;
 import makamys.neodymium.Neodymium;
+import makamys.neodymium.util.ChatUtil;
+import makamys.neodymium.util.ChatUtil.MessageVerbosity;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.audio.PositionedSoundRecord;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.WrongUsageException;
+import net.minecraft.event.ClickEvent;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.client.ClientCommandHandler;
 
 public class NeodymiumCommand extends CommandBase {
@@ -29,6 +37,7 @@ public class NeodymiumCommand extends CommandBase {
     public static void init() {
         ClientCommandHandler.instance.registerCommand(new NeodymiumCommand());
         registerSubCommand("status", new StatusCommand());
+        registerSubCommand("disable_advanced_opengl", new DisableAdvancedOpenGLCommand());
     }
     
     public static void registerSubCommand(String key, ISubCommand command) {
@@ -91,20 +100,40 @@ public class NeodymiumCommand extends CommandBase {
                 List<String> text = Neodymium.renderer.getDebugText(true);
                 addChatMessages(sender, text);
             }
-            Pair<List<String>, List<String>> allWarns = Neodymium.checkCompat();
-            List<String> warns = allWarns.getLeft();
-            List<String> criticalWarns = allWarns.getRight();
-            for(String line : warns) {
-                addColoredChatMessage(sender, "* " + line, HELP_WARNING_COLOR);
+            Pair<List<Warning>, List<Warning>> allWarns = Neodymium.showCompatStatus(true);
+            List<Warning> warns = allWarns.getLeft();
+            List<Warning> criticalWarns = allWarns.getRight();
+            for(Warning line : warns) {
+                addColoredChatMessageWithAction(sender, "* " + line.text, HELP_WARNING_COLOR, line.action);
             }
-            for(String line : criticalWarns) {
-                addColoredChatMessage(sender, "* " + line, ERROR_COLOR);
+            for(Warning line : criticalWarns) {
+                addColoredChatMessageWithAction(sender, "* " + line.text, ERROR_COLOR, line.action);
             }
         }
         
+        private void addColoredChatMessageWithAction(ICommandSender sender, String text, EnumChatFormatting color, Runnable action) {
+            ChatComponentText msg = new ChatComponentText(text);
+            msg.getChatStyle().setColor(color);
+            msg.getChatStyle().setChatClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "neodymium disable_advanced_opengl"));
+            sender.addChatMessage(msg);
+        }
+
         private static void addChatMessages(ICommandSender sender, Collection<String> messages) {
             for(String line : messages) {
                 sender.addChatMessage(new ChatComponentText(line));
+            }
+        }
+        
+    }
+    
+    public static class DisableAdvancedOpenGLCommand implements ISubCommand {
+
+        @Override
+        public void processCommand(ICommandSender sender, String[] args) {
+            if(Compat.disableAdvancedOpenGL()) {
+                Minecraft.getMinecraft().getSoundHandler().playSound(PositionedSoundRecord.func_147674_a(new ResourceLocation("gui.button.press"), 1.0F));
+                ChatUtil.showNeoChatMessage(EnumChatFormatting.AQUA + "Disabled Advanced OpenGL.", MessageVerbosity.INFO);
+                Minecraft.getMinecraft().renderGlobal.loadRenderers();
             }
         }
         

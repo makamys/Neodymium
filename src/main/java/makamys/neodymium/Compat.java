@@ -16,6 +16,7 @@ import makamys.neodymium.util.virtualjar.IVirtualJar;
 import makamys.neodymium.util.virtualjar.VirtualJar;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.Tessellator;
+import net.minecraft.client.settings.GameSettings;
 
 public class Compat {
     
@@ -33,9 +34,9 @@ public class Compat {
         ((ToggleableTessellator)Tessellator.instance).disableTriangulator();
     }
     
-    public static void getCompatibilityWarnings(List<String> warns, List<String> criticalWarns){
+    public static void getCompatibilityWarnings(List<Warning> warns, List<Warning> criticalWarns, boolean statusCommand){
         if(Minecraft.getMinecraft().gameSettings.advancedOpengl) {
-            warns.add("Advanced OpenGL is enabled, performance may be poor.");
+            warns.add(new Warning("Advanced OpenGL is enabled, performance may be poor." + (statusCommand ? " Click here to disable it." : "")).action(Compat::disableAdvancedOpenGL));
         }
         
         try {
@@ -43,7 +44,7 @@ public class Compat {
             try {
                 String shaderPack = (String)shaders.getMethod("getShaderPackName").invoke(null);
                 if(shaderPack != null) {
-                    criticalWarns.add("A shader pack is enabled, this is not supported.");
+                    criticalWarns.add(new Warning("A shader pack is enabled, this is not supported."));
                 }
             } catch(Exception e) {
                 LOGGER.warn("Failed to get shader pack name");
@@ -54,10 +55,10 @@ public class Compat {
         }
         
         if(!GLContext.getCapabilities().OpenGL33) {
-            criticalWarns.add("OpenGL 3.3 is not supported.");
+            criticalWarns.add(new Warning("OpenGL 3.3 is not supported."));
         }
         if(detectedNotEnoughVRAM()) {
-            criticalWarns.add("Not enough VRAM");
+            criticalWarns.add(new Warning("Not enough VRAM"));
         }
     }
 
@@ -93,6 +94,17 @@ public class Compat {
         }
     }
     
+    public static boolean disableAdvancedOpenGL() {
+        GameSettings gameSettings = Minecraft.getMinecraft().gameSettings;
+        
+        if(gameSettings.advancedOpengl) {
+            gameSettings.advancedOpengl = false;
+            gameSettings.saveOptions();
+            return true;
+        }
+        return false;
+    }
+    
     private static class OptiFineStubVirtualJar implements IVirtualJar {
 
         @Override
@@ -111,5 +123,19 @@ public class Compat {
             }
         }
         
+    }
+    
+    public static class Warning {
+        public String text;
+        public Runnable action;
+        
+        public Warning(String text) {
+            this.text = text;
+        }
+        
+        public Warning action(Runnable action) {
+            this.action = action;
+            return this;
+        }
     }
 }
