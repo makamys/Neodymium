@@ -35,6 +35,7 @@ There are some debug key combinations provided. You have to hold down the *debug
 
 * **F**: switch between Neodymium's renderer and the vanilla chunk renderer. Can be used to compare the difference the mod makes.
     * *(Only usable in creative mode or dev.)*
+    * `enableVanillaChunkMeshes` has to be enabled for this to work, otherwise you'll just see the void after switching.
 * **V**: toggle whether the world is rendered or not. Can be used to see the theoretical maximum FPS that can be achieved via chunk renderer optimization.
     * *(Only usable in creative mode or dev.)*
 * **M**: show the VRAM debugger. The positions of the white pixels shown correspond to the offsets of memory sections allocated in the vertex buffer on the GPU.
