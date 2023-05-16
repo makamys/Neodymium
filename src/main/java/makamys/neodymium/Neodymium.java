@@ -84,14 +84,6 @@ public class Neodymium
         }
     }
     
-    @EventHandler
-    public void onServerAboutToStart(FMLServerAboutToStartEvent event)
-    {
-        Config.reloadConfig();
-        ChatUtil.resetShownChatMessages();
-        Compat.reset();
-    }
-    
     private void onPlayerWorldChanged(World newWorld) {
     	if(getRendererWorld() == null && newWorld != null) {
     		Config.reloadConfig();
@@ -125,6 +117,9 @@ public class Neodymium
     @SubscribeEvent
     @SideOnly(Side.CLIENT)
     public void onConnectToServer(ClientConnectedToServerEvent event) {
+        Config.reloadConfig();
+        ChatUtil.resetShownChatMessages();
+        Compat.reset();
         WarningHelper.reset();
     }
     
