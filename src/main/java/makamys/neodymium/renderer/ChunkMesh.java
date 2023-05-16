@@ -121,8 +121,9 @@ public class ChunkMesh extends Mesh {
                         // Generate a stack trace
                         throw new IllegalArgumentException();
                     } catch(IllegalArgumentException e) {
+                        String dimId = wr.worldObj != null && wr.worldObj.provider != null ? "" + wr.worldObj.provider.dimensionId : "UNKNOWN";
                         if(!errors.isEmpty()) {
-                            LOGGER.error("Errors in chunk ({}, {}, {})", x, y, z);
+                            LOGGER.error("Errors in chunk ({}, {}, {}) in dimension {}:", x, y, z, dimId);
                             for(String error : errors) {
                                 LOGGER.error("Error: " + error);
                             }
@@ -135,7 +136,7 @@ public class ChunkMesh extends Mesh {
                             LOGGER.error("Skipping chunk due to errors.");
                             quadBuf.reset();
                         } else {
-                            LOGGER.debug("Warnings in chunk ({}, {}, {}): {}", x, y, z, String.join(", ", warnings));
+                            LOGGER.debug("Warnings in chunk ({}, {}, {}) in dimension {}: {}", x, y, z, dimId, String.join(", ", warnings));
                         }
                     }
                 }
