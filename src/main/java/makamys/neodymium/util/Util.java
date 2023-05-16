@@ -106,4 +106,8 @@ public class Util {
             e.printStackTrace();
         }
     }
+    
+    public static int createBrightness(int sky, int block) {
+        return sky << 20 | block << 4;
+    }
 }

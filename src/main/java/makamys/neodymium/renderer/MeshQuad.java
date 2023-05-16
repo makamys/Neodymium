@@ -10,6 +10,7 @@ import org.lwjgl.util.vector.Vector3f;
 
 import makamys.neodymium.config.Config;
 import makamys.neodymium.util.BufferWriter;
+import makamys.neodymium.util.Util;
 
 /*
  * This is what a quad looks like.
@@ -28,6 +29,9 @@ import makamys.neodymium.util.BufferWriter;
  */
 
 public class MeshQuad {
+    private final static int DEFAULT_BRIGHTNESS = Util.createBrightness(15, 15);
+    private final static int DEFAULT_COLOR = 0xFFFFFFFF;
+    
     public float[] xs = new float[4];
     public float[] ys = new float[4];
     public float[] zs = new float[4];
@@ -67,7 +71,7 @@ public class MeshQuad {
     private static Vector3f vectorB = new Vector3f();
     private static Vector3f vectorC = new Vector3f();
     
-    private void read(int[] rawBuffer, int offset, float offsetX, float offsetY, float offsetZ, int drawMode) {
+    private void read(int[] rawBuffer, int offset, float offsetX, float offsetY, float offsetZ, int drawMode, ChunkMesh.Flags flags) {
         int vertices = drawMode == GL11.GL_TRIANGLES ? 3 : 4;
         for(int vi = 0; vi < vertices; vi++) {
             int i = offset + vi * 8;
@@ -79,8 +83,8 @@ public class MeshQuad {
             us[vi] = Float.intBitsToFloat(rawBuffer[i + 3]);
             vs[vi] = Float.intBitsToFloat(rawBuffer[i + 4]);
             
-            bs[vi] = rawBuffer[i + 7];
-            cs[vi] = rawBuffer[i + 5];
+            bs[vi] = flags.hasBrightness ? rawBuffer[i + 7] : DEFAULT_BRIGHTNESS;
+            cs[vi] = flags.hasColor ? rawBuffer[i + 5] : DEFAULT_COLOR;
             
             i += 8;
         }
@@ -102,7 +106,7 @@ public class MeshQuad {
     public void setState(int[] rawBuffer, int offset, ChunkMesh.Flags flags, int drawMode, float offsetX, float offsetY, float offsetZ) {
         resetState();
         
-        read(rawBuffer, offset, offsetX, offsetY, offsetZ, drawMode);
+        read(rawBuffer, offset, offsetX, offsetY, offsetZ, drawMode, flags);
         
         if(xs[0] == xs[1] && xs[1] == xs[2] && xs[2] == xs[3] && ys[0] == ys[1] && ys[1] == ys[2] && ys[2] == ys[3]) {
             // ignore empty quads (e.g. alpha pass of EnderIO item conduits)

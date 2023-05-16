@@ -84,15 +84,24 @@ public class ChunkMesh extends Mesh {
             return;
         }
         List<String> errors = new ArrayList<>();
+        List<String> warnings = new ArrayList<>();
         if(t.drawMode != GL11.GL_QUADS && t.drawMode != GL11.GL_TRIANGLES) {
             errors.add("Unsupported draw mode: " + t.drawMode);
         }
-        if(!t.hasTexture || !t.hasBrightness || !t.hasColor) {
-            errors.add(String.format("Unsupported tessellator flags: (hasTexture=%b, hasBrightness=%b, hasColor=%b)", t.hasTexture, t.hasBrightness, t.hasColor));
+        if(!t.hasTexture) {
+            errors.add(String.format("Texture data is missing."));
+        }
+        if(!t.hasBrightness) {
+            warnings.add("Brightness data is missing");
+        }
+        if(!t.hasColor) {
+            warnings.add("Color data is missing");
         }
         if(t.hasNormals && GL11.glIsEnabled(GL11.GL_LIGHTING)) {
             errors.add("Chunk uses GL lighting, this is not implemented.");
         }
+        FLAGS.hasBrightness = t.hasBrightness;
+        FLAGS.hasColor = t.hasColor;
         
         int verticesPerPrimitive = t.drawMode == GL11.GL_QUADS ? 4 : 3;
         
@@ -106,24 +115,30 @@ public class ChunkMesh extends Mesh {
         
         if(!quadBuf.isEmpty()) {
             // Only show errors if we're actually supposed to be drawing something
-            if(!errors.isEmpty()) {
+            if(!errors.isEmpty() || !warnings.isEmpty()) {
                 if(!Config.silenceErrors) {
                     try {
                         // Generate a stack trace
                         throw new IllegalArgumentException();
                     } catch(IllegalArgumentException e) {
-                        LOGGER.error("Errors in chunk ({}, {}, {})", x, y, z);
-                        for(String error : errors) {
-                            LOGGER.error("Error: " + error);
+                        if(!errors.isEmpty()) {
+                            LOGGER.error("Errors in chunk ({}, {}, {})", x, y, z);
+                            for(String error : errors) {
+                                LOGGER.error("Error: " + error);
+                            }
+                            for(String warning : warnings) {
+                                LOGGER.error("Warning: " + warning);
+                            }
+                            LOGGER.error("(World renderer pos: ({}, {}, {}), Tessellator pos: ({}, {}, {}), Tessellation count: {}", wr.posX, wr.posY, wr.posZ, t.xOffset, t.yOffset, t.zOffset, tesselatorDataCount);
+                            LOGGER.error("Stack trace:");
+                            e.printStackTrace();
+                            LOGGER.error("Skipping chunk due to errors.");
+                            quadBuf.reset();
+                        } else {
+                            LOGGER.debug("Warnings in chunk ({}, {}, {}): {}", x, y, z, String.join(", ", warnings));
                         }
-                        LOGGER.error("(World renderer pos: ({}, {}, {}), Tessellator pos: ({}, {}, {}), Tessellation count: {}", wr.posX, wr.posY, wr.posZ, t.xOffset, t.yOffset, t.zOffset, tesselatorDataCount);
-                        LOGGER.error("Stack trace:");
-                        e.printStackTrace();
-                        LOGGER.error("Skipping chunk due to errors.");
                     }
                 }
-                quadBuf.reset();
-                return;
             }
         }
     }
