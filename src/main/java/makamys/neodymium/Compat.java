@@ -40,7 +40,7 @@ public class Compat {
     
     public static void getCompatibilityWarnings(List<Warning> warns, List<Warning> criticalWarns, boolean statusCommand){
         if(Minecraft.getMinecraft().gameSettings.advancedOpengl) {
-            warns.add(new Warning("Advanced OpenGL is enabled, performance may be poor." + (statusCommand ? " Click here to disable it." : "")).action(Compat::disableAdvancedOpenGL));
+            warns.add(new Warning("Advanced OpenGL is enabled, performance may be poor." + (statusCommand ? " Click here to disable it." : "")).chatAction("neodymium disable_advanced_opengl"));
         }
         
         try {
@@ -131,14 +131,14 @@ public class Compat {
     
     public static class Warning {
         public String text;
-        public Runnable action;
+        public String chatAction;
         
         public Warning(String text) {
             this.text = text;
         }
         
-        public Warning action(Runnable action) {
-            this.action = action;
+        public Warning chatAction(String command) {
+            this.chatAction = command;
             return this;
         }
     }

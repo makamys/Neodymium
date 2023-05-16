@@ -113,17 +113,19 @@ public class NeodymiumCommand extends CommandBase {
             List<Warning> warns = allWarns.getLeft();
             List<Warning> criticalWarns = allWarns.getRight();
             for(Warning line : warns) {
-                addColoredChatMessageWithAction(sender, "* " + line.text, HELP_WARNING_COLOR, line.action);
+                addColoredChatMessageWithAction(sender, "* " + line.text, HELP_WARNING_COLOR, line.chatAction);
             }
             for(Warning line : criticalWarns) {
-                addColoredChatMessageWithAction(sender, "* " + line.text, ERROR_COLOR, line.action);
+                addColoredChatMessageWithAction(sender, "* " + line.text, ERROR_COLOR, line.chatAction);
             }
         }
         
-        private void addColoredChatMessageWithAction(ICommandSender sender, String text, EnumChatFormatting color, Runnable action) {
+        private void addColoredChatMessageWithAction(ICommandSender sender, String text, EnumChatFormatting color, String command) {
             ChatComponentText msg = new ChatComponentText(text);
             msg.getChatStyle().setColor(color);
-            msg.getChatStyle().setChatClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "neodymium disable_advanced_opengl"));
+            if(command != null) {
+                msg.getChatStyle().setChatClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, command));
+            }
             sender.addChatMessage(msg);
         }
 
