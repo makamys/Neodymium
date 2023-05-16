@@ -122,6 +122,7 @@ public class ChunkMesh extends Mesh {
                         LOGGER.error("Skipping chunk due to errors.");
                     }
                 }
+                quadBuf.reset();
                 return;
             }
         }
