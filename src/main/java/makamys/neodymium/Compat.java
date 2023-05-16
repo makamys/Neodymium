@@ -20,11 +20,15 @@ import net.minecraft.client.settings.GameSettings;
 
 public class Compat {
     
+    private static boolean isGL33Supported;
+    
     private static boolean wasAdvancedOpenGLEnabled;
     
     private static int notEnoughVRAMAmountMB = -1;
     
-    public static void applyCompatibilityTweaks() {
+    public static void init() {
+        isGL33Supported = GLContext.getCapabilities().OpenGL33;
+        
         if (Loader.isModLoaded("triangulator")) {
             disableTriangulator();
         }
@@ -54,7 +58,7 @@ public class Compat {
             
         }
         
-        if(!GLContext.getCapabilities().OpenGL33) {
+        if(!isGL33Supported) {
             criticalWarns.add(new Warning("OpenGL 3.3 is not supported."));
         }
         if(detectedNotEnoughVRAM()) {

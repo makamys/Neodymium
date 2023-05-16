@@ -55,7 +55,7 @@ public class Neodymium
     @EventHandler
     public void preInit(FMLConstructionEvent event) {
         MCLib.init();
-        Compat.applyCompatibilityTweaks();
+        Compat.init();
     }
     
     @EventHandler
