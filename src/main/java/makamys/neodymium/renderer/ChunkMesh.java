@@ -117,27 +117,27 @@ public class ChunkMesh extends Mesh {
             // Only show errors if we're actually supposed to be drawing something
             if(!errors.isEmpty() || !warnings.isEmpty()) {
                 if(!Config.silenceErrors) {
-                    try {
-                        // Generate a stack trace
-                        throw new IllegalArgumentException();
-                    } catch(IllegalArgumentException e) {
-                        String dimId = wr.worldObj != null && wr.worldObj.provider != null ? "" + wr.worldObj.provider.dimensionId : "UNKNOWN";
-                        if(!errors.isEmpty()) {
-                            LOGGER.error("Errors in chunk ({}, {}, {}) in dimension {}:", x, y, z, dimId);
-                            for(String error : errors) {
-                                LOGGER.error("Error: " + error);
-                            }
-                            for(String warning : warnings) {
-                                LOGGER.error("Warning: " + warning);
-                            }
-                            LOGGER.error("(World renderer pos: ({}, {}, {}), Tessellator pos: ({}, {}, {}), Tessellation count: {}", wr.posX, wr.posY, wr.posZ, t.xOffset, t.yOffset, t.zOffset, tesselatorDataCount);
-                            LOGGER.error("Stack trace:");
-                            e.printStackTrace();
-                            LOGGER.error("Skipping chunk due to errors.");
-                            quadBuf.reset();
-                        } else {
-                            LOGGER.debug("Warnings in chunk ({}, {}, {}) in dimension {}: {}", x, y, z, dimId, String.join(", ", warnings));
+                    String dimId = wr.worldObj != null && wr.worldObj.provider != null ? "" + wr.worldObj.provider.dimensionId : "UNKNOWN";
+                    if(!errors.isEmpty()) {
+                        LOGGER.error("Errors in chunk ({}, {}, {}) in dimension {}:", x, y, z, dimId);
+                        for(String error : errors) {
+                            LOGGER.error("Error: " + error);
                         }
+                        for(String warning : warnings) {
+                            LOGGER.error("Warning: " + warning);
+                        }
+                        LOGGER.error("(World renderer pos: ({}, {}, {}), Tessellator pos: ({}, {}, {}), Tessellation count: {}", wr.posX, wr.posY, wr.posZ, t.xOffset, t.yOffset, t.zOffset, tesselatorDataCount);
+                        LOGGER.error("Stack trace:");
+                        try {
+                            // Generate a stack trace
+                            throw new IllegalArgumentException();
+                        } catch(IllegalArgumentException e) {
+                            e.printStackTrace();
+                        }
+                        LOGGER.error("Skipping chunk due to errors.");
+                        quadBuf.reset();
+                    } else {
+                        LOGGER.debug("Warnings in chunk ({}, {}, {}) in dimension {}: {}", x, y, z, dimId, String.join(", ", warnings));
                     }
                 }
             }
