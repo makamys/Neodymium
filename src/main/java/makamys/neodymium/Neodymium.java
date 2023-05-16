@@ -21,6 +21,7 @@ import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.event.FMLServerAboutToStartEvent;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
+import cpw.mods.fml.common.network.FMLNetworkEvent.ClientConnectedToServerEvent;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import makamys.mclib.core.MCLib;
@@ -30,6 +31,7 @@ import makamys.neodymium.command.NeodymiumCommand;
 import makamys.neodymium.config.Config;
 import makamys.neodymium.renderer.NeoRenderer;
 import makamys.neodymium.util.ChatUtil;
+import makamys.neodymium.util.WarningHelper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.world.World;
@@ -118,6 +120,12 @@ public class Neodymium
         if(event.world == getRendererWorld()) {
         	onPlayerWorldChanged(null);
         }
+    }
+    
+    @SubscribeEvent
+    @SideOnly(Side.CLIENT)
+    public void onConnectToServer(ClientConnectedToServerEvent event) {
+        WarningHelper.reset();
     }
     
     public static boolean isActive() {

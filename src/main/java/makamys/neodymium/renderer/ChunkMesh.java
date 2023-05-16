@@ -17,6 +17,7 @@ import makamys.neodymium.ducks.IWorldRenderer;
 import makamys.neodymium.util.BufferWriter;
 import makamys.neodymium.util.RecyclingList;
 import makamys.neodymium.util.Util;
+import makamys.neodymium.util.WarningHelper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.WorldRenderer;
@@ -137,7 +138,7 @@ public class ChunkMesh extends Mesh {
                         LOGGER.error("Skipping chunk due to errors.");
                         quadBuf.reset();
                     } else {
-                        LOGGER.debug("Warnings in chunk ({}, {}, {}) in dimension {}: {}", x, y, z, dimId, String.join(", ", warnings));
+                        WarningHelper.showDebugMessageOnce(String.format("Warnings in chunk (%d, %d, %d) in dimension %s: %s", x, y, z, dimId, String.join(", ", warnings)));
                     }
                 }
             }
