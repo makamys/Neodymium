@@ -5,7 +5,7 @@ import java.util.Set;
 public class Preprocessor {
     
     public static String preprocess(String text, Set<String> defines) {
-        String[] lines = text.replaceAll("\\r\\n", "\\n").split("\\n");
+        String[] lines = text.replaceAll("\\r\\n", "\n").split("\\n");
         
         IfElseBlockStatus ifElseBlockStatus = IfElseBlockStatus.NONE;
         boolean ifElseConditionMet = false;
