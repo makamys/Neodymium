@@ -2,7 +2,7 @@
 
 Neodymium is a mod that reimplements chunk rendering in Minecraft 1.7.10 using modern OpenGL. This should improve performance on most hardware.
 
-As a side effect, it has also been reported to fix the [graphical errors](https://www.minecraftforum.net/forums/support/java-edition-support/3148472-weird-bug-with-1-7-10-and-only-1-7-10) that occur when running Minecraft with an integrated Intel GPU.
+As a side effect, it has also been reported to fix the [graphical errors](https://www.minecraftforum.net/forums/support/java-edition-support/3148472-weird-bug-with-1-7-10-and-only-1-7-10) that occur when running Minecraft with an integrated Intel GPU. Installing [CoreTweaks](https://github.com/makamys/CoreTweaks) is recommended for a more comprehensive fix.
 
 ## Benchmarks
 
