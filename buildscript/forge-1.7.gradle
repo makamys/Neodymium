@@ -38,6 +38,11 @@ sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
 repositories {
+	//Needed for forge userdev on gradle 6
+	maven {
+		name = "Overmind forge repo mirror"
+		url = "https://gregtech.overminddl1.com/"
+	}
 	maven {
 		name = "chickenbones"
 		url = "http://chickenbones.net/maven/"
@@ -46,9 +51,9 @@ repositories {
 
 configurations {
     embed
-    compile.extendsFrom(embed)
+    implementation.extendsFrom(embed)
 	shade
-    compile.extendsFrom(shade)
+	implementation.extendsFrom(shade)
 }
 
 if(project.enable_mixin.toBoolean()) {

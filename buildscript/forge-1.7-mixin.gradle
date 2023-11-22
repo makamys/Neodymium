@@ -19,10 +19,11 @@ dependencies {
 			setTransitive false
 		}
 	} else {
-		compile('org.spongepowered:mixin:0.7.11-SNAPSHOT'){
+		implementation('org.spongepowered:mixin:0.7.11-SNAPSHOT'){
 			setTransitive false
 		}
 	}
+	annotationProcessor('org.spongepowered:mixin:0.7.11-SNAPSHOT')
 }
 
 ext.outRefMapFile = "${tasks.compileJava.temporaryDir}/${project.modid}.mixin.refmap.json"
