@@ -61,6 +61,8 @@ public class NeoRenderer {
     public boolean forceRenderFog;
     public boolean hasIncompatibilities;
     
+    private boolean fogEnabled;
+    
     private static int MAX_MESHES;
     
     private int VAO;
@@ -334,6 +336,8 @@ public class NeoRenderer {
         fogStartEnd.put(glGetFloat(GL_FOG_END));
         
         fogStartEnd.flip();
+        
+        fogEnabled = GL11.glIsEnabled(GL11.GL_FOG) && !OFUtil.isFogOff();
     }
     
     private void updateUniforms(double alpha, int pass) {
@@ -623,14 +627,14 @@ public class NeoRenderer {
         return ((forceRenderFog || isFogEnabled()) ? shaderProgramsFog : shaderProgramsNoFog)[pass];
     }
     
-    private static boolean isFogEnabled() {
+    private boolean isFogEnabled() {
         switch(Config.renderFog) {
         case TRUE:
             return true;
         case FALSE:
             return false;
         default:
-            return GL11.glIsEnabled(GL11.GL_FOG) && !OFUtil.isFogOff();
+            return fogEnabled;
         }
     }
     
