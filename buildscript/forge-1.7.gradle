@@ -76,7 +76,7 @@ jar {
 
     // embed libraries in jar
     from configurations.embed.collect {
-        exclude '**/LICENSE', '**/LICENSE.txt'
+        exclude '**/LICENSE', '**/LICENSE.txt', 'META-INF/**.RSA'
         it.isDirectory() ? it : zipTree(it)
     }
 	

@@ -7,7 +7,6 @@ jar {
             'FMLAT': "neodymium_at.cfg"
         )
     }
-    exclude("META-INF/**.RSA")
 }
 
 repositories {
