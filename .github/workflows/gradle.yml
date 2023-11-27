@@ -14,18 +14,29 @@ jobs:
     - uses: actions/checkout@v3
       with:
         fetch-depth: 0
+
     - name: Set up JDK 1.8
       uses: actions/setup-java@v3
       with:
         distribution: 'temurin'
         java-version: 8
-    - name: Grant execute permission for gradlew
-      run: chmod +x gradlew
+
+    - uses: actions/cache@v3
+      with:
+        path: |
+          ~/.gradle/caches
+          ~/.gradle/wrapper
+        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+        restore-keys: |
+          ${{ runner.os }}-gradle-
+
     - name: Set up Gradle build
-      run: ./gradlew SetupCIWorkspace build
+      run: ./gradlew --no-daemon build
+
     - name: Build with Gradle
-      run: ./gradlew cleanBuildAll
+      run: ./gradlew --no-daemon cleanBuildAll
       working-directory: publish
+
     - uses: actions/upload-artifact@v3
       with:
         name: Package
