@@ -396,17 +396,11 @@ public class NeoRenderer {
         int uvEnd = Config.shortUV ? 4 * 4 : 5 * 4;
         glVertexAttribPointer(2, 2, GL_SHORT, false, stride, uvEnd);
         glVertexAttribPointer(3, 4, GL_UNSIGNED_BYTE, false, stride, uvEnd + 1 * 4);
-        if(Config.simplifyChunkMeshes) {
-            glVertexAttribPointer(4, 4, GL_UNSIGNED_BYTE, false, stride, uvEnd + 2 * 4);
-        }
         
         glEnableVertexAttribArray(0);
         glEnableVertexAttribArray(1);
         glEnableVertexAttribArray(2);
         glEnableVertexAttribArray(3);
-        if(Config.simplifyChunkMeshes) {
-            glEnableVertexAttribArray(4);
-        }
         
         for(int i = 0; i < 2; i++) {
             piFirst[i] = BufferUtils.createIntBuffer(MAX_MESHES);
@@ -426,9 +420,6 @@ public class NeoRenderer {
             Set<String> defines = new HashSet<>();
             if(hasFog == 1) {
                 defines.add("RENDER_FOG");
-            }
-            if(Config.simplifyChunkMeshes) {
-                defines.add("SIMPLIFY_MESHES");
             }
             if(Config.shortUV) {
                 defines.add("SHORT_UV");

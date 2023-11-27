@@ -151,82 +151,12 @@ public class ChunkMesh extends Mesh {
     
     public void finishConstruction() {
         List<MeshQuad> quads = quadBuf.getAsList();
-        
-        if(Config.simplifyChunkMeshes) {
-            ArrayList<ArrayList<MeshQuad>> quadsByPlaneDir = new ArrayList<>(); // XY, XZ, YZ
-            for(int i = 0; i < 3; i++) {
-                quadsByPlaneDir.add(new ArrayList<MeshQuad>());
-            }
-            for(MeshQuad quad : quads) {
-                if(quad.getPlane() != MeshQuad.Plane.NONE) {
-                    quadsByPlaneDir.get(quad.getPlane().ordinal() - 1).add(quad);
-                }
-            }
-            for(int plane = 0; plane < 3; plane++) {
-                quadsByPlaneDir.get(plane).sort(MeshQuad.QuadPlaneComparator.quadPlaneComparators[plane]);
-            }
-            
-            for(int plane = 0; plane < 3; plane++) {
-                List<MeshQuad> planeDirQuads = quadsByPlaneDir.get(plane);
-                int planeStart = 0;
-                for(int quadI = 0; quadI < planeDirQuads.size(); quadI++) {
-                    MeshQuad quad = planeDirQuads.get(quadI);
-                    MeshQuad nextQuad = quadI == planeDirQuads.size() - 1 ? null : planeDirQuads.get(quadI + 1);
-                    if(!quad.onSamePlaneAs(nextQuad)) {
-                        simplifyPlane(planeDirQuads.subList(planeStart, quadI + 1));
-                        planeStart = quadI + 1;
-                    }
-                }
-            }
-        }
-        
+
         quadCount = countValidQuads(quads);
         buffer = createBuffer(quads, quadCount);
         usedRAM += buffer.limit();
         
         quadBuf.reset();
-    }
-    
-    private static void simplifyPlane(List<MeshQuad> planeQuads) {
-        // Exclude quads from merging if they have identical vertex positions to another quad.
-        // Workaround for z-fighting issue that arises when merging fancy grass and the overlay quad
-        // is a different dimension than the base quad.
-        for(int i = 0; i < planeQuads.size(); i++) {
-            MeshQuad a = planeQuads.get(i);
-            for(int j = i + 1; j < planeQuads.size(); j++) {
-                MeshQuad b = planeQuads.get(j);
-                if(!a.noMerge && a.isPosEqual(b)) {
-                    a.noMerge = true;
-                    b.noMerge = true;
-                } else {
-                    // Due to sorting, identical quads will always be next to each other
-                    break;
-                }
-            }
-        }
-        
-        MeshQuad lastQuad = null;
-        // Pass 1: merge quads to create rows
-        for(MeshQuad quad : planeQuads) {
-            if(lastQuad != null) {
-                lastQuad.tryToMerge(quad);
-            }
-            if(MeshQuad.isValid(quad)) {
-                lastQuad = quad;
-            }
-        }
-        
-        for(int i = 0; i < planeQuads.size(); i++) {
-            planeQuads.get(i).mergeReference = null;
-        }
-        
-        // Pass 2: merge rows to create rectangles
-        // TODO optimize?
-        for(int i = 0; i < planeQuads.size(); i++) {
-            for(int j = i + 1; j < planeQuads.size(); j++) {
-                planeQuads.get(i).tryToMerge(planeQuads.get(j));
-            }
-        }
     }
     
     private static int countValidQuads(List<MeshQuad> quads) {
