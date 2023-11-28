@@ -1,10 +1,11 @@
 package makamys.neodymium.util;
 
+import java.util.Map;
 import java.util.Set;
 
 public class Preprocessor {
     
-    public static String preprocess(String text, Set<String> defines) {
+    public static String preprocess(String text, Map<String, String> defines) {
         String[] lines = text.replaceAll("\\r\\n", "\n").split("\\n");
         
         IfElseBlockStatus ifElseBlockStatus = IfElseBlockStatus.NONE;
@@ -17,7 +18,7 @@ public class Preprocessor {
             
             if(line.startsWith("#ifdef ")) {
                 ifElseBlockStatus = IfElseBlockStatus.IF;
-                ifElseConditionMet = defines.contains(line.split(" ")[1]);
+                ifElseConditionMet = defines.containsKey(line.split(" ")[1]);
                 commentLine = true;
             } else if(line.startsWith("#else")) {
                 ifElseBlockStatus = IfElseBlockStatus.ELSE;
@@ -36,6 +37,11 @@ public class Preprocessor {
             
             if(commentLine) {
                 lines[i] = "//" + line;
+            } else {
+                for (Map.Entry<String, String> define: defines.entrySet()) {
+                    line = line.replace(define.getKey(), define.getValue());
+                }
+                lines[i] = line;
             }
         }
         
