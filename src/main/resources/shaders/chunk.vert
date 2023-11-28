@@ -1,8 +1,8 @@
 #version 330 core
-layout (location = 0) in vec3 aPos;
-layout (location = 1) in vec2 aTexCoord;
-layout (location = 2) in vec2 aBTexCoord;
-layout (location = 3) in vec4 aColor;
+layout (location = ATTRIB_POS) in vec3 aPos;
+layout (location = ATTRIB_TEXTURE) in vec2 aTexCoord;
+layout (location = ATTRIB_BRIGHTNESS) in vec2 aBTexCoord;
+layout (location = ATTRIB_COLOR) in vec4 aColor;
 
 uniform mat4 modelView;
 uniform mat4 proj;

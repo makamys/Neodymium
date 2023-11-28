@@ -20,6 +20,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+
+import makamys.neodymium.renderer.attribs.AttributeSet;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.GL11;
@@ -374,11 +376,23 @@ public class NeoRenderer {
         fogColorBuf.position(0);
         fogStartEnd.position(0);
     }
+
+    private AttributeSet attributes;
     
     public boolean init() {
         // The average mesh is 60 KB. Let's be safe and assume 8 KB per mesh.
         // This means 1 MB of index data per 512 MB of VRAM.
         MAX_MESHES = Config.VRAMSize * 128;
+
+        attributes = new AttributeSet();
+        attributes.addAttribute("POS", 3, 4, GL_FLOAT);
+        if (Config.shortUV) {
+            attributes.addAttribute("TEXTURE", 2, 2, GL_UNSIGNED_SHORT);
+        } else {
+            attributes.addAttribute("TEXTURE", 2, 4, GL_FLOAT);
+        }
+        attributes.addAttribute("BRIGHTNESS", 2, 2, GL_SHORT);
+        attributes.addAttribute("COLOR", 4, 1, GL_UNSIGNED_BYTE);
         
         reloadShader();
         
@@ -389,18 +403,7 @@ public class NeoRenderer {
         
         glBindBuffer(GL_ARRAY_BUFFER, mem.VBO);
         
-        int stride = MeshQuad.getStride();
-        
-        glVertexAttribPointer(0, 3, GL_FLOAT, false, stride, 0);
-        glVertexAttribPointer(1, 2, Config.shortUV ? GL_UNSIGNED_SHORT : GL_FLOAT, false, stride, 3 * 4);
-        int uvEnd = Config.shortUV ? 4 * 4 : 5 * 4;
-        glVertexAttribPointer(2, 2, GL_SHORT, false, stride, uvEnd);
-        glVertexAttribPointer(3, 4, GL_UNSIGNED_BYTE, false, stride, uvEnd + 1 * 4);
-        
-        glEnableVertexAttribArray(0);
-        glEnableVertexAttribArray(1);
-        glEnableVertexAttribArray(2);
-        glEnableVertexAttribArray(3);
+        attributes.enable();
         
         for(int i = 0; i < 2; i++) {
             piFirst[i] = BufferUtils.createIntBuffer(MAX_MESHES);
@@ -415,18 +418,20 @@ public class NeoRenderer {
         return true;
     }
     
-    public void reloadShader(int pass) {
+    public void reloadShader(int pass, AttributeSet attributeSet) {
         for(int hasFog = 0; hasFog <= 1; hasFog++) {
-            Set<String> defines = new HashSet<>();
+            Map<String, String> defines = new HashMap<>();
             if(hasFog == 1) {
-                defines.add("RENDER_FOG");
+                defines.put("RENDER_FOG", "");
             }
             if(Config.shortUV) {
-                defines.add("SHORT_UV");
+                defines.put("SHORT_UV", "");
             }
             if(pass == 0) {
-                defines.add("PASS_0");
+                defines.put("PASS_0", "");
             }
+
+            attributeSet.addDefines(defines);
            
             boolean errors = false;
             
@@ -472,8 +477,8 @@ public class NeoRenderer {
     }
        
     public void reloadShader() {
-        reloadShader(0);
-        reloadShader(1);
+        reloadShader(0, attributes);
+        reloadShader(1, attributes);
     }
     
     public void destroy() {
