@@ -9,7 +9,6 @@ in mat4 ProjInv;
 in vec4 FogColor;
 in vec2 FogStartEnd;
 in float FogFactor;
-flat in vec2 ProvokingTexCoord;
 
 uniform sampler2D atlas;
 uniform sampler2D lightTex;

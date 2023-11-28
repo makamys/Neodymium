@@ -23,7 +23,6 @@ out mat4 ProjInv;
 out vec4 FogColor;
 out vec2 FogStartEnd;
 out float FogFactor; // -1 means: disable fog
-flat out vec2 ProvokingTexCoord;
 
 void main()
 {
@@ -52,6 +51,4 @@ void main()
 		FogFactor = -1;
 	}
 	FogStartEnd = fogStartEnd;
-	
-	ProvokingTexCoord = aTexCoord;
 }
