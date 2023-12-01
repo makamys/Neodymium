@@ -9,6 +9,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+
+import lombok.val;
+import makamys.neodymium.Neodymium;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
 
@@ -170,7 +173,8 @@ public class ChunkMesh extends Mesh {
     }
 
     private ByteBuffer createBuffer(List<? extends MeshQuad> quads, int quadCount) {
-        ByteBuffer buffer = BufferUtils.createByteBuffer(quadCount * 4 * MeshQuad.getStride());
+        val stride = Neodymium.renderer.getStride();
+        ByteBuffer buffer = BufferUtils.createByteBuffer(quadCount * 4 * stride);
         BufferWriter out = new BufferWriter(buffer);
         
         boolean sortByNormals = pass == 0;
@@ -188,7 +192,7 @@ public class ChunkMesh extends Mesh {
                         if(subMeshStart[subMeshStartIdx] == -1) {
                             subMeshStart[subMeshStartIdx] = i;
                         }
-                        quad.writeToBuffer(out);
+                        quad.writeToBuffer(out, stride);
                         i++;
                     } else if(sortByNormals){
                         break;
@@ -219,10 +223,6 @@ public class ChunkMesh extends Mesh {
     @Override
     public void destroyBuffer() {
         destroy();
-    }
-    
-    public int getStride() {
-        return MeshQuad.getStride();
     }
     
     static List<ChunkMesh> getChunkMesh(int theX, int theY, int theZ) {

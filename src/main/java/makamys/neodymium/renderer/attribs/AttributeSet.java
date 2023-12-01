@@ -8,14 +8,19 @@ import java.util.Map;
 
 public class AttributeSet {
     private final List<VertexAttribute> attributes = new ArrayList<>();
+    private int stride = 0;
 
     public void addAttribute(String name, int size, int elementSize, int type) {
         int index = attributes.size();
         attributes.add(new VertexAttribute(name, index, size, elementSize, type));
+        stride += elementSize * size;
+    }
+
+    public int stride() {
+        return stride;
     }
 
     public void enable() {
-        int stride = attributes.stream().mapToInt(attrib -> attrib.size * attrib.elementSize).sum();
         int offset = 0;
         for (int i = 0, size = attributes.size(); i < size; i++) {
             VertexAttribute attribute = attributes.get(i);
