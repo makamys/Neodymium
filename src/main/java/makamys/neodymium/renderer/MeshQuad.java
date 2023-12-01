@@ -6,6 +6,7 @@ import java.util.Comparator;
 import java.util.Locale;
 
 import makamys.neodymium.Neodymium;
+import makamys.neodymium.Compat;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.util.vector.Vector3f;
 
@@ -26,6 +27,10 @@ public class MeshQuad {
     // TODO normals?
     public int[] bs = new int[4];
 
+    //RPLE compat. bs reused as RED
+    public int[] bsG = new int[4];
+    public int[] bsB = new int[4];
+
     public boolean deleted;
 
     public QuadNormal normal;
@@ -34,10 +39,10 @@ public class MeshQuad {
     private static Vector3f vectorB = new Vector3f();
     private static Vector3f vectorC = new Vector3f();
     
-    private void read(int[] rawBuffer, int offset, float offsetX, float offsetY, float offsetZ, int drawMode, ChunkMesh.Flags flags) {
+    private void read(int[] rawBuffer, int tessellatorVertexSize, int offset, float offsetX, float offsetY, float offsetZ, int drawMode, ChunkMesh.Flags flags) {
         int vertices = drawMode == GL11.GL_TRIANGLES ? 3 : 4;
         for(int vi = 0; vi < vertices; vi++) {
-            int i = offset + vi * 8;
+            int i = offset + vi * tessellatorVertexSize;
             
             xs[vi] = Float.intBitsToFloat(rawBuffer[i + 0]) + offsetX;
             ys[vi] = Float.intBitsToFloat(rawBuffer[i + 1]) + offsetY;
@@ -52,7 +57,15 @@ public class MeshQuad {
 
             bs[vi] = flags.hasBrightness ? rawBuffer[i + 7] : DEFAULT_BRIGHTNESS;
 
-            i += 8;
+            if (Compat.RPLE()) {
+                if (flags.hasBrightness) {
+                    bsG[vi] = rawBuffer[i + 8];
+                    bsB[vi] = rawBuffer[i + 9];
+                } else {
+                    bsG[vi] = DEFAULT_BRIGHTNESS;
+                    bsB[vi] = DEFAULT_BRIGHTNESS;
+                }
+            }
         }
         
         if(vertices == 3) {
@@ -65,14 +78,18 @@ public class MeshQuad {
             vs[3] = vs[2];
             
             bs[3] = bs[2];
+            if (Compat.RPLE()) {
+                bsG[3] = bsG[2];
+                bsB[3] = bsB[2];
+            }
             cs[3] = cs[2];
         }
     }
     
-    public void setState(int[] rawBuffer, int offset, ChunkMesh.Flags flags, int drawMode, float offsetX, float offsetY, float offsetZ) {
+    public void setState(int[] rawBuffer, int tessellatorVertexSize, int offset, ChunkMesh.Flags flags, int drawMode, float offsetX, float offsetY, float offsetZ) {
         deleted = false;
 
-        read(rawBuffer, offset, offsetX, offsetY, offsetZ, drawMode, flags);
+        read(rawBuffer, tessellatorVertexSize, offset, offsetX, offsetY, offsetZ, drawMode, flags);
         
         if(xs[0] == xs[1] && xs[1] == xs[2] && xs[2] == xs[3] && ys[0] == ys[1] && ys[1] == ys[2] && ys[2] == ys[3]) {
             // ignore empty quads (e.g. alpha pass of EnderIO item conduits)
@@ -91,9 +108,7 @@ public class MeshQuad {
      * @implSpec This needs to be kept in sync with the attributes in {@link NeoRenderer#init()}
      */
     public void writeToBuffer(BufferWriter out, int expectedStride) throws IOException {
-        for(int vertexI = 0; vertexI < 4; vertexI++) {
-            int vi = vertexI;
-            
+        for(int vi = 0; vi < 4; vi++) {
             float x = xs[vi];
             float y = ys[vi];
             float z = zs[vi];
@@ -112,10 +127,12 @@ public class MeshQuad {
                 out.writeFloat(u);
                 out.writeFloat(v);
             }
-            
-            int b = bs[vi];
-            
-            out.writeInt(b);
+
+            out.writeInt(bs[vi]);
+            if (Compat.RPLE()) {
+                out.writeInt(bsG[vi]);
+                out.writeInt(bsB[vi]);
+            }
 
             int c = cs[vi];
             

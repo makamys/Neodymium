@@ -1,7 +1,13 @@
 #version 330 core
 layout (location = ATTRIB_POS) in vec3 aPos;
 layout (location = ATTRIB_TEXTURE) in vec2 aTexCoord;
+#ifdef RPLE
+layout (location = ATTRIB_BRIGHTNESS_RED) in vec2 aBTexCoordR;
+layout (location = ATTRIB_BRIGHTNESS_GREEN) in vec2 aBTexCoordG;
+layout (location = ATTRIB_BRIGHTNESS_BLUE) in vec2 aBTexCoordB;
+#else
 layout (location = ATTRIB_BRIGHTNESS) in vec2 aBTexCoord;
+#endif
 layout (location = ATTRIB_COLOR) in vec4 aColor;
 
 uniform mat4 modelView;
@@ -16,7 +22,13 @@ uniform float fogDensity;
 uniform vec3 playerPos;
 
 out vec2 TexCoord;
+#ifdef RPLE
+out vec2 BTexCoordR;
+out vec2 BTexCoordG;
+out vec2 BTexCoordB;
+#else
 out vec2 BTexCoord;
+#endif
 out vec4 Color;
 out vec4 Viewport;
 out mat4 ProjInv;
@@ -28,7 +40,13 @@ void main()
 {
     gl_Position = proj * modelView * (vec4(aPos - playerPos, 1.0) + vec4(0, 0.12, 0, 0));
 	TexCoord = aTexCoord;
+#ifdef RPLE
+	BTexCoordR = aBTexCoordR;
+	BTexCoordG = aBTexCoordG;
+	BTexCoordB = aBTexCoordB;
+#else
 	BTexCoord = aBTexCoord;
+#endif
 	Color = aColor;
 	
 	Viewport = viewport;

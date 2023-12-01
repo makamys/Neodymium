@@ -25,6 +25,8 @@ public class Compat {
     private static boolean wasAdvancedOpenGLEnabled;
     
     private static int notEnoughVRAMAmountMB = -1;
+
+    private static boolean RPLE;
     
     public static void init() {
         isGL33Supported = GLContext.getCapabilities().OpenGL33;
@@ -32,6 +34,14 @@ public class Compat {
         if (Loader.isModLoaded("triangulator")) {
             disableTriangulator();
         }
+
+        if (Loader.isModLoaded("rple")) {
+            RPLE = true;
+        }
+    }
+
+    public static boolean RPLE() {
+        return RPLE;
     }
 
     private static void disableTriangulator() {
