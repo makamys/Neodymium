@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import org.apache.commons.lang3.EnumUtils;
 import org.lwjgl.input.Keyboard;
@@ -109,7 +110,7 @@ public class Config {
         
         config.setCategoryComment("debug", "Note: Some debug features are only available in creative mode or dev environments.");
         
-        if(config.hasChanged() || (!config.getLoadedConfigVersion().equals(config.getDefinedConfigVersion()))) {
+        if(config.hasChanged() || (!Objects.equals(config.getLoadedConfigVersion(), config.getDefinedConfigVersion()))) {
             config.save();
         }
         
