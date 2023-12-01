@@ -131,6 +131,11 @@ public class MeshQuad {
                 + 4                                         // C            (int)
                 ;
     }
+
+    @Override
+    public String toString() {
+        return String.format(Locale.ENGLISH, "%s[(%.1f, %.1f, %.1f), (%.1f, %.1f, %.1f), (%.1f, %.1f, %.1f), (%.1f, %.1f, %.1f)]", deleted ? "XXX " : "", xs[0], ys[0], zs[0], xs[1], ys[1], zs[1], xs[2], ys[2], zs[2], xs[3], ys[3], zs[3]);
+    }
     
     public static boolean isValid(MeshQuad q) {
         return q != null && !q.deleted;
