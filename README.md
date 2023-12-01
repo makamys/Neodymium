@@ -49,7 +49,6 @@ The mod injects callbacks that run when world renderers (16x16x16 sections of th
 There are also some additional optimizations:
 
 * Face culling: Faces that aren't facing the camera won't be submitted for rendering. This reduces GPU workload, and will increase the framerate if the GPU was choking. Inspired by a similar optimization in Sodium.
-* Mesh simplification: Experimental feature. Identical adjacent quads are merged together into a single large quad with a wrapped texture. This reduces the amount of quads that have to be rendered without affecting the visuals. However, it also slows down the fragment shader. I found it to reduce performance overall, so it's disabled by default.
 
 The mod increases memory usage, since the chunk meshes have to be stored somewhere. On Normal render distance in a vanilla world, it uses ~70-150 MB, both in RAM and VRAM.
 
