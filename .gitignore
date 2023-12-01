@@ -8,6 +8,10 @@ out/
 classes/
 run/
 
+# lombok
+.factorypath
+lombok.config
+
 # eclipse 
 *.launch
 .settings

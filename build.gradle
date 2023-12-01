@@ -13,8 +13,23 @@ buildscript {
 		}
 	}
 	dependencies {
-		classpath 'com.github.GTNewHorizons:ForgeGradle:1.2.11'
+        classpath('com.github.GTNewHorizons:ForgeGradle:1.2.11') {
+            // This transitive dependency breaks plugins for some reason. Only GTNH-FG has this issue.
+            exclude group: "org.eclipse.equinox"
+        }
 	}
+}
+
+plugins {
+    id 'io.freefair.lombok' version '5.3.0' apply false // appears to be the newest version supporting Gradle 6
+}
+
+if(project.enable_lombok.toBoolean()) {
+    apply plugin: 'io.freefair.lombok'
+    lombok {
+        // the version of the lombok plugin we use would use 1.18.16 by default
+        version = '1.18.30'
+    }
 }
 
 apply from: "buildscript/forge-1.7.gradle"
