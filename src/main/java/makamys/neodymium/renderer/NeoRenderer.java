@@ -21,6 +21,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import makamys.neodymium.Compat;
 import makamys.neodymium.renderer.attribs.AttributeSet;
 import makamys.neodymium.util.BufferWriter;
 import org.lwjgl.BufferUtils;
@@ -349,7 +350,14 @@ public class NeoRenderer {
         int u_modelView = glGetUniformLocation(shaderProgram, "modelView");
         int u_proj = glGetUniformLocation(shaderProgram, "proj");
         int u_playerPos = glGetUniformLocation(shaderProgram, "playerPos");
-        int u_light = glGetUniformLocation(shaderProgram, "lightTex");
+        int u_light = 0, u_light_r = 0, u_light_g = 0, u_light_b = 0;
+        if (Compat.RPLE()) {
+            u_light_r = glGetUniformLocation(shaderProgram, "lightTexR");
+            u_light_g = glGetUniformLocation(shaderProgram, "lightTexG");
+            u_light_b = glGetUniformLocation(shaderProgram, "lightTexB");
+        } else {
+            u_light = glGetUniformLocation(shaderProgram, "lightTex");
+        }
         int u_viewport = glGetUniformLocation(shaderProgram, "viewport");
         int u_projInv = glGetUniformLocation(shaderProgram, "projInv");
         int u_fogColor = glGetUniformLocation(shaderProgram, "fogColor");
@@ -367,8 +375,16 @@ public class NeoRenderer {
         glUniform1f(u_fogDensity, glGetFloat(GL_FOG_DENSITY));
         
         glUniform3f(u_playerPos, (float)eyePosX, (float)eyePosY, (float)eyePosZ);
-        
-        glUniform1i(u_light, 1);
+
+        if (Compat.RPLE()) {
+            //TODO connect to RPLE gl api (once that exists)
+            // For now we just use the RPLE default texture indices
+            glUniform1i(u_light_r, 1);
+            glUniform1i(u_light_g, 2);
+            glUniform1i(u_light_b, 3);
+        } else {
+            glUniform1i(u_light, 1);
+        }
         
         modelView.position(0);
         projBuf.position(0);
@@ -395,7 +411,13 @@ public class NeoRenderer {
         } else {
             attributes.addAttribute("TEXTURE", 2, 4, GL_FLOAT);
         }
-        attributes.addAttribute("BRIGHTNESS", 2, 2, GL_SHORT);
+        if (Compat.RPLE()) {
+            attributes.addAttribute("BRIGHTNESS_RED", 2, 2, GL_SHORT);
+            attributes.addAttribute("BRIGHTNESS_GREEN", 2, 2, GL_SHORT);
+            attributes.addAttribute("BRIGHTNESS_BLUE", 2, 2, GL_SHORT);
+        } else {
+            attributes.addAttribute("BRIGHTNESS", 2, 2, GL_SHORT);
+        }
         attributes.addAttribute("COLOR", 4, 1, GL_UNSIGNED_BYTE);
         
         reloadShader();
@@ -434,6 +456,9 @@ public class NeoRenderer {
             }
             if(Config.shortUV) {
                 defines.put("SHORT_UV", "");
+            }
+            if (Compat.RPLE()) {
+                defines.put("RPLE", "");
             }
             if(pass == 0) {
                 defines.put("PASS_0", "");

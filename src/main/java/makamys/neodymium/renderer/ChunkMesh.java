@@ -11,6 +11,7 @@ import java.util.Comparator;
 import java.util.List;
 
 import lombok.val;
+import makamys.neodymium.Compat;
 import makamys.neodymium.Neodymium;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
@@ -108,10 +109,12 @@ public class ChunkMesh extends Mesh {
         FLAGS.hasColor = t.hasColor;
         
         int verticesPerPrimitive = t.drawMode == GL11.GL_QUADS ? 4 : 3;
+
+        int tessellatorVertexSize = Compat.RPLE() ? 12 : 8;
         
         for(int quadI = 0; quadI < t.vertexCount / verticesPerPrimitive; quadI++) {
             MeshQuad quad = quadBuf.next();
-            quad.setState(t.rawBuffer, quadI * (verticesPerPrimitive * 8), FLAGS, t.drawMode, (float)-t.xOffset, (float)-t.yOffset, (float)-t.zOffset);
+            quad.setState(t.rawBuffer, tessellatorVertexSize, quadI * (verticesPerPrimitive * tessellatorVertexSize), FLAGS, t.drawMode, (float)-t.xOffset, (float)-t.yOffset, (float)-t.zOffset);
             if(quad.deleted) {
                 quadBuf.remove();
             }
