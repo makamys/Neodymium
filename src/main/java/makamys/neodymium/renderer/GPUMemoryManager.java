@@ -70,7 +70,7 @@ public class GPUMemoryManager {
                     glBufferSubData(GL_ARRAY_BUFFER, offset, mesh.buffer);
                     moved++;
                 }
-                mesh.iFirst = (int)(offset / mesh.getStride());
+                mesh.iFirst = (int)(offset / Neodymium.renderer.getStride());
                 mesh.offset = offset;
             } else if(mesh.gpuStatus == GPUStatus.PENDING_DELETE) {
                 mesh.iFirst = -1;
@@ -154,7 +154,7 @@ public class GPUMemoryManager {
             glBindBuffer(GL_ARRAY_BUFFER, VBO);
             
             glBufferSubData(GL_ARRAY_BUFFER, nextBase, mesh.buffer);
-            mesh.iFirst = (int)(nextBase / mesh.getStride());
+            mesh.iFirst = (int)(nextBase / Neodymium.renderer.getStride());
             mesh.iCount = mesh.quadCount * 4;
             mesh.offset = nextBase;
             

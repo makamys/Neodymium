@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Locale;
 
+import makamys.neodymium.Neodymium;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.util.vector.Vector3f;
 
@@ -85,8 +86,11 @@ public class MeshQuad {
         
         normal = QuadNormal.fromVector(vectorC);
     }
-    
-    public void writeToBuffer(BufferWriter out) throws IOException {
+
+    /**
+     * @implSpec This needs to be kept in sync with the attributes in {@link NeoRenderer#init()}
+     */
+    public void writeToBuffer(BufferWriter out, int expectedStride) throws IOException {
         for(int vertexI = 0; vertexI < 4; vertexI++) {
             int vi = vertexI;
             
@@ -117,19 +121,10 @@ public class MeshQuad {
             
             out.writeInt(c);
             
-            assert out.position() % getStride() == 0;
+            assert out.position() % expectedStride == 0;
             
             //System.out.println("[" + vertexI + "] x: " + x + ", y: " + y + " z: " + z + ", u: " + u + ", v: " + v + ", b: " + b + ", c: " + c);
         }
-    }
-    
-    public static int getStride() {
-        return
-                3 * 4                                       // XYZ          (float)
-                + 2 * (Config.shortUV ? 2 : 4)              // UV           (float)
-                + 4                                         // B            (int)
-                + 4                                         // C            (int)
-                ;
     }
 
     @Override

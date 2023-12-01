@@ -22,6 +22,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import makamys.neodymium.renderer.attribs.AttributeSet;
+import makamys.neodymium.util.BufferWriter;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.GL11;
@@ -378,7 +379,10 @@ public class NeoRenderer {
     }
 
     private AttributeSet attributes;
-    
+
+    /**
+     * @implSpec The attributes here need to be kept in sync with {@link MeshQuad#writeToBuffer(BufferWriter)}
+     */
     public boolean init() {
         // The average mesh is 60 KB. Let's be safe and assume 8 KB per mesh.
         // This means 1 MB of index data per 512 MB of VRAM.
@@ -416,6 +420,10 @@ public class NeoRenderer {
         glBindVertexArray(0);
         
         return true;
+    }
+
+    public int getStride() {
+        return attributes.stride();
     }
     
     public void reloadShader(int pass, AttributeSet attributeSet) {
