@@ -566,10 +566,13 @@ public class NeoRenderer {
     }
     
     private NeoRegion getRegionContaining(int chunkX, int chunkZ) {
-        ChunkCoordIntPair key = new ChunkCoordIntPair(Math.floorDiv(chunkX , 32), Math.floorDiv(chunkZ, 32));
+        int regionX = Math.floorDiv(chunkX, NeoRegion.SIZE);
+        int regionZ = Math.floorDiv(chunkZ, NeoRegion.SIZE);
+        ChunkCoordIntPair key = new ChunkCoordIntPair(regionX, regionZ);
+        
         NeoRegion region = loadedRegionsMap.get(key);
         if(region == null) {
-            region = NeoRegion.load(Math.floorDiv(chunkX , 32), Math.floorDiv(chunkZ , 32));
+            region = NeoRegion.load(regionX, regionZ);
             loadedRegionsMap.put(key, region);
         }
         return region;
