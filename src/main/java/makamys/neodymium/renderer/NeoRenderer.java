@@ -148,7 +148,6 @@ public class NeoRenderer {
                     
                     sort(frameCount % 100 == 0, frameCount % Config.sortFrequency == 0);
                     
-                    updateMeshes();
                     initIndexBuffers();
                 }
                 
@@ -189,14 +188,6 @@ public class NeoRenderer {
         }
         if(pass1) {
             sentMeshes[1].sort(DISTANCE_COMPARATOR.setOrigin(eyePosX, eyePosY, eyePosZ).setInverted(true));
-        }
-    }
-    
-    private void updateMeshes() {
-        for(List<Mesh> list : sentMeshes) {
-            for(Mesh mesh : list) {
-                mesh.update();
-            }
         }
     }
     
