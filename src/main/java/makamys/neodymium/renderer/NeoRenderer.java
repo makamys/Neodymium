@@ -76,6 +76,7 @@ public class NeoRenderer {
     private IntBuffer[] piCount = new IntBuffer[2];
     private List<Mesh>[] sentMeshes = (List<Mesh>[])new ArrayList[] {new ArrayList<Mesh>(), new ArrayList<Mesh>()};
     GPUMemoryManager mem;
+    private AttributeSet attributes;
     
     private Map<ChunkCoordIntPair, NeoRegion> loadedRegionsMap = new HashMap<>();
     
@@ -393,8 +394,6 @@ public class NeoRenderer {
         fogColorBuf.position(0);
         fogStartEnd.position(0);
     }
-
-    private AttributeSet attributes;
 
     /**
      * @implSpec The attributes here need to be kept in sync with {@link MeshQuad#writeToBuffer(BufferWriter)}
