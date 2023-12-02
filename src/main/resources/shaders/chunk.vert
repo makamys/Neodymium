@@ -19,7 +19,7 @@ uniform vec2 fogStartEnd;
 uniform int fogMode;
 uniform float fogDensity;
 
-uniform vec3 playerPos;
+uniform vec3 renderOffset;
 
 out vec2 TexCoord;
 #ifdef RPLE
@@ -38,7 +38,8 @@ out float FogFactor; // -1 means: disable fog
 
 void main()
 {
-    gl_Position = proj * modelView * (vec4(aPos - playerPos, 1.0) + vec4(0, 0.12, 0, 0));
+    vec4 untransformedPos = (vec4(aPos, 1.0) + vec4(renderOffset.x, renderOffset.y + 0.12, renderOffset.z, 0));
+    gl_Position = proj * modelView * untransformedPos;
 	TexCoord = aTexCoord;
 #ifdef RPLE
 	BTexCoordR = aBTexCoordR;
@@ -56,8 +57,7 @@ void main()
 	if(fogStartEnd.x >= 0 && fogStartEnd.y >= 0){
 		float s = fogStartEnd.x;
 		float e = fogStartEnd.y;
-		vec4 eyePos = (modelView * (vec4(aPos - playerPos, 1.0) + vec4(0, 0.12, 0, 0)));
-		float c = length(eyePos);
+		float c = length(untransformedPos);
 		
 		float fogFactor = fogMode == 0x2601
 						? clamp((e - c) / (e - s), 0, 1) /* GL_LINEAR */

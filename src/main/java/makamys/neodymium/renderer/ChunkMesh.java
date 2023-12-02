@@ -114,7 +114,7 @@ public class ChunkMesh extends Mesh {
         
         for(int quadI = 0; quadI < t.vertexCount / verticesPerPrimitive; quadI++) {
             MeshQuad quad = quadBuf.next();
-            quad.setState(t.rawBuffer, tessellatorVertexSize, quadI * (verticesPerPrimitive * tessellatorVertexSize), FLAGS, t.drawMode, (float)-t.xOffset, (float)-t.yOffset, (float)-t.zOffset);
+            quad.setState(t.rawBuffer, tessellatorVertexSize, quadI * (verticesPerPrimitive * tessellatorVertexSize), FLAGS, t.drawMode, NeoRegion.toRelativeOffset(-t.xOffset), NeoRegion.toRelativeOffset(-t.yOffset), NeoRegion.toRelativeOffset(-t.zOffset));
             if(quad.deleted) {
                 quadBuf.remove();
             }

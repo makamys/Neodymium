@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
+import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
@@ -109,5 +110,10 @@ public class Util {
     
     public static int createBrightness(int sky, int block) {
         return sky << 20 | block << 4;
+    }
+    
+    public static void setPositionAndLimit(Buffer buffer, int position, int limit) {
+        buffer.position(position);
+        buffer.limit(limit);
     }
 }

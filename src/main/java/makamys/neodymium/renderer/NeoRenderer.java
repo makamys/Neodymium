@@ -12,14 +12,11 @@ import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 
 import makamys.neodymium.Compat;
 import makamys.neodymium.renderer.attribs.AttributeSet;
@@ -72,11 +69,11 @@ public class NeoRenderer {
     private int[] shaderProgramsNoFog = {0, 0};
     private IntBuffer[] piFirst = new IntBuffer[2];
     private IntBuffer[] piCount = new IntBuffer[2];
-    private List<Mesh>[] sentMeshes = (List<Mesh>[])new ArrayList[] {new ArrayList<Mesh>(), new ArrayList<Mesh>()};
     GPUMemoryManager mem;
     private AttributeSet attributes;
     
     private Map<ChunkCoordIntPair, NeoRegion> loadedRegionsMap = new HashMap<>();
+    private List<NeoRegion> loadedRegionsList = new ArrayList<>();
     
     public World world;
     
@@ -181,27 +178,34 @@ public class NeoRenderer {
     }
     
     private void sort(boolean pass0, boolean pass1) {
-        if(pass0) {
-            sentMeshes[0].sort(Comparators.MESH_DISTANCE_COMPARATOR.setOrigin(eyePosX, eyePosY, eyePosZ).setInverted(false));
-        }
-        if(pass1) {
-            sentMeshes[1].sort(Comparators.MESH_DISTANCE_COMPARATOR.setOrigin(eyePosX, eyePosY, eyePosZ).setInverted(true));
+        for(NeoRegion r : loadedRegionsMap.values()) {
+            r.getRenderData().sort(eyePosX, eyePosY, eyePosZ, pass0, pass1);
         }
     }
     
     private void initIndexBuffers() {
+        loadedRegionsList.clear();
+        loadedRegionsList.addAll(loadedRegionsMap.values());
+        loadedRegionsList.sort(Comparators.REGION_DISTANCE_COMPARATOR.setOrigin(eyePosX, eyePosY, eyePosZ));
+        
         for(int i = 0; i < 2; i++) {
             piFirst[i].limit(MAX_MESHES);
             piCount[i].limit(MAX_MESHES);
-            for(Mesh mesh : sentMeshes[i]) {
-                WorldRenderer wr = ((ChunkMesh)mesh).wr;
-                if(mesh.visible && wr.isVisible && shouldRenderMesh(mesh)) {
-                    int meshes = mesh.writeToIndexBuffer(piFirst[i], piCount[i], eyePosXTDiv, eyePosYTDiv, eyePosZTDiv, i);
-                    renderedMeshes += meshes;
-                    for(int j = piCount[i].position() - meshes; j < piCount[i].position(); j++) {
-                        renderedQuads += piCount[i].get(j) / 4;
+            int order = i == 0 ? 1 : -1;
+            for(int regionI = order == 1 ? 0 : loadedRegionsList.size() - 1; regionI >= 0 && regionI < loadedRegionsList.size(); regionI += order) {
+                NeoRegion.RenderData region = loadedRegionsList.get(regionI).getRenderData();
+                region.batchFirst[i] = piFirst[i].position();
+                for(Mesh mesh : region.getSentMeshes(i)) {
+                    WorldRenderer wr = ((ChunkMesh)mesh).wr;
+                    if(mesh.visible && wr.isVisible && shouldRenderMesh(mesh)) {
+                        int meshes = mesh.writeToIndexBuffer(piFirst[i], piCount[i], eyePosXTDiv, eyePosYTDiv, eyePosZTDiv, i);
+                        renderedMeshes += meshes;
+                        for(int j = piCount[i].position() - meshes; j < piCount[i].position(); j++) {
+                            renderedQuads += piCount[i].get(j) / 4;
+                        }
                     }
                 }
+                region.batchLimit[i] = piFirst[i].position();
             }
             piFirst[i].flip();
             piCount[i].flip();
@@ -296,7 +300,23 @@ public class NeoRenderer {
         if(isWireframeEnabled()) {
             GL11.glPolygonMode(GL11.GL_FRONT_AND_BACK, GL11.GL_LINE);
         }
-        glMultiDrawArrays(GL_QUADS, piFirst[pass], piCount[pass]);
+        
+        int u_renderOffset = glGetUniformLocation(getShaderProgram(pass), "renderOffset");
+        
+        int oldLimit = piFirst[pass].limit();
+        
+        int order = pass == 0 ? 1 : -1;
+        for(int regionI = order == 1 ? 0 : loadedRegionsList.size() - 1; regionI >= 0 && regionI < loadedRegionsList.size(); regionI += order) {
+            NeoRegion.RenderData region = loadedRegionsList.get(regionI).getRenderData();
+            Util.setPositionAndLimit(piFirst[pass], region.batchFirst[pass], region.batchLimit[pass]);
+            Util.setPositionAndLimit(piCount[pass], region.batchFirst[pass], region.batchLimit[pass]);
+            
+            glUniform3f(u_renderOffset, (float)(region.originX - eyePosX), (float)(region.originY - eyePosY), (float)(region.originZ - eyePosZ));
+            glMultiDrawArrays(GL_QUADS, piFirst[pass], piCount[pass]);
+        }
+        Util.setPositionAndLimit(piFirst[pass], 0, oldLimit);
+        Util.setPositionAndLimit(piCount[pass], 0, oldLimit);
+        
         if(isWireframeEnabled()) {
             GL11.glPolygonMode(GL11.GL_FRONT_AND_BACK, GL11.GL_FILL);
         }
@@ -363,7 +383,7 @@ public class NeoRenderer {
         glUniform2(u_fogStartEnd, fogStartEnd);
         glUniform1i(u_fogMode, glGetInteger(GL_FOG_MODE));
         glUniform1f(u_fogDensity, glGetFloat(GL_FOG_DENSITY));
-        
+
         glUniform3f(u_playerPos, (float)eyePosX, (float)eyePosY, (float)eyePosZ);
 
         if (Compat.RPLE()) {
@@ -606,7 +626,9 @@ public class NeoRenderer {
             
             if(mesh.gpuStatus == GPUStatus.UNSENT) {
                 mem.sendMeshToGPU(mesh);
-                sentMeshes[mesh.pass].add(mesh);
+                NeoRegion region = getRegionContaining(mesh.x, mesh.z);
+                region.getRenderData().getSentMeshes(mesh.pass).add(mesh);
+                mesh.containingRegion = region;
             }
         }
     }
@@ -615,7 +637,9 @@ public class NeoRenderer {
         if(mesh == null) return;
         
         mem.deleteMeshFromGPU(mesh);
-        sentMeshes[mesh.pass].remove(mesh);
+        if(mesh.containingRegion != null) {
+            mesh.containingRegion.getRenderData().getSentMeshes(mesh.pass).remove(mesh);
+        }
         setMeshVisible(mesh, false);
     }
     
