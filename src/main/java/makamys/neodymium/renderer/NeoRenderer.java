@@ -49,8 +49,6 @@ import net.minecraft.world.World;
 /** The main renderer class. */
 public class NeoRenderer {
     
-    private static final MeshDistanceComparator DISTANCE_COMPARATOR = new MeshDistanceComparator();
-    
     public boolean hasInited = false;
     public boolean destroyPending;
     public boolean reloadPending;
@@ -184,10 +182,10 @@ public class NeoRenderer {
     
     private void sort(boolean pass0, boolean pass1) {
         if(pass0) {
-            sentMeshes[0].sort(DISTANCE_COMPARATOR.setOrigin(eyePosX, eyePosY, eyePosZ).setInverted(false));
+            sentMeshes[0].sort(Comparators.MESH_DISTANCE_COMPARATOR.setOrigin(eyePosX, eyePosY, eyePosZ).setInverted(false));
         }
         if(pass1) {
-            sentMeshes[1].sort(DISTANCE_COMPARATOR.setOrigin(eyePosX, eyePosY, eyePosZ).setInverted(true));
+            sentMeshes[1].sort(Comparators.MESH_DISTANCE_COMPARATOR.setOrigin(eyePosX, eyePosY, eyePosZ).setInverted(true));
         }
     }
     
@@ -666,92 +664,6 @@ public class NeoRenderer {
     
     private static boolean isWireframeEnabled() {
         return Config.wireframe && CheatHelper.canCheat();
-    }
-    
-    public static class NeoChunkComparator implements Comparator<NeoChunk> {
-        Entity player;
-        
-        public NeoChunkComparator(Entity player) {
-            this.player = player;
-        }
-        
-        @Override
-        public int compare(NeoChunk p1, NeoChunk p2) {
-            int distSq1 = distSq(p1);
-            int distSq2 = distSq(p2);
-            return distSq1 < distSq2 ? -1 : distSq1 > distSq2 ? 1 : 0;
-        }
-        
-        int distSq(NeoChunk p) {
-            return (int)(
-                    Math.pow(((p.x * 16) - player.chunkCoordX), 2) +
-                    Math.pow(((p.z * 16) - player.chunkCoordZ), 2)
-                    );
-        }
-    }
-    
-    public static class ChunkCoordDistanceComparator implements Comparator<ChunkCoordIntPair> {
-        double x, y, z;
-        
-        public ChunkCoordDistanceComparator(double x, double y, double z) {
-            this.x = x;
-            this.y = y;
-            this.z = z;
-        }
-        
-        @Override
-        public int compare(ChunkCoordIntPair p1, ChunkCoordIntPair p2) {
-            int distSq1 = distSq(p1);
-            int distSq2 = distSq(p2);
-            return distSq1 < distSq2 ? -1 : distSq1 > distSq2 ? 1 : 0;
-        }
-        
-        int distSq(ChunkCoordIntPair p) {
-            return (int)(
-                    Math.pow(((p.chunkXPos * 16) - x), 2) +
-                    Math.pow(((p.chunkZPos * 16) - z), 2)
-                    );
-        }
-    }
-    
-    public static class MeshDistanceComparator implements Comparator<Mesh> {
-        double x, y, z;
-        boolean inverted;
-        
-        public Comparator<? super Mesh> setInverted(boolean inverted) {
-            this.inverted = inverted;
-            return this;
-        }
-
-        public MeshDistanceComparator setOrigin(double x, double y, double z) {
-            this.x = x / 16.0;
-            this.y = y / 16.0;
-            this.z = z / 16.0;
-            return this;
-        }
-
-        @Override
-        public int compare(Mesh a, Mesh b) {
-            if(a.pass < b.pass) {
-                return -1;
-            } else if(a.pass > b.pass) {
-                return 1;
-            } else {
-                double distSqA = a.distSq(x, y, z);
-                double distSqB = b.distSq(x, y, z);
-                
-                int mult = inverted ? -1 : 1;
-                
-                if(distSqA > distSqB) {
-                    return 1 * mult;
-                } else if(distSqA < distSqB) {
-                    return -1 * mult;
-                } else {
-                    return 0;
-                }
-            }
-        }
-        
     }
     
     public static enum WorldRendererChange {
