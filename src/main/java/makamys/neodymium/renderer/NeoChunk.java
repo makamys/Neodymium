@@ -43,11 +43,14 @@ public class NeoChunk {
     		    if(chunkMeshes[cy * 2 + i] != null) {
     			    renderer.removeMesh(chunkMeshes[cy * 2 + i]);
     			    chunkMeshes[cy * 2 + i].destroy();
-    			} else {
+                    region.meshes--;
+                    dirty = true;
+    			}
+    		    if(newChunkMesh != null){
     			    region.meshes++;
+    			    dirty = true;
     			}
     		    chunkMeshes[cy * 2 + i] = newChunkMesh;
-    		    dirty = true;
 		    }
 		}
 		if(dirty) {

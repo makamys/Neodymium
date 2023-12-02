@@ -95,7 +95,7 @@ public class NeoRegion {
 	
 	@Override
 	public String toString() {
-	    return "LODRegion(" + regionX + ", " + regionZ + ")";
+	    return "NeoRegion(" + regionX + ", " + regionZ + ")[n=" + meshes + "]";
 	}
     
     public boolean shouldDelete() {
