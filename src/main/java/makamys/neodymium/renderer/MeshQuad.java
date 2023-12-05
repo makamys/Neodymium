@@ -1,11 +1,8 @@
 package makamys.neodymium.renderer;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Comparator;
 import java.util.Locale;
 
-import makamys.neodymium.Neodymium;
 import makamys.neodymium.Compat;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.util.vector.Vector3f;
@@ -31,6 +28,21 @@ public class MeshQuad {
     public int[] bsG = new int[4];
     public int[] bsB = new int[4];
 
+    public int[] e1 = new int[4];
+    public int[] e2 = new int[4];
+
+    public float[] xn = new float[4];
+    public float[] yn = new float[4];
+    public float[] zn = new float[4];
+
+    public float[] xt = new float[4];
+    public float[] yt = new float[4];
+    public float[] zt = new float[4];
+    public float[] wt = new float[4];
+
+    public float[] um = new float[4];
+    public float[] vm = new float[4];
+
     public boolean deleted;
 
     public QuadNormal normal;
@@ -55,15 +67,30 @@ public class MeshQuad {
 
             // TODO normals?
 
-            bs[vi] = flags.hasBrightness ? rawBuffer[i + 7] : DEFAULT_BRIGHTNESS;
+            if (Compat.isShaders()) {
+                bs[vi] = flags.hasBrightness ? rawBuffer[i + 6] : DEFAULT_BRIGHTNESS;
+                e1[vi] = rawBuffer[i + 7];
+                e2[vi] = rawBuffer[i + 8];
+                xn[vi] = Float.intBitsToFloat(rawBuffer[i + 9]);
+                yn[vi] = Float.intBitsToFloat(rawBuffer[i + 10]);
+                zn[vi] = Float.intBitsToFloat(rawBuffer[i + 11]);
+                xt[vi] = Float.intBitsToFloat(rawBuffer[i + 12]);
+                yt[vi] = Float.intBitsToFloat(rawBuffer[i + 13]);
+                zt[vi] = Float.intBitsToFloat(rawBuffer[i + 14]);
+                wt[vi] = Float.intBitsToFloat(rawBuffer[i + 15]);
+                um[vi] = Float.intBitsToFloat(rawBuffer[i + 16]);
+                vm[vi] = Float.intBitsToFloat(rawBuffer[i + 17]);
+            } else {
+                bs[vi] = flags.hasBrightness ? rawBuffer[i + 7] : DEFAULT_BRIGHTNESS;
 
-            if (Compat.RPLE()) {
-                if (flags.hasBrightness) {
-                    bsG[vi] = rawBuffer[i + 8];
-                    bsB[vi] = rawBuffer[i + 9];
-                } else {
-                    bsG[vi] = DEFAULT_BRIGHTNESS;
-                    bsB[vi] = DEFAULT_BRIGHTNESS;
+                if (Compat.RPLE()) {
+                    if (flags.hasBrightness) {
+                        bsG[vi] = rawBuffer[i + 8];
+                        bsB[vi] = rawBuffer[i + 9];
+                    } else {
+                        bsG[vi] = DEFAULT_BRIGHTNESS;
+                        bsB[vi] = DEFAULT_BRIGHTNESS;
+                    }
                 }
             }
         }
@@ -83,6 +110,19 @@ public class MeshQuad {
                 bsB[3] = bsB[2];
             }
             cs[3] = cs[2];
+            if (Compat.isShaders()) {
+                e1[3] = e1[2];
+                e2[3] = e2[2];
+                xn[3] = xn[2];
+                yn[3] = yn[2];
+                zn[3] = zn[2];
+                xt[3] = xt[2];
+                yt[3] = yt[2];
+                zt[3] = zt[2];
+                wt[3] = wt[2];
+                um[3] = um[2];
+                vm[3] = vm[2];
+            }
         }
     }
     
@@ -128,15 +168,29 @@ public class MeshQuad {
                 out.writeFloat(v);
             }
 
+            int c = cs[vi];
+
+            out.writeInt(c);
+
             out.writeInt(bs[vi]);
             if (Compat.RPLE()) {
                 out.writeInt(bsG[vi]);
                 out.writeInt(bsB[vi]);
             }
 
-            int c = cs[vi];
-            
-            out.writeInt(c);
+            if (Compat.isShaders()) {
+                out.writeInt(e1[vi]);
+                out.writeInt(e2[vi]);
+                out.writeFloat(xn[vi]);
+                out.writeFloat(yn[vi]);
+                out.writeFloat(zn[vi]);
+                out.writeFloat(xt[vi]);
+                out.writeFloat(yt[vi]);
+                out.writeFloat(zt[vi]);
+                out.writeFloat(wt[vi]);
+                out.writeFloat(um[vi]);
+                out.writeFloat(vm[vi]);
+            }
             
             assert out.position() % expectedStride == 0;
             

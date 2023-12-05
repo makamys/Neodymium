@@ -419,14 +419,19 @@ public class NeoRenderer {
         } else {
             attributes.addAttribute("TEXTURE", 2, 4, GL_FLOAT);
         }
-        if (Compat.RPLE()) {
+        attributes.addAttribute("COLOR", 4, 1, GL_UNSIGNED_BYTE);
+        attributes.addAttribute("BRIGHTNESS", 2, 2, GL_SHORT);
+        if (Compat.isShaders()) {
+            attributes.addAttribute("ENTITY_DATA_1", 1, 4, GL_UNSIGNED_INT);
+            attributes.addAttribute("ENTITY_DATA_2", 1, 4, GL_UNSIGNED_INT);
+            attributes.addAttribute("NORMAL", 3, 4, GL_FLOAT);
+            attributes.addAttribute("TANGENT", 4, 4, GL_FLOAT);
+            attributes.addAttribute("MIDTEXTURE", 2, 4, GL_FLOAT);
+        } else if (Compat.RPLE()) {
             attributes.addAttribute("BRIGHTNESS_RED", 2, 2, GL_SHORT);
             attributes.addAttribute("BRIGHTNESS_GREEN", 2, 2, GL_SHORT);
             attributes.addAttribute("BRIGHTNESS_BLUE", 2, 2, GL_SHORT);
-        } else {
-            attributes.addAttribute("BRIGHTNESS", 2, 2, GL_SHORT);
         }
-        attributes.addAttribute("COLOR", 4, 1, GL_UNSIGNED_BYTE);
         
         reloadShader();
         
