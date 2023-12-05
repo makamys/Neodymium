@@ -44,6 +44,10 @@ public class Compat {
         return RPLE;
     }
 
+    public static boolean isShaders() {
+        return false;
+    }
+
     private static void disableTriangulator() {
         ((ToggleableTessellator)Tessellator.instance).disableTriangulator();
     }
