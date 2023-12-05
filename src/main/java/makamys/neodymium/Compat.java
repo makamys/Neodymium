@@ -57,20 +57,20 @@ public class Compat {
             warns.add(new Warning("Advanced OpenGL is enabled, performance may be poor." + (statusCommand ? " Click here to disable it." : "")).chatAction("neodymium disable_advanced_opengl"));
         }
         
-        try {
-            Class<?> shaders = Class.forName("shadersmod.client.Shaders");
-            try {
-                String shaderPack = (String)shaders.getMethod("getShaderPackName").invoke(null);
-                if(shaderPack != null) {
-                    criticalWarns.add(new Warning("A shader pack is enabled, this is not supported."));
-                }
-            } catch(Exception e) {
-                LOGGER.warn("Failed to get shader pack name");
-                e.printStackTrace();
-            }
-        } catch (ClassNotFoundException e) {
-            
-        }
+//        try {
+//            Class<?> shaders = Class.forName("shadersmod.client.Shaders");
+//            try {
+//                String shaderPack = (String)shaders.getMethod("getShaderPackName").invoke(null);
+//                if(shaderPack != null) {
+//                    criticalWarns.add(new Warning("A shader pack is enabled, this is not supported."));
+//                }
+//            } catch(Exception e) {
+//                LOGGER.warn("Failed to get shader pack name");
+//                e.printStackTrace();
+//            }
+//        } catch (ClassNotFoundException e) {
+//
+//        }
         
         if(!isGL33Supported) {
             criticalWarns.add(new Warning("OpenGL 3.3 is not supported."));
