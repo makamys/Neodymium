@@ -412,6 +412,8 @@ public class NeoRenderer {
         // This means 1 MB of index data per 512 MB of VRAM.
         MAX_MESHES = Config.VRAMSize * 128;
 
+        Compat.updateShadersState();
+
         attributes = new AttributeSet();
         attributes.addAttribute("POS", 3, 4, GL_FLOAT);
         if (Config.shortUV) {
