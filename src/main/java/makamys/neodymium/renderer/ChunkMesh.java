@@ -110,7 +110,7 @@ public class ChunkMesh extends Mesh {
         
         int verticesPerPrimitive = t.drawMode == GL11.GL_QUADS ? 4 : 3;
 
-        int tessellatorVertexSize = Compat.RPLE() ? 12 : 8;
+        int tessellatorVertexSize = Compat.isShaders() ? 18 : Compat.RPLE() ? 12 : 8;
         
         for(int quadI = 0; quadI < t.vertexCount / verticesPerPrimitive; quadI++) {
             MeshQuad quad = quadBuf.next();
