@@ -30,7 +30,7 @@ public class VirtualJar {
         LOGGER.debug("Registering URL protocol handler: " + PROTOCOL);
         
         // We want the Handler to always be loaded by the same class loader.
-        Launch.classLoader.addClassLoaderExclusion("makamys." + MODID + ".util.virtualjar.protocol." + PROTOCOL);
+        Launch.classLoader.addClassLoaderExclusion(getPackage() + ".protocol." + PROTOCOL + ".");
         
         // The Handler is loaded by the AppClassLoader, but it needs to access the state of VirtualJar, which is loaded
         // by the LaunchClassLoader. The solution? Make the Handler just a proxy that delegates the real work to
@@ -40,6 +40,11 @@ public class VirtualJar {
         URLStreamHandlerHelper.register(Handler.class);
         
         registered = true;
+    }
+    
+    private static String getPackage() {
+        String name = VirtualJar.class.getName();
+        return name.substring(0, name.lastIndexOf('.'));
     }
     
     public static void add(IVirtualJar jar) {
