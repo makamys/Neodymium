@@ -3,7 +3,6 @@ package makamys.neodymium.util.virtualjar;
 import static makamys.neodymium.Constants.MODID;
 import static makamys.neodymium.Constants.PROTOCOL;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -17,7 +16,10 @@ import static makamys.neodymium.Constants.LOGGER;
 import makamys.neodymium.util.virtualjar.protocol.neodymiumvirtualjar.Handler;
 import net.minecraft.launchwrapper.Launch;
 
-
+/**
+ * This class is used to register fake "virtual" jars and add them to LaunchClassLoader's class path. The contents of
+ * these jars are determined dynamically by the implementation of {@link IVirtualJar}, rather than a real file in the file system.
+ */
 public class VirtualJar {
     
     private static boolean registered;
