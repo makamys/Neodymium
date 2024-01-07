@@ -10,11 +10,14 @@ import makamys.neodymium.renderer.NeoRenderer;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.WorldRenderer;
 import net.minecraft.entity.EntityLivingBase;
+
+import org.lwjgl.opengl.GL11;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.Collections;
@@ -89,6 +92,25 @@ abstract class MixinWorldRenderer implements IWorldRenderer {
             nd$chunkMeshes.set(pass, cm);
             ChunkMesh.setCaptureTarget(cm);
         }
+    }
+
+    @Redirect(method = "preRenderBlocks",
+              at = @At(value = "INVOKE",
+                       target = "Lorg/lwjgl/opengl/GL11;glNewList(II)V"),
+              require = 1)
+    private void noNewList(int list, int mode) {
+        if (!Neodymium.isActive()) {
+            GL11.glNewList(list, mode);
+        }
+    }
+
+    @Redirect(method = "postRenderBlocks",
+              at = @At(value = "INVOKE",
+                       target = "Lorg/lwjgl/opengl/GL11;glEndList()V"),
+              require = 1)
+    private void noEndList() {
+        if (!Neodymium.isActive())
+            GL11.glEndList();
     }
     
     @Inject(method = "postRenderBlocks", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/Tessellator;draw()I"))

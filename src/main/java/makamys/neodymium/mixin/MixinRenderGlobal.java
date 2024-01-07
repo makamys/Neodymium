@@ -30,10 +30,13 @@ abstract class MixinRenderGlobal {
         }
     }
     
-    @Inject(method = "renderSortedRenderers", at = @At(value = "HEAD"))
-    public void preRenderSortedRenderers(int startRenderer, int numRenderers, int renderPass, double partialTickTime, CallbackInfoReturnable cir) {
+    @Inject(method = "renderSortedRenderers",
+            at = @At(value = "HEAD"),
+            cancellable = true,
+            require = 1)
+    public void preRenderSortedRenderers(int startRenderer, int numRenderers, int renderPass, double partialTickTime, CallbackInfoReturnable<Integer> cir) {
         if(Neodymium.isActive()) {
-            Neodymium.renderer.preRenderSortedRenderers(renderPass, partialTickTime, sortedWorldRenderers);
+            cir.setReturnValue(Neodymium.renderer.preRenderSortedRenderers(renderPass, partialTickTime, sortedWorldRenderers));
         }
     }
     

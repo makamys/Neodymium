@@ -104,7 +104,8 @@ public class NeoRenderer {
 
     Vector4f transformedOrigin = new Vector4f();
 
-    public void preRenderSortedRenderers(int renderPass, double alpha, WorldRenderer[] sortedWorldRenderers) {
+    public int preRenderSortedRenderers(int renderPass, double alpha, WorldRenderer[] sortedWorldRenderers) {
+        int rendered = 0;
         if (hasInited) {
             if (renderPass == 0) {
                 renderedMeshes = 0;
@@ -149,11 +150,12 @@ public class NeoRenderer {
             if (rendererActive && renderWorld) {
                 Minecraft.getMinecraft().entityRenderer.enableLightmap((double) alpha);
 
-                render(renderPass, alpha);
+                rendered += render(renderPass, alpha);
 
                 Minecraft.getMinecraft().entityRenderer.disableLightmap((double) alpha);
             }
         }
+        return rendered;
     }
 
     public void onRenderTickEnd() {
@@ -285,17 +287,16 @@ public class NeoRenderer {
     Matrix4f modelViewMatrixInv = new Matrix4f();
     Matrix4f projMatrix = new Matrix4f();
 
-    private void render(int pass, double alpha) {
-        int shader = getShaderProgram(pass);
-
-        if (shader == 0) return;
-
-        glBindVertexArray(VAO);
-
+    private int render(int pass, double alpha) {
         if (!Compat.isShaders()) {
+            int shader = getShaderProgram(pass);
+
+            if (shader == 0) return 0;
             glUseProgram(shader);
             updateUniforms(alpha, pass);
         }
+
+        glBindVertexArray(VAO);
 
         if (isWireframeEnabled()) {
             GL11.glPolygonMode(GL11.GL_FRONT_AND_BACK, GL11.GL_LINE);
@@ -308,9 +309,11 @@ public class NeoRenderer {
 
         int oldLimit = piFirst[pass].limit();
 
+        int rendered = 0;
         int order = pass == 0 ? 1 : -1;
         for (int regionI = order == 1 ? 0 : loadedRegionsList.size() - 1; regionI >= 0 && regionI < loadedRegionsList.size(); regionI += order) {
             NeoRegion.RenderData region = loadedRegionsList.get(regionI).getRenderData();
+            rendered += region.batchLimit[pass] - region.batchFirst[pass];
             Util.setPositionAndLimit(piFirst[pass], region.batchFirst[pass], region.batchLimit[pass]);
             Util.setPositionAndLimit(piCount[pass], region.batchFirst[pass], region.batchLimit[pass]);
 
@@ -344,6 +347,7 @@ public class NeoRenderer {
         }
 
         glBindVertexArray(0);
+        return rendered;
     }
 
     private void updateGLValues() {
