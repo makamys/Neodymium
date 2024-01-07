@@ -43,6 +43,9 @@ public class MeshQuad {
     public float[] um = new float[4];
     public float[] vm = new float[4];
 
+    public float[] ue = new float[4];
+    public float[] ve = new float[4];
+
     public boolean deleted;
 
     public QuadNormal normal;
@@ -80,6 +83,12 @@ public class MeshQuad {
                 wt[vi] = Float.intBitsToFloat(rawBuffer[i + 15]);
                 um[vi] = Float.intBitsToFloat(rawBuffer[i + 16]);
                 vm[vi] = Float.intBitsToFloat(rawBuffer[i + 17]);
+                if (Compat.RPLE()) {
+                    bsG[vi] = rawBuffer[i + 18];
+                    bsB[vi] = rawBuffer[i + 19];
+                    ue[vi] = Float.intBitsToFloat(rawBuffer[i + 20]);
+                    ve[vi] = Float.intBitsToFloat(rawBuffer[i + 21]);
+                }
             } else {
                 bs[vi] = flags.hasBrightness ? rawBuffer[i + 7] : DEFAULT_BRIGHTNESS;
 
@@ -108,6 +117,10 @@ public class MeshQuad {
             if (Compat.RPLE()) {
                 bsG[3] = bsG[2];
                 bsB[3] = bsB[2];
+                if (Compat.isShaders()) {
+                    ue[3] = ue[2];
+                    ve[3] = ve[2];
+                }
             }
             cs[3] = cs[2];
             if (Compat.isShaders()) {
@@ -173,10 +186,6 @@ public class MeshQuad {
             out.writeInt(c);
 
             out.writeInt(bs[vi]);
-            if (Compat.RPLE()) {
-                out.writeInt(bsG[vi]);
-                out.writeInt(bsB[vi]);
-            }
 
             if (Compat.isShaders()) {
                 out.writeInt(e1[vi]);
@@ -190,6 +199,15 @@ public class MeshQuad {
                 out.writeFloat(wt[vi]);
                 out.writeFloat(um[vi]);
                 out.writeFloat(vm[vi]);
+            }
+
+            if (Compat.RPLE()) {
+                out.writeInt(bsG[vi]);
+                out.writeInt(bsB[vi]);
+                if (Compat.isShaders()) {
+                    out.writeFloat(ue[vi]);
+                    out.writeFloat(ve[vi]);
+                }
             }
             
             assert out.position() % expectedStride == 0;

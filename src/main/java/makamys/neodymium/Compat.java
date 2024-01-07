@@ -11,7 +11,6 @@ import org.lwjgl.opengl.GLContext;
 import com.falsepattern.triangulator.api.ToggleableTessellator;
 import cpw.mods.fml.common.Loader;
 import makamys.neodymium.config.Config;
-import makamys.neodymium.util.OFUtil;
 import makamys.neodymium.util.virtualjar.IVirtualJar;
 import makamys.neodymium.util.virtualjar.VirtualJar;
 import net.minecraft.client.Minecraft;
@@ -27,6 +26,8 @@ public class Compat {
     private static int notEnoughVRAMAmountMB = -1;
 
     private static boolean RPLE;
+
+    private static boolean FALSE_TWEAKS;
     
     public static void init() {
         isGL33Supported = GLContext.getCapabilities().OpenGL33;
@@ -38,10 +39,18 @@ public class Compat {
         if (Loader.isModLoaded("rple")) {
             RPLE = true;
         }
+
+        if (Loader.isModLoaded("falsetweaks")) {
+            FALSE_TWEAKS = true;
+        }
     }
 
     public static boolean RPLE() {
         return RPLE;
+    }
+
+    public static boolean FalseTweaks() {
+        return FALSE_TWEAKS;
     }
 
     private static boolean shadersEnabled;

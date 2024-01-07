@@ -1,5 +1,8 @@
 package makamys.neodymium.renderer;
 
+import com.falsepattern.falsetweaks.api.triangulator.VertexAPI;
+import com.falsepattern.rple.api.client.RPLELightMapUtil;
+import com.falsepattern.rple.api.client.RPLEShaderConstants;
 import lombok.val;
 import makamys.neodymium.Compat;
 import makamys.neodymium.Neodymium;
@@ -430,7 +433,7 @@ public class NeoRenderer {
     }
 
     /**
-     * @implSpec The attributes here need to be kept in sync with {@link MeshQuad#writeToBuffer(BufferWriter)}
+     * @implSpec The attributes here need to be kept in sync with {@link MeshQuad#writeToBuffer(BufferWriter, int)}
      */
     public boolean init() {
         // The average mesh is 60 KB. Let's be safe and assume 8 KB per mesh.
@@ -447,17 +450,27 @@ public class NeoRenderer {
             attributes.addAttribute("TEXTURE", 2, 4, GL_FLOAT);
         }
         attributes.addAttribute("COLOR", 4, 1, GL_UNSIGNED_BYTE);
-        attributes.addAttribute("BRIGHTNESS", 2, 2, GL_SHORT);
+        if (Compat.RPLE()) {
+            attributes.addAttribute("BRIGHTNESS_RED", 2, 2, GL_SHORT);
+        } else {
+            attributes.addAttribute("BRIGHTNESS", 2, 2, GL_SHORT);
+        }
         if (Compat.isShaders()) {
             attributes.addAttribute("ENTITY_DATA_1", 1, 4, GL_UNSIGNED_INT);
             attributes.addAttribute("ENTITY_DATA_2", 1, 4, GL_UNSIGNED_INT);
             attributes.addAttribute("NORMAL", 3, 4, GL_FLOAT);
             attributes.addAttribute("TANGENT", 4, 4, GL_FLOAT);
             attributes.addAttribute("MIDTEXTURE", 2, 4, GL_FLOAT);
-        } else if (Compat.RPLE()) {
-            attributes.addAttribute("BRIGHTNESS_RED", 2, 2, GL_SHORT);
-            attributes.addAttribute("BRIGHTNESS_GREEN", 2, 2, GL_SHORT);
-            attributes.addAttribute("BRIGHTNESS_BLUE", 2, 2, GL_SHORT);
+            if (Compat.RPLE()) {
+                attributes.addAttribute("BRIGHTNESS_GREEN", 2, 2, GL_SHORT);
+                attributes.addAttribute("BRIGHTNESS_BLUE", 2, 2, GL_SHORT);
+                attributes.addAttribute("EDGE_TEX", 2, 4, GL_FLOAT);
+            }
+        } else {
+            if (Compat.RPLE()) {
+                attributes.addAttribute("BRIGHTNESS_GREEN", 2, 2, GL_SHORT);
+                attributes.addAttribute("BRIGHTNESS_BLUE", 2, 2, GL_SHORT);
+            }
         }
 
         reloadShader();
@@ -479,7 +492,12 @@ public class NeoRenderer {
         // tangent    4 floats 16 bytes offset 48
         // midtexture 2 floats  8 bytes offset 64
         if (Compat.isShaders()) {
-            val stride = 72;
+            int stride;
+            if (Compat.FalseTweaks()) {
+                stride = VertexAPI.recomputeVertexInfo(18, 4);
+            } else {
+                stride = 72;
+            }
             val entityAttrib = 10;
             val midTexCoordAttrib = 11;
             val tangentAttrib = 12;
@@ -522,6 +540,17 @@ public class NeoRenderer {
 
             ARBVertexShader.glVertexAttribPointerARB(midTexCoordAttrib, 2, GL11.GL_FLOAT, false, stride, 64);
             ARBVertexShader.glEnableVertexAttribArrayARB(midTexCoordAttrib);
+
+            if (Compat.RPLE()) {
+                RPLELightMapUtil.enableVertexPointersVBO();
+                ARBVertexShader.glVertexAttribPointerARB(RPLEShaderConstants.edgeTexCoordAttrib,
+                                                         2,
+                                                         GL_FLOAT,
+                                                         false,
+                                                         stride,
+                                                         80);
+                ARBVertexShader.glEnableVertexAttribArrayARB(RPLEShaderConstants.edgeTexCoordAttrib);
+            }
         } else {
             attributes.enable();
         }
