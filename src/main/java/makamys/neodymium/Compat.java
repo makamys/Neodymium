@@ -1,13 +1,5 @@
 package makamys.neodymium;
 
-import static makamys.neodymium.Constants.LOGGER;
-
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.util.List;
-
-import org.lwjgl.opengl.GLContext;
-
 import com.falsepattern.triangulator.api.ToggleableTessellator;
 import cpw.mods.fml.common.Loader;
 import makamys.neodymium.config.Config;
@@ -16,6 +8,13 @@ import makamys.neodymium.util.virtualjar.VirtualJar;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.settings.GameSettings;
+import org.lwjgl.opengl.GLContext;
+
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.util.List;
+
+import static makamys.neodymium.Constants.LOGGER;
 
 public class Compat {
     
@@ -25,9 +24,11 @@ public class Compat {
     
     private static int notEnoughVRAMAmountMB = -1;
 
-    private static boolean RPLE;
+    private static boolean IS_RPLE_PRESENT;
 
-    private static boolean FALSE_TWEAKS;
+    private static boolean IS_FALSE_TWEAKS_PRESENT;
+
+    private static boolean isShadersEnabled;
     
     public static void init() {
         isGL33Supported = GLContext.getCapabilities().OpenGL33;
@@ -37,35 +38,34 @@ public class Compat {
         }
 
         if (Loader.isModLoaded("rple")) {
-            RPLE = true;
+            IS_RPLE_PRESENT = true;
         }
 
         if (Loader.isModLoaded("falsetweaks")) {
-            FALSE_TWEAKS = true;
+            IS_FALSE_TWEAKS_PRESENT = true;
         }
     }
 
-    public static boolean RPLE() {
-        return RPLE;
+    public static boolean isRPLEModPresent() {
+        return IS_RPLE_PRESENT;
     }
 
-    public static boolean FalseTweaks() {
-        return FALSE_TWEAKS;
+    public static boolean isFalseTweaksModPresent() {
+        return IS_FALSE_TWEAKS_PRESENT;
     }
 
-    private static boolean shadersEnabled;
 
-    public static boolean isShaders() {
-        return shadersEnabled;
+    public static boolean isOptiFineShadersEnabled() {
+        return isShadersEnabled;
     }
 
-    public static void updateShadersState() {
+    public static void updateOptiFineShadersState() {
         try {
             Class<?> shaders = Class.forName("shadersmod.client.Shaders");
             try {
                 String shaderPack = (String)shaders.getMethod("getShaderPackName").invoke(null);
                 if(shaderPack != null) {
-                    shadersEnabled = true;
+                    isShadersEnabled = true;
                     return;
                 }
             } catch(Exception e) {
@@ -75,7 +75,7 @@ public class Compat {
         } catch (ClassNotFoundException e) {
 
         }
-        shadersEnabled = false;
+        isShadersEnabled = false;
     }
 
     private static void disableTriangulator() {

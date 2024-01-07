@@ -2,7 +2,6 @@ package makamys.neodymium.renderer;
 
 import static makamys.neodymium.Constants.LOGGER;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
@@ -111,9 +110,9 @@ public class ChunkMesh extends Mesh {
         int verticesPerPrimitive = t.drawMode == GL11.GL_QUADS ? 4 : 3;
 
         int tessellatorVertexSize = 8;
-        if (Compat.isShaders())
+        if (Compat.isOptiFineShadersEnabled())
             tessellatorVertexSize += 10;
-        if (Compat.RPLE())
+        if (Compat.isRPLEModPresent())
             tessellatorVertexSize += 4;
 
         for(int quadI = 0; quadI < t.vertexCount / verticesPerPrimitive; quadI++) {
@@ -190,26 +189,22 @@ public class ChunkMesh extends Mesh {
             quads.sort(MESH_QUAD_RENDER_COMPARATOR);
         }
         
-        try {
-            int i = 0;
-            for(MeshQuad quad : quads) {
-                if(i < quadCount) {
-                    if(MeshQuad.isValid(quad)) {
-                        int subMeshStartIdx = sortByNormals ? QUAD_NORMAL_TO_NORMAL_ORDER[quad.normal.ordinal()] : 0;
-                        if(subMeshStart[subMeshStartIdx] == -1) {
-                            subMeshStart[subMeshStartIdx] = i;
-                        }
-                        quad.writeToBuffer(out, stride);
-                        i++;
-                    } else if(sortByNormals){
-                        break;
+        int i = 0;
+        for(MeshQuad quad : quads) {
+            if(i < quadCount) {
+                if(MeshQuad.isValid(quad)) {
+                    int subMeshStartIdx = sortByNormals ? QUAD_NORMAL_TO_NORMAL_ORDER[quad.normal.ordinal()] : 0;
+                    if(subMeshStart[subMeshStartIdx] == -1) {
+                        subMeshStart[subMeshStartIdx] = i;
                     }
+                    quad.writeToBuffer(out, stride);
+                    i++;
+                } else if(sortByNormals){
+                    break;
                 }
             }
-        } catch(IOException e) {
-            e.printStackTrace();
         }
-        
+
         
         buffer.flip();
         return buffer;
