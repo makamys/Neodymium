@@ -194,7 +194,7 @@ abstract class MixinWorldRenderer implements IWorldRenderer {
     public boolean isDrawn() {
         if (!(skipRenderPass[0] && skipRenderPass[1]))
             return true;
-        if (!Compat.isShaders())
+        if (!Compat.isOptiFineShadersEnabled())
             return isInFrustum;
         return true;
     }

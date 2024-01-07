@@ -291,7 +291,7 @@ public class NeoRenderer {
     Matrix4f projMatrix = new Matrix4f();
 
     private int render(int pass, double alpha) {
-        if (!Compat.isShaders()) {
+        if (!Compat.isOptiFineShadersEnabled()) {
             int shader = getShaderProgram(pass);
 
             if (shader == 0) return 0;
@@ -306,7 +306,7 @@ public class NeoRenderer {
         }
 
         int u_renderOffset = -1;
-        if (!Compat.isShaders()) {
+        if (!Compat.isOptiFineShadersEnabled()) {
             u_renderOffset = glGetUniformLocation(getShaderProgram(pass), "renderOffset");
         }
 
@@ -320,7 +320,7 @@ public class NeoRenderer {
             Util.setPositionAndLimit(piFirst[pass], region.batchFirst[pass], region.batchLimit[pass]);
             Util.setPositionAndLimit(piCount[pass], region.batchFirst[pass], region.batchLimit[pass]);
 
-            if (Compat.isShaders()) {
+            if (Compat.isOptiFineShadersEnabled()) {
                 GL11.glMatrixMode(GL_MODELVIEW);
 
                 val offsetX = (float) (region.originX - eyePosX);
@@ -335,7 +335,7 @@ public class NeoRenderer {
 
             glMultiDrawArrays(GL_QUADS, piFirst[pass], piCount[pass]);
 
-            if (Compat.isShaders())
+            if (Compat.isOptiFineShadersEnabled())
                 GL11.glPopMatrix();
         }
         Util.setPositionAndLimit(piFirst[pass], 0, oldLimit);
@@ -345,7 +345,7 @@ public class NeoRenderer {
             GL11.glPolygonMode(GL11.GL_FRONT_AND_BACK, GL11.GL_FILL);
         }
 
-        if (!Compat.isShaders()) {
+        if (!Compat.isOptiFineShadersEnabled()) {
             glUseProgram(0);
         }
 
@@ -389,7 +389,7 @@ public class NeoRenderer {
         int u_proj = glGetUniformLocation(shaderProgram, "proj");
         int u_playerPos = glGetUniformLocation(shaderProgram, "playerPos");
         int u_light = 0, u_light_r = 0, u_light_g = 0, u_light_b = 0;
-        if (Compat.RPLE()) {
+        if (Compat.isRPLEModPresent()) {
             u_light_r = glGetUniformLocation(shaderProgram, "lightTexR");
             u_light_g = glGetUniformLocation(shaderProgram, "lightTexG");
             u_light_b = glGetUniformLocation(shaderProgram, "lightTexB");
@@ -414,7 +414,7 @@ public class NeoRenderer {
 
         glUniform3f(u_playerPos, (float) eyePosX, (float) eyePosY, (float) eyePosZ);
 
-        if (Compat.RPLE()) {
+        if (Compat.isRPLEModPresent()) {
             //TODO connect to RPLE gl api (once that exists)
             // For now we just use the RPLE default texture indices
             glUniform1i(u_light_r, 1);
@@ -432,6 +432,56 @@ public class NeoRenderer {
         fogStartEnd.position(0);
     }
 
+    private void initAttributesRPLEAndShaders() {
+        attributes.addAttribute("POS", 3, 4, GL_FLOAT);
+        attributes.addAttribute("TEXTURE", 2, 4, GL_FLOAT);
+        attributes.addAttribute("COLOR", 4, 1, GL_UNSIGNED_BYTE);
+        attributes.addAttribute("BRIGHTNESS_RED", 2, 2, GL_SHORT);
+        attributes.addAttribute("ENTITY_DATA_1", 1, 4, GL_UNSIGNED_INT);
+        attributes.addAttribute("ENTITY_DATA_2", 1, 4, GL_UNSIGNED_INT);
+        attributes.addAttribute("NORMAL", 3, 4, GL_FLOAT);
+        attributes.addAttribute("TANGENT", 4, 4, GL_FLOAT);
+        attributes.addAttribute("MIDTEXTURE", 2, 4, GL_FLOAT);
+        attributes.addAttribute("BRIGHTNESS_GREEN", 2, 2, GL_SHORT);
+        attributes.addAttribute("BRIGHTNESS_BLUE", 2, 2, GL_SHORT);
+        attributes.addAttribute("EDGE_TEX", 2, 4, GL_FLOAT);
+    }
+
+    private void initAttributesShaders() {
+        attributes.addAttribute("POS", 3, 4, GL_FLOAT);
+        attributes.addAttribute("TEXTURE", 2, 4, GL_FLOAT);
+        attributes.addAttribute("COLOR", 4, 1, GL_UNSIGNED_BYTE);
+        attributes.addAttribute("BRIGHTNESS", 2, 2, GL_SHORT);
+        attributes.addAttribute("ENTITY_DATA_1", 1, 4, GL_UNSIGNED_INT);
+        attributes.addAttribute("ENTITY_DATA_2", 1, 4, GL_UNSIGNED_INT);
+        attributes.addAttribute("NORMAL", 3, 4, GL_FLOAT);
+        attributes.addAttribute("TANGENT", 4, 4, GL_FLOAT);
+        attributes.addAttribute("MIDTEXTURE", 2, 4, GL_FLOAT);
+    }
+
+    private void initAttributesRPLE() {
+        attributes.addAttribute("POS", 3, 4, GL_FLOAT);
+        if (Config.shortUV) {
+            attributes.addAttribute("TEXTURE", 2, 2, GL_UNSIGNED_SHORT);
+        } else {
+            attributes.addAttribute("TEXTURE", 2, 4, GL_FLOAT);
+        }
+        attributes.addAttribute("COLOR", 4, 1, GL_UNSIGNED_BYTE);
+        attributes.addAttribute("BRIGHTNESS_RED", 2, 2, GL_SHORT);
+        attributes.addAttribute("BRIGHTNESS_GREEN", 2, 2, GL_SHORT);
+        attributes.addAttribute("BRIGHTNESS_BLUE", 2, 2, GL_SHORT);
+    }
+
+    private void initAttributesVanilla() {
+        attributes.addAttribute("POS", 3, 4, GL_FLOAT);
+        if (Config.shortUV) {
+            attributes.addAttribute("TEXTURE", 2, 2, GL_UNSIGNED_SHORT);
+        } else {
+            attributes.addAttribute("TEXTURE", 2, 4, GL_FLOAT);
+        }
+        attributes.addAttribute("COLOR", 4, 1, GL_UNSIGNED_BYTE);
+        attributes.addAttribute("BRIGHTNESS", 2, 2, GL_SHORT);
+    }
     /**
      * @implSpec The attributes here need to be kept in sync with {@link MeshQuad#writeToBuffer(BufferWriter, int)}
      */
@@ -440,37 +490,20 @@ public class NeoRenderer {
         // This means 1 MB of index data per 512 MB of VRAM.
         MAX_MESHES = Config.VRAMSize * 128;
 
-        Compat.updateShadersState();
+        Compat.updateOptiFineShadersState();
 
         attributes = new AttributeSet();
-        attributes.addAttribute("POS", 3, 4, GL_FLOAT);
-        if (Config.shortUV) {
-            attributes.addAttribute("TEXTURE", 2, 2, GL_UNSIGNED_SHORT);
+
+        boolean rple = Compat.isRPLEModPresent();
+        boolean optiFineShaders = Compat.isOptiFineShadersEnabled();
+        if (rple && optiFineShaders) {
+            initAttributesRPLEAndShaders();
+        } else if (optiFineShaders) {
+            initAttributesShaders();
+        } else if (rple) {
+            initAttributesRPLE();
         } else {
-            attributes.addAttribute("TEXTURE", 2, 4, GL_FLOAT);
-        }
-        attributes.addAttribute("COLOR", 4, 1, GL_UNSIGNED_BYTE);
-        if (Compat.RPLE()) {
-            attributes.addAttribute("BRIGHTNESS_RED", 2, 2, GL_SHORT);
-        } else {
-            attributes.addAttribute("BRIGHTNESS", 2, 2, GL_SHORT);
-        }
-        if (Compat.isShaders()) {
-            attributes.addAttribute("ENTITY_DATA_1", 1, 4, GL_UNSIGNED_INT);
-            attributes.addAttribute("ENTITY_DATA_2", 1, 4, GL_UNSIGNED_INT);
-            attributes.addAttribute("NORMAL", 3, 4, GL_FLOAT);
-            attributes.addAttribute("TANGENT", 4, 4, GL_FLOAT);
-            attributes.addAttribute("MIDTEXTURE", 2, 4, GL_FLOAT);
-            if (Compat.RPLE()) {
-                attributes.addAttribute("BRIGHTNESS_GREEN", 2, 2, GL_SHORT);
-                attributes.addAttribute("BRIGHTNESS_BLUE", 2, 2, GL_SHORT);
-                attributes.addAttribute("EDGE_TEX", 2, 4, GL_FLOAT);
-            }
-        } else {
-            if (Compat.RPLE()) {
-                attributes.addAttribute("BRIGHTNESS_GREEN", 2, 2, GL_SHORT);
-                attributes.addAttribute("BRIGHTNESS_BLUE", 2, 2, GL_SHORT);
-            }
+            initAttributesVanilla();
         }
 
         reloadShader();
@@ -481,76 +514,10 @@ public class NeoRenderer {
         mem = new GPUMemoryManager();
 
         glBindBuffer(GL_ARRAY_BUFFER, mem.VBO);
-        
-        // position   3 floats 12 bytes offset 0
-        // texture    2 floats  8 bytes offset 12
-        // color      4 bytes   4 bytes offset 20
-        // brightness 2 shorts  4 bytes offset 24
-        // entitydata 3 shorts  6 bytes offset 28
-        // <padding>            2 bytes
-        // normal     3 floats 12 bytes offset 36
-        // tangent    4 floats 16 bytes offset 48
-        // midtexture 2 floats  8 bytes offset 64
-        if (Compat.isShaders()) {
-            int stride;
-            if (Compat.FalseTweaks()) {
-                stride = VertexAPI.recomputeVertexInfo(18, 4);
-            } else {
-                stride = 72;
-            }
-            val entityAttrib = 10;
-            val midTexCoordAttrib = 11;
-            val tangentAttrib = 12;
 
-            // position   3 floats 12 bytes offset 0
-            GL11.glVertexPointer(3, GL11.GL_FLOAT, stride, 0);
-            GL11.glEnableClientState(GL11.GL_VERTEX_ARRAY);
 
-            // texture    2 floats  8 bytes offset 12
-            GL11.glTexCoordPointer(2, GL11.GL_FLOAT, stride, 12);
-            GL11.glEnableClientState(GL11.GL_TEXTURE_COORD_ARRAY);
-
-            // color      4 bytes   4 bytes offset 20
-            GL11.glColorPointer(4, GL11.GL_UNSIGNED_BYTE, stride, 20);
-            GL11.glEnableClientState(GL11.GL_COLOR_ARRAY);
-
-            // brightness 2 shorts  4 bytes offset 24
-            OpenGlHelper.setClientActiveTexture(OpenGlHelper.lightmapTexUnit);
-            GL11.glTexCoordPointer(2, GL11.GL_SHORT, stride, 24);
-            GL11.glEnableClientState(GL11.GL_TEXTURE_COORD_ARRAY);
-            OpenGlHelper.setClientActiveTexture(OpenGlHelper.defaultTexUnit);
-
-            // entitydata 3 shorts  6 bytes offset 28
-            GL20.glVertexAttribPointer(entityAttrib, 3, GL11.GL_SHORT, false, stride, 28);
-            GL20.glEnableVertexAttribArray(entityAttrib);
-
-            // normal     3 floats 12 bytes offset 36
-            GL11.glNormalPointer(GL11.GL_FLOAT, stride, 36);
-            GL11.glEnableClientState(GL11.GL_NORMAL_ARRAY);
-
-            // tangent    4 floats 16 bytes offset 48
-            GL20.glVertexAttribPointer(tangentAttrib, 4, GL11.GL_FLOAT, false, stride, 48);
-            GL20.glEnableVertexAttribArray(tangentAttrib);
-
-            // midtexture 2 floats  8 bytes offset 64
-            GL13.glClientActiveTexture(GL13.GL_TEXTURE3);
-            GL11.glTexCoordPointer(2, GL11.GL_FLOAT, stride, 64);
-            GL11.glEnableClientState(GL11.GL_TEXTURE_COORD_ARRAY);
-            OpenGlHelper.setClientActiveTexture(OpenGlHelper.defaultTexUnit);
-
-            ARBVertexShader.glVertexAttribPointerARB(midTexCoordAttrib, 2, GL11.GL_FLOAT, false, stride, 64);
-            ARBVertexShader.glEnableVertexAttribArrayARB(midTexCoordAttrib);
-
-            if (Compat.RPLE()) {
-                RPLELightMapUtil.enableVertexPointersVBO();
-                ARBVertexShader.glVertexAttribPointerARB(RPLEShaderConstants.edgeTexCoordAttrib,
-                                                         2,
-                                                         GL_FLOAT,
-                                                         false,
-                                                         stride,
-                                                         80);
-                ARBVertexShader.glEnableVertexAttribArrayARB(RPLEShaderConstants.edgeTexCoordAttrib);
-            }
+        if (optiFineShaders) {
+            initOptiFineShadersVertexPointers();
         } else {
             attributes.enable();
         }
@@ -568,6 +535,85 @@ public class NeoRenderer {
         return true;
     }
 
+    // TODO: This format is nice, we should have it in the docs too!
+    // position   3 floats 12 bytes offset 0
+    // texture    2 floats  8 bytes offset 12
+    // color      4 bytes   4 bytes offset 20
+    // brightness 2 shorts  4 bytes offset 24 (brightness_R with RPLE)
+    // entitydata 3 shorts  6 bytes offset 28
+    // <padding>  --------  2 bytes offset 34
+    // normal     3 floats 12 bytes offset 36
+    // tangent    4 floats 16 bytes offset 48
+    // midtexture 2 floats  8 bytes offset 64
+
+    // ---RPLE EXTRAS---
+    // brightness_G 2 shorts 4 bytes offset 72
+    // brightness_B 2 shorts 4 bytes offset 76
+    // edgeTex      2 floats 8 bytes offset 80
+    private static void initOptiFineShadersVertexPointers() {
+        int stride;
+        if (Compat.isFalseTweaksModPresent()) {
+            stride = VertexAPI.recomputeVertexInfo(18, 4);
+        } else {
+            stride = 72;
+        }
+        val entityAttrib = 10;
+        val midTexCoordAttrib = 11;
+        val tangentAttrib = 12;
+
+        // position   3 floats 12 bytes offset 0
+        GL11.glVertexPointer(3, GL11.GL_FLOAT, stride, 0);
+        GL11.glEnableClientState(GL11.GL_VERTEX_ARRAY);
+
+        // texture    2 floats  8 bytes offset 12
+        GL11.glTexCoordPointer(2, GL11.GL_FLOAT, stride, 12);
+        GL11.glEnableClientState(GL11.GL_TEXTURE_COORD_ARRAY);
+
+        // color      4 bytes   4 bytes offset 20
+        GL11.glColorPointer(4, GL11.GL_UNSIGNED_BYTE, stride, 20);
+        GL11.glEnableClientState(GL11.GL_COLOR_ARRAY);
+
+        // brightness 2 shorts  4 bytes offset 24
+        if (!Compat.isRPLEModPresent()) { // RPLE sets this up in enableVertexPointersVBO
+            OpenGlHelper.setClientActiveTexture(OpenGlHelper.lightmapTexUnit);
+            GL11.glTexCoordPointer(2, GL11.GL_SHORT, stride, 24);
+            GL11.glEnableClientState(GL11.GL_TEXTURE_COORD_ARRAY);
+            OpenGlHelper.setClientActiveTexture(OpenGlHelper.defaultTexUnit);
+        }
+
+        // entitydata 3 shorts  6 bytes offset 28
+        GL20.glVertexAttribPointer(entityAttrib, 3, GL11.GL_SHORT, false, stride, 28);
+        GL20.glEnableVertexAttribArray(entityAttrib);
+
+        // normal     3 floats 12 bytes offset 36
+        GL11.glNormalPointer(GL11.GL_FLOAT, stride, 36);
+        GL11.glEnableClientState(GL11.GL_NORMAL_ARRAY);
+
+        // tangent    4 floats 16 bytes offset 48
+        GL20.glVertexAttribPointer(tangentAttrib, 4, GL11.GL_FLOAT, false, stride, 48);
+        GL20.glEnableVertexAttribArray(tangentAttrib);
+
+        // midtexture 2 floats  8 bytes offset 64
+        GL13.glClientActiveTexture(GL13.GL_TEXTURE3);
+        GL11.glTexCoordPointer(2, GL11.GL_FLOAT, stride, 64);
+        GL11.glEnableClientState(GL11.GL_TEXTURE_COORD_ARRAY);
+        OpenGlHelper.setClientActiveTexture(OpenGlHelper.defaultTexUnit);
+
+        ARBVertexShader.glVertexAttribPointerARB(midTexCoordAttrib, 2, GL11.GL_FLOAT, false, stride, 64);
+        ARBVertexShader.glEnableVertexAttribArrayARB(midTexCoordAttrib);
+
+        if (Compat.isRPLEModPresent()) {
+            RPLELightMapUtil.enableVertexPointersVBO();
+            ARBVertexShader.glVertexAttribPointerARB(RPLEShaderConstants.edgeTexCoordAttrib,
+                                                     2,
+                                                     GL_FLOAT,
+                                                     false,
+                                                     stride,
+                                                     80);
+            ARBVertexShader.glEnableVertexAttribArrayARB(RPLEShaderConstants.edgeTexCoordAttrib);
+        }
+    }
+
     public int getStride() {
         return attributes.stride();
     }
@@ -581,7 +627,7 @@ public class NeoRenderer {
             if (Config.shortUV) {
                 defines.put("SHORT_UV", "");
             }
-            if (Compat.RPLE()) {
+            if (Compat.isRPLEModPresent()) {
                 defines.put("RPLE", "");
             }
             if (pass == 0) {
