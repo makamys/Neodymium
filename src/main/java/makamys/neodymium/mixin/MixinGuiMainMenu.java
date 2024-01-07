@@ -15,7 +15,9 @@ abstract class MixinGuiMainMenu {
     @Shadow
     private String splashText;
     
-    @Inject(method = "<init>*", at = @At("RETURN"))
+    @Inject(method = "<init>",
+            at = @At("RETURN"),
+            require = 1)
     private void postConstructor(CallbackInfo ci) {
         splashText = Neodymium.modifySplash(splashText);
     }

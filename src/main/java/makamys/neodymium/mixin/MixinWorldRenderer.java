@@ -39,12 +39,16 @@ abstract class MixinWorldRenderer implements IWorldRenderer {
     
     private List<ChunkMesh> nd$chunkMeshes;
     
-    @Inject(method = {"updateRenderer"}, at = @At(value = "HEAD"))
+    @Inject(method = {"updateRenderer"},
+            at = @At(value = "HEAD"),
+            require = 1)
     private void preUpdateRenderer(CallbackInfo ci) {
         preUpdateRenderer(false);
     }
     
-    @Inject(method = {"updateRendererSort"}, at = @At(value = "HEAD"))
+    @Inject(method = {"updateRendererSort"},
+            at = @At(value = "HEAD"),
+            require = 1)
     private void preUpdateRendererSort(CallbackInfo ci) {
         preUpdateRenderer(true);
     }
@@ -62,12 +66,16 @@ abstract class MixinWorldRenderer implements IWorldRenderer {
         }
     }
     
-    @Inject(method = {"updateRenderer"}, at = @At(value = "RETURN"))
+    @Inject(method = {"updateRenderer"},
+            at = @At(value = "RETURN"),
+            require = 1)
     private void postUpdateRenderer(CallbackInfo ci) {
         postUpdateRenderer(false);
     }
     
-    @Inject(method = {"updateRendererSort"}, at = @At(value = "RETURN"))
+    @Inject(method = {"updateRendererSort"},
+            at = @At(value = "RETURN"),
+            require = 1)
     private void postUpdateRendererSort(CallbackInfo ci) {
         postUpdateRenderer(true);
     }
@@ -84,7 +92,9 @@ abstract class MixinWorldRenderer implements IWorldRenderer {
         }
     }
     
-    @Inject(method = "preRenderBlocks", at = @At("HEAD"))
+    @Inject(method = "preRenderBlocks",
+            at = @At("HEAD"),
+            require = 1)
     private void prePreRenderBlocks(int pass, CallbackInfo ci) {
         if(Neodymium.isActive()) {
             ((ITessellator)Tessellator.instance).enableMeshCapturing(true);
@@ -113,7 +123,10 @@ abstract class MixinWorldRenderer implements IWorldRenderer {
             GL11.glEndList();
     }
     
-    @Inject(method = "postRenderBlocks", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/Tessellator;draw()I"))
+    @Inject(method = "postRenderBlocks",
+            at = @At(value = "INVOKE",
+                     target = "Lnet/minecraft/client/renderer/Tessellator;draw()I"),
+            require = 1)
     private void prePostRenderBlocks(int pass, EntityLivingBase entity, CallbackInfo ci) {
         /*if(Neodymium.isActive()) {
             if(nd$chunkMeshes != null) {
@@ -125,7 +138,9 @@ abstract class MixinWorldRenderer implements IWorldRenderer {
         }*/
     }
     
-    @Inject(method = "postRenderBlocks", at = @At("RETURN"))
+    @Inject(method = "postRenderBlocks",
+            at = @At("RETURN"),
+            require = 1)
     private void postPostRenderBlocks(int pass, EntityLivingBase entity, CallbackInfo ci) {
         if(Neodymium.isActive()) {
             nd$chunkMeshes.get(pass).finishConstruction();
@@ -134,7 +149,9 @@ abstract class MixinWorldRenderer implements IWorldRenderer {
         }
     }
     
-    @Inject(method = "setDontDraw", at = @At(value = "HEAD"))
+    @Inject(method = "setDontDraw",
+            at = @At(value = "HEAD"),
+            require = 1)
     private void preSetDontDraw(CallbackInfo ci) {
         if(Neodymium.isActive()) {
             Neodymium.renderer.onWorldRendererChanged(WorldRenderer.class.cast(this), NeoRenderer.WorldRendererChange.DELETED);
@@ -146,12 +163,16 @@ abstract class MixinWorldRenderer implements IWorldRenderer {
         return nd$chunkMeshes;
     }
     
-    @Inject(method = "updateInFrustum", at = @At(value = "HEAD"))
+    @Inject(method = "updateInFrustum",
+            at = @At(value = "HEAD"),
+            require = 1)
     private void preUpdateInFrustum(CallbackInfo ci) {
         saveDrawnStatus();
     }
     
-    @Inject(method = "updateInFrustum", at = @At(value = "RETURN"))
+    @Inject(method = "updateInFrustum",
+            at = @At(value = "RETURN"),
+            require = 1)
     private void postUpdateInFrustum(CallbackInfo ci) {
         notifyIfDrawnStatusChanged();
     }

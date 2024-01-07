@@ -23,7 +23,10 @@ abstract class MixinRenderGlobal {
     
     private boolean nd$isInsideUpdateRenderers;
     
-    @Inject(method = "renderAllRenderLists", at = @At(value = "HEAD"), cancellable = true)
+    @Inject(method = "renderAllRenderLists",
+            at = @At(value = "HEAD"),
+            cancellable = true,
+            require = 1)
     private void blockVanillaChunkRendering(int p1, double p2, CallbackInfo ci) {
         if(!Neodymium.shouldRenderVanillaWorld()) {
             ci.cancel();
@@ -40,12 +43,16 @@ abstract class MixinRenderGlobal {
         }
     }
     
-    @Inject(method = "loadRenderers", at = @At(value = "HEAD"))
+    @Inject(method = "loadRenderers",
+            at = @At(value = "HEAD"),
+            require = 1)
     public void preLoadRenderers(CallbackInfo ci) {
         Neodymium.destroyRenderer();
     }
     
-    @Inject(method = "updateRenderers", at = @At(value = "RETURN"))
+    @Inject(method = "updateRenderers",
+            at = @At(value = "RETURN"),
+            require = 1)
     public void speedUpChunkUpdatesForDebug(EntityLivingBase entity, boolean flag, CallbackInfoReturnable<Boolean> cir) {
         if(Neodymium.isActive() && !nd$isInsideUpdateRenderers) {
             nd$isInsideUpdateRenderers = true;
