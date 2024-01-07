@@ -20,7 +20,10 @@ abstract class MixinTessellator implements ITessellator {
 
     @Shadow private boolean isDrawing;
     
-    @Inject(method = "draw", at = @At(value = "HEAD"), cancellable = true)
+    @Inject(method = "draw",
+            at = @At(value = "HEAD"),
+            cancellable = true,
+            require = 1)
     private void preDraw(CallbackInfoReturnable<Integer> cir) {
         if(nd$captureMeshes) {
             ChunkMesh.preTessellatorDraw((Tessellator)(Object)this);
