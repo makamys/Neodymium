@@ -55,7 +55,7 @@ The mod increases memory usage, since the chunk meshes have to be stored somewhe
 ## Incompatibilities
 * The mod performs poorly if Advanced OpenGL (occlusion culling) is turned on.
 * OptiFine's "Smooth" and "Multi-Core" chunk loading settings are not compatible.
-* OptiFine shaders aren't compatible, and will probably never be unless someone contributes a PR, as I have neither the knowledge nor the interest to add compatibility for them.
+* OptiFine shaders **are** now compatible, but may have some minor issues. FalseTweaks allegedly fixes this.
 * CoFHTweaks is incompatible (https://github.com/makamys/Neodymium/issues/11)
 * Various coremods may be incompatible with Mixin. Use [Mixingasm](https://github.com/makamys/Mixingasm) to fix this.
 

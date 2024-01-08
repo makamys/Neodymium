@@ -433,7 +433,7 @@ public class NeoRenderer {
     }
 
     /**
-     * @implSpec The attributes here need to be kept in sync with {@link MeshQuad#writeToBuffer(BufferWriter, int)}
+     * @implSpec The attributes here need to be kept in sync with {@link RenderUtil#writeMeshQuadToBuffer(MeshQuad, BufferWriter, int)}
      */
     public boolean init() {
         // The average mesh is 60 KB. Let's be safe and assume 8 KB per mesh.
