@@ -2,12 +2,14 @@ package makamys.neodymium;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
 import org.spongepowered.asm.lib.tree.ClassNode;
 import org.spongepowered.asm.mixin.MixinEnvironment;
 import org.spongepowered.asm.mixin.MixinEnvironment.Phase;
+import org.spongepowered.asm.mixin.MixinEnvironment.Side;
 import org.spongepowered.asm.mixin.extensibility.IMixinConfigPlugin;
 import org.spongepowered.asm.mixin.extensibility.IMixinInfo;
 
@@ -18,6 +20,8 @@ public class MixinConfigPlugin implements IMixinConfigPlugin {
     
     @Override
     public void onLoad(String mixinPackage) {
+        if(MixinEnvironment.getCurrentEnvironment().getSide() == Side.SERVER) return;
+        
         Config.reloadConfig();
         
         Phase phase = MixinEnvironment.getCurrentEnvironment().getPhase();
@@ -41,6 +45,8 @@ public class MixinConfigPlugin implements IMixinConfigPlugin {
 
     @Override
     public List<String> getMixins() {
+        if(MixinEnvironment.getCurrentEnvironment().getSide() == Side.SERVER) return Collections.emptyList();
+        
         List<String> mixins = new ArrayList<>();
         Phase phase = MixinEnvironment.getCurrentEnvironment().getPhase();
         if(phase == Phase.DEFAULT) {

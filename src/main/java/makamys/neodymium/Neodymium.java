@@ -17,6 +17,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import cpw.mods.fml.client.event.ConfigChangedEvent;
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.Mod;
+import cpw.mods.fml.common.SidedProxy;
 import cpw.mods.fml.common.Mod.EventHandler;
 import cpw.mods.fml.common.event.FMLConstructionEvent;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
@@ -33,6 +34,7 @@ import makamys.neodymium.command.NeodymiumCommand;
 import makamys.neodymium.config.Config;
 import makamys.neodymium.renderer.NeoRenderer;
 import makamys.neodymium.util.ChatUtil;
+import makamys.neodymium.util.Proxy;
 import makamys.neodymium.util.WarningHelper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
@@ -42,9 +44,19 @@ import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.world.WorldEvent;
 
-@Mod(modid = MODID, version = VERSION, guiFactory = "makamys.neodymium.config.GuiFactory")
-public class Neodymium
-{
+public class Neodymium implements Proxy {
+    
+    @Mod(modid = MODID, version = VERSION, guiFactory = "makamys.neodymium.config.GuiFactory")
+    public static class ModContainer {
+        @SidedProxy(serverSide = "makamys.neodymium.util.Proxy$NullProxy", clientSide = "makamys.neodymium.Neodymium")
+        private static Proxy proxy;
+        @EventHandler
+        public void construct(FMLConstructionEvent event) { proxy.construct(event); }     
+        @EventHandler
+        public void preInit(FMLPreInitializationEvent event) { proxy.preInit(event); }
+        @EventHandler
+        public void init(FMLInitializationEvent event) { proxy.init(event); }
+    }
     
     private static final Config.ReloadInfo CONFIG_RELOAD_INFO = new Config.ReloadInfo();
 
@@ -56,15 +68,12 @@ public class Neodymium
     
     private static World rendererWorld;
     
-    @EventHandler
-    public void preInit(FMLConstructionEvent event) {
+    public void construct(FMLConstructionEvent event) {
         MCLib.init();
         Compat.init();
     }
     
-    @EventHandler
-    public void preInit(FMLPreInitializationEvent event)
-    {
+    public void preInit(FMLPreInitializationEvent event) {
         MCLibModules.updateCheckAPI.submitModTask(MODID, "@UPDATE_URL@");
         
         if(VERSION.equals("@VERSION@")) {
@@ -73,9 +82,7 @@ public class Neodymium
         }
     }
     
-    @EventHandler
-    public void init(FMLInitializationEvent event)
-    {
+    public void init(FMLInitializationEvent event) {
         FMLCommonHandler.instance().bus().register(this);
         MinecraftForge.EVENT_BUS.register(this);
         NeodymiumCommand.init();
