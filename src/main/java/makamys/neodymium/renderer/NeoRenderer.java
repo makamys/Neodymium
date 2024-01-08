@@ -432,56 +432,6 @@ public class NeoRenderer {
         fogStartEnd.position(0);
     }
 
-    private void initAttributesRPLEAndShaders() {
-        attributes.addAttribute("POS", 3, 4, GL_FLOAT);
-        attributes.addAttribute("TEXTURE", 2, 4, GL_FLOAT);
-        attributes.addAttribute("COLOR", 4, 1, GL_UNSIGNED_BYTE);
-        attributes.addAttribute("BRIGHTNESS_RED", 2, 2, GL_SHORT);
-        attributes.addAttribute("ENTITY_DATA_1", 1, 4, GL_UNSIGNED_INT);
-        attributes.addAttribute("ENTITY_DATA_2", 1, 4, GL_UNSIGNED_INT);
-        attributes.addAttribute("NORMAL", 3, 4, GL_FLOAT);
-        attributes.addAttribute("TANGENT", 4, 4, GL_FLOAT);
-        attributes.addAttribute("MIDTEXTURE", 2, 4, GL_FLOAT);
-        attributes.addAttribute("BRIGHTNESS_GREEN", 2, 2, GL_SHORT);
-        attributes.addAttribute("BRIGHTNESS_BLUE", 2, 2, GL_SHORT);
-        attributes.addAttribute("EDGE_TEX", 2, 4, GL_FLOAT);
-    }
-
-    private void initAttributesShaders() {
-        attributes.addAttribute("POS", 3, 4, GL_FLOAT);
-        attributes.addAttribute("TEXTURE", 2, 4, GL_FLOAT);
-        attributes.addAttribute("COLOR", 4, 1, GL_UNSIGNED_BYTE);
-        attributes.addAttribute("BRIGHTNESS", 2, 2, GL_SHORT);
-        attributes.addAttribute("ENTITY_DATA_1", 1, 4, GL_UNSIGNED_INT);
-        attributes.addAttribute("ENTITY_DATA_2", 1, 4, GL_UNSIGNED_INT);
-        attributes.addAttribute("NORMAL", 3, 4, GL_FLOAT);
-        attributes.addAttribute("TANGENT", 4, 4, GL_FLOAT);
-        attributes.addAttribute("MIDTEXTURE", 2, 4, GL_FLOAT);
-    }
-
-    private void initAttributesRPLE() {
-        attributes.addAttribute("POS", 3, 4, GL_FLOAT);
-        if (Config.shortUV) {
-            attributes.addAttribute("TEXTURE", 2, 2, GL_UNSIGNED_SHORT);
-        } else {
-            attributes.addAttribute("TEXTURE", 2, 4, GL_FLOAT);
-        }
-        attributes.addAttribute("COLOR", 4, 1, GL_UNSIGNED_BYTE);
-        attributes.addAttribute("BRIGHTNESS_RED", 2, 2, GL_SHORT);
-        attributes.addAttribute("BRIGHTNESS_GREEN", 2, 2, GL_SHORT);
-        attributes.addAttribute("BRIGHTNESS_BLUE", 2, 2, GL_SHORT);
-    }
-
-    private void initAttributesVanilla() {
-        attributes.addAttribute("POS", 3, 4, GL_FLOAT);
-        if (Config.shortUV) {
-            attributes.addAttribute("TEXTURE", 2, 2, GL_UNSIGNED_SHORT);
-        } else {
-            attributes.addAttribute("TEXTURE", 2, 4, GL_FLOAT);
-        }
-        attributes.addAttribute("COLOR", 4, 1, GL_UNSIGNED_BYTE);
-        attributes.addAttribute("BRIGHTNESS", 2, 2, GL_SHORT);
-    }
     /**
      * @implSpec The attributes here need to be kept in sync with {@link MeshQuad#writeToBuffer(BufferWriter, int)}
      */
@@ -494,17 +444,7 @@ public class NeoRenderer {
 
         attributes = new AttributeSet();
 
-        boolean rple = Compat.isRPLEModPresent();
-        boolean optiFineShaders = Compat.isOptiFineShadersEnabled();
-        if (rple && optiFineShaders) {
-            initAttributesRPLEAndShaders();
-        } else if (optiFineShaders) {
-            initAttributesShaders();
-        } else if (rple) {
-            initAttributesRPLE();
-        } else {
-            initAttributesVanilla();
-        }
+        Neodymium.util.initVertexAttributes(attributes);
 
         reloadShader();
 
@@ -515,7 +455,7 @@ public class NeoRenderer {
 
         glBindBuffer(GL_ARRAY_BUFFER, mem.VBO);
 
-
+        boolean optiFineShaders = Compat.isOptiFineShadersEnabled();
         if (optiFineShaders) {
             initOptiFineShadersVertexPointers();
         } else {

@@ -7,9 +7,12 @@ import static makamys.neodymium.Constants.VERSION;
 import java.util.ArrayList;
 import java.util.List;
 
+import makamys.neodymium.renderer.compat.RenderUtil;
+import makamys.neodymium.renderer.compat.RenderUtilRPLE;
+import makamys.neodymium.renderer.compat.RenderUtilShaderRPLE;
+import makamys.neodymium.renderer.compat.RenderUtilShaders;
+import makamys.neodymium.renderer.compat.RenderUtilVanilla;
 import org.apache.commons.lang3.tuple.Pair;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import cpw.mods.fml.client.event.ConfigChangedEvent;
 import cpw.mods.fml.common.FMLCommonHandler;
@@ -18,7 +21,6 @@ import cpw.mods.fml.common.Mod.EventHandler;
 import cpw.mods.fml.common.event.FMLConstructionEvent;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
-import cpw.mods.fml.common.event.FMLServerAboutToStartEvent;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
 import cpw.mods.fml.common.network.FMLNetworkEvent.ClientConnectedToServerEvent;
@@ -49,6 +51,8 @@ public class Neodymium
     private boolean renderDebugText = false;
     
     public static NeoRenderer renderer;
+
+    public static RenderUtil util;
     
     private static World rendererWorld;
     
@@ -97,6 +101,17 @@ public class Neodymium
     	    List<Warning> criticalWarns = warnsAndCriticalWarns.getRight();
     	    
     	    if(criticalWarns.isEmpty()) {
+                boolean rple = Compat.isRPLEModPresent();
+                boolean optiFineShaders = Compat.isOptiFineShadersEnabled();
+                if (rple && optiFineShaders) {
+                    util = RenderUtilShaderRPLE.INSTANCE;
+                } else if (optiFineShaders) {
+                    util = RenderUtilShaders.INSTANCE;
+                } else if (rple) {
+                    util = RenderUtilRPLE.INSTANCE;
+                } else {
+                    util = RenderUtilVanilla.INSTANCE;
+                }
     	        renderer = new NeoRenderer(newWorld);
     	        renderer.hasIncompatibilities = !warns.isEmpty() || !criticalWarns.isEmpty();
     	    }
