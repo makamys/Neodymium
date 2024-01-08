@@ -197,7 +197,7 @@ public class ChunkMesh extends Mesh {
                     if(subMeshStart[subMeshStartIdx] == -1) {
                         subMeshStart[subMeshStartIdx] = i;
                     }
-                    quad.writeToBuffer(out, stride);
+                    Neodymium.util.writeMeshQuadToBuffer(quad, out, stride);
                     i++;
                 } else if(sortByNormals){
                     break;
@@ -301,12 +301,12 @@ public class ChunkMesh extends Mesh {
     public static void setCaptureTarget(ChunkMesh cm) {
         meshCaptureTarget = cm;
     }
-    
+
     public static class Flags {
-        boolean hasTexture;
-        boolean hasBrightness;
-        boolean hasColor;
-        boolean hasNormals;
+        public boolean hasTexture;
+        public boolean hasBrightness;
+        public boolean hasColor;
+        public boolean hasNormals;
         
         public Flags(byte flags) {
             hasTexture = (flags & 1) != 0;
