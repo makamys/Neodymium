@@ -13,6 +13,7 @@ public abstract class Mesh {
 	public int quadCount;
 	public boolean visible;
 	public GPUStatus gpuStatus = GPUStatus.UNSENT;
+	public GPUMemoryManager attachedManager = null;
 	public int iFirst = -1, iCount = -1;
 	public long offset = -1;
 	public int pass;

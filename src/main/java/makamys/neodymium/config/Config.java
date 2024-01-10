@@ -58,9 +58,6 @@ public class Config {
     @ConfigBoolean(cat="render", def=false, com="Do fog occlusion even if fog is disabled.")
     public static boolean fogOcclusionWithoutFog;
     
-    @NeedsReload
-    @ConfigInt(cat="render", def=512, min=1, max=Integer.MAX_VALUE, com="VRAM buffer size (MB). 512 seems to be a good value on Normal render distance. Increase this if you encounter warnings about the VRAM getting full. Does not affect RAM usage.")
-    public static int VRAMSize;
     @ConfigEnum(cat="render", def="auto", clazz=AutomatableBoolean.class, com="Render fog? Slightly reduces framerate. `auto` means the OpenGL setting will be respected (as set by mods like OptiFine).\nValid values: true, false, auto")
     public static AutomatableBoolean renderFog;
     @ConfigInt(cat="render", def=Integer.MAX_VALUE, min=0, max=Integer.MAX_VALUE, com="Chunks further away than this distance (in chunks) will not have unaligned quads such as tall grass rendered.")

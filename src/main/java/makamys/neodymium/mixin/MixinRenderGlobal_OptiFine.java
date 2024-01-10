@@ -14,7 +14,6 @@ import net.minecraft.client.renderer.RenderGlobal;
 /** Blocks vanilla chunk rendering while NeoRenderer is active. (OptiFine compat) */
 @Mixin(RenderGlobal.class)
 abstract class MixinRenderGlobal_OptiFine {
-    
     // for OptiFine's Fast Render option
     @Dynamic
     @Redirect(method = "renderSortedRenderersFast",
@@ -27,5 +26,4 @@ abstract class MixinRenderGlobal_OptiFine {
             GL11.glCallLists(buffer);
         }
     }
-    
 }

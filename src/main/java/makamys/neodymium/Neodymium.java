@@ -7,6 +7,7 @@ import static makamys.neodymium.Constants.VERSION;
 import java.util.ArrayList;
 import java.util.List;
 
+import lombok.val;
 import makamys.neodymium.renderer.compat.RenderUtil;
 import makamys.neodymium.renderer.compat.RenderUtilRPLE;
 import makamys.neodymium.renderer.compat.RenderUtilShaderRPLE;
@@ -108,17 +109,7 @@ public class Neodymium implements Proxy {
     	    List<Warning> criticalWarns = warnsAndCriticalWarns.getRight();
     	    
     	    if(criticalWarns.isEmpty()) {
-                boolean rple = Compat.isRPLEModPresent();
-                boolean optiFineShaders = Compat.isOptiFineShadersEnabled();
-                if (rple && optiFineShaders) {
-                    util = RenderUtilShaderRPLE.INSTANCE;
-                } else if (optiFineShaders) {
-                    util = RenderUtilShaders.INSTANCE;
-                } else if (rple) {
-                    util = RenderUtilRPLE.INSTANCE;
-                } else {
-                    util = RenderUtilVanilla.INSTANCE;
-                }
+                updateRenderUtil();
     	        renderer = new NeoRenderer(newWorld);
     	        renderer.hasIncompatibilities = !warns.isEmpty() || !criticalWarns.isEmpty();
     	    }
@@ -141,7 +132,6 @@ public class Neodymium implements Proxy {
     public void onConnectToServer(ClientConnectedToServerEvent event) {
         Config.reloadConfig();
         ChatUtil.resetShownChatMessages();
-        Compat.reset();
         WarningHelper.reset();
     }
     
@@ -261,4 +251,22 @@ public class Neodymium implements Proxy {
         return Pair.of(warns, criticalWarns);
     }
 
+    private static void updateRenderUtil() {
+        val hasRPLE = Compat.isRPLEModPresent();
+        val hasShaders = Compat.isOptiFineShadersEnabled();
+
+        if (hasShaders) {
+            if (hasRPLE) {
+                util = RenderUtilShaderRPLE.INSTANCE;
+            } else {
+                util = RenderUtilShaders.INSTANCE;
+            }
+        } else {
+            if (hasRPLE) {
+                util = RenderUtilRPLE.INSTANCE;
+            } else {
+                util = RenderUtilVanilla.INSTANCE;
+            }
+        }
+    }
 }

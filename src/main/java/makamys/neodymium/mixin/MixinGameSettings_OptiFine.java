@@ -11,14 +11,12 @@ import net.minecraft.client.settings.GameSettings;
 @Mixin(value = GameSettings.class,
        remap = false)
 @Pseudo
-public class MixinGameSettings_OptiFine implements IMixinGameSettings_OptiFine {
-
+public abstract class MixinGameSettings_OptiFine implements IMixinGameSettings_OptiFine {
     @Dynamic
     @Shadow
     private int ofFogType;
     
-    public int getOfFogType() {
+    public int nd$getOfFogType() {
         return ofFogType;
     }
-    
 }

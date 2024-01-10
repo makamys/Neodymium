@@ -6,19 +6,19 @@ import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
+import gnu.trove.list.array.TIntArrayList;
 import lombok.val;
-import makamys.neodymium.Compat;
 import makamys.neodymium.Neodymium;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
 
 import makamys.neodymium.config.Config;
-import makamys.neodymium.ducks.IWorldRenderer;
+import makamys.neodymium.ducks.NeodymiumWorldRenderer;
 import makamys.neodymium.util.BufferWriter;
-import makamys.neodymium.util.RecyclingList;
 import makamys.neodymium.util.Util;
 import makamys.neodymium.util.WarningHelper;
 import net.minecraft.client.Minecraft;
@@ -35,27 +35,27 @@ public class ChunkMesh extends Mesh {
     
     private int[] subMeshStart = new int[NORMAL_ORDER.length]; 
     
-    public static int usedRAM = 0;
-    public static int instances = 0;
-    
-    private static RecyclingList<MeshQuad> quadBuf = new RecyclingList<>(() -> new MeshQuad());
-    
-    private static ChunkMesh meshCaptureTarget;
-    
+    public static final AtomicLong usedRAM = new AtomicLong();
+    public static final AtomicInteger instances = new AtomicInteger();
+
+    public static final ThreadLocal<QuadMeshBuffer> quadBuf = ThreadLocal.withInitial(QuadMeshBuffer::new);
+
     private static final QuadNormal[] NORMAL_ORDER = new QuadNormal[] {QuadNormal.NONE, QuadNormal.POSITIVE_Y, QuadNormal.POSITIVE_X, QuadNormal.POSITIVE_Z, QuadNormal.NEGATIVE_X, QuadNormal.NEGATIVE_Z, QuadNormal.NEGATIVE_Y};
-    private static final Comparator<MeshQuad> MESH_QUAD_RENDER_COMPARATOR = new MeshQuadRenderOrderComparator();
     private static final int[] QUAD_NORMAL_TO_NORMAL_ORDER;
-    
+    private static final int[] NORMAL_ORDER_TO_QUAD_NORMAL;
+
     private static final Flags FLAGS = new Flags(true, true, true, false);
     
     static {
         QUAD_NORMAL_TO_NORMAL_ORDER = new int[QuadNormal.values().length];
+        NORMAL_ORDER_TO_QUAD_NORMAL = new int[QuadNormal.values().length];
         for(int i = 0; i < QuadNormal.values().length; i++) {
             int idx = Arrays.asList(NORMAL_ORDER).indexOf(QuadNormal.values()[i]);
             if(idx == -1) {
                 idx = 0;
             }
             QUAD_NORMAL_TO_NORMAL_ORDER[i] = idx;
+            NORMAL_ORDER_TO_QUAD_NORMAL[idx] = i;
         }
     }
     
@@ -67,20 +67,14 @@ public class ChunkMesh extends Mesh {
         this.pass = pass;
         Arrays.fill(subMeshStart, -1);
         
-        instances++;
+        instances.getAndIncrement();
         
-        if(!quadBuf.getAsList().isEmpty()) {
+        if(!quadBuf.get().isEmpty()) {
             LOGGER.error("Invalid state: tried to construct a chunk mesh before the previous one has finished constructing!");
         }
     }
-    
-    public static void preTessellatorDraw(Tessellator t) {
-        if(meshCaptureTarget != null) {
-            meshCaptureTarget.addTessellatorData(t);
-        }
-    }
-    
-    private void addTessellatorData(Tessellator t) {
+
+    public void addTessellatorData(Tessellator t) {
         tesselatorDataCount++;
         
         if(t.vertexCount == 0) {
@@ -101,29 +95,30 @@ public class ChunkMesh extends Mesh {
         if(!t.hasColor) {
             warnings.add("Color data is missing");
         }
-        if(t.hasNormals && GL11.glIsEnabled(GL11.GL_LIGHTING)) {
-            errors.add("Chunk uses GL lighting, this is not implemented.");
-        }
+        // TODO This opengl call crashes the JVM when not run on the client thread.
+//        if(t.hasNormals && GL11.glIsEnabled(GL11.GL_LIGHTING)) {
+//            errors.add("Chunk uses GL lighting, this is not implemented.");
+//        }
         FLAGS.hasBrightness = t.hasBrightness;
         FLAGS.hasColor = t.hasColor;
         
         int verticesPerPrimitive = t.drawMode == GL11.GL_QUADS ? 4 : 3;
 
-        int tessellatorVertexSize = 8;
-        if (Compat.isOptiFineShadersEnabled())
-            tessellatorVertexSize += 10;
-        if (Compat.isRPLEModPresent())
-            tessellatorVertexSize += 4;
+        int tessellatorVertexSize = Neodymium.util.vertexSizeInTessellator();
+        int quadSize = Neodymium.util.quadSize();
 
-        for(int quadI = 0; quadI < t.vertexCount / verticesPerPrimitive; quadI++) {
-            MeshQuad quad = quadBuf.next();
-            quad.setState(t.rawBuffer, tessellatorVertexSize, quadI * (verticesPerPrimitive * tessellatorVertexSize), FLAGS, t.drawMode, NeoRegion.toRelativeOffset(-t.xOffset), NeoRegion.toRelativeOffset(-t.yOffset), NeoRegion.toRelativeOffset(-t.zOffset));
-            if(quad.deleted) {
-                quadBuf.remove();
+        int quadCount = t.vertexCount / verticesPerPrimitive;
+
+        val buf = quadBuf.get();
+        buf.ensureCapacity(quadCount * quadSize);
+        for(int quadI = 0; quadI < quadCount; quadI++) {
+            boolean deleted = MeshQuad.processQuad(t.rawBuffer, quadI * verticesPerPrimitive * tessellatorVertexSize, buf.data, buf.size, NeoRegion.toRelativeOffset(-t.xOffset), NeoRegion.toRelativeOffset(-t.yOffset), NeoRegion.toRelativeOffset(-t.zOffset), t.drawMode, FLAGS);
+            if (!deleted) {
+                buf.size += quadSize;
             }
         }
         
-        if(!quadBuf.isEmpty()) {
+        if(!buf.isEmpty()) {
             // Only show errors if we're actually supposed to be drawing something
             if(!errors.isEmpty() || !warnings.isEmpty()) {
                 if(!Config.silenceErrors) {
@@ -145,7 +140,7 @@ public class ChunkMesh extends Mesh {
                             e.printStackTrace();
                         }
                         LOGGER.error("Skipping chunk due to errors.");
-                        quadBuf.reset();
+                        buf.reset();
                     } else {
                         WarningHelper.showDebugMessageOnce(String.format("Warnings in chunk (%d, %d, %d) in dimension %s: %s", x, y, z, dimId, String.join(", ", warnings)));
                     }
@@ -157,52 +152,55 @@ public class ChunkMesh extends Mesh {
     private static String tessellatorToString(Tessellator t) {
         return "(" + t.xOffset + ", " + t.yOffset + ", " + t.zOffset + ")";
     }
-    
+
+    private int bufferSize = 0;
+    @Override
+    public int bufferSize() {
+        return bufferSize;
+    }
+
     public void finishConstruction() {
-        List<MeshQuad> quads = quadBuf.getAsList();
+        val buf = quadBuf.get();
+        quadCount = buf.size / Neodymium.util.quadSize();
+        buffer = createBuffer(buf.data);
+        bufferSize = buffer.limit();
+        usedRAM.getAndAdd(bufferSize);
 
-        quadCount = countValidQuads(quads);
-        buffer = createBuffer(quads, quadCount);
-        usedRAM += buffer.limit();
-        
-        quadBuf.reset();
+        buf.reset();
     }
-    
-    private static int countValidQuads(List<MeshQuad> quads) {
-        int quadCount = 0;
-        for(MeshQuad quad : quads) {
-            if(!quad.deleted) {
-                quadCount++;
-            }
+
+    //Used by FalseTweaks when cancelling a threaded render job
+    public static void cancelRendering() {
+        val buf = quadBuf.get();
+        if (!buf.isEmpty()) {
+            buf.reset();
+            LOGGER.debug("Cancelled unfinished render pass!");
         }
-        return quadCount;
     }
 
-    private ByteBuffer createBuffer(List<? extends MeshQuad> quads, int quadCount) {
+    private static final ThreadLocal<MeshQuadBucketSort> threadBucketer = ThreadLocal.withInitial(
+            MeshQuadBucketSort::new);
+
+    private ByteBuffer createBuffer(int[] quads) {
         val stride = Neodymium.renderer.getStride();
         ByteBuffer buffer = BufferUtils.createByteBuffer(quadCount * 4 * stride);
         BufferWriter out = new BufferWriter(buffer);
         
         boolean sortByNormals = pass == 0;
-        
+
+        val quadSize = Neodymium.util.quadSize();
+        int[] indices = null;
         if(sortByNormals) {
-            quads.sort(MESH_QUAD_RENDER_COMPARATOR);
+            indices = threadBucketer.get().sort(quads, quadSize, quadCount);
         }
-        
-        int i = 0;
-        for(MeshQuad quad : quads) {
-            if(i < quadCount) {
-                if(MeshQuad.isValid(quad)) {
-                    int subMeshStartIdx = sortByNormals ? QUAD_NORMAL_TO_NORMAL_ORDER[quad.normal.ordinal()] : 0;
-                    if(subMeshStart[subMeshStartIdx] == -1) {
-                        subMeshStart[subMeshStartIdx] = i;
-                    }
-                    Neodymium.util.writeMeshQuadToBuffer(quad, out, stride);
-                    i++;
-                } else if(sortByNormals){
-                    break;
-                }
+
+        for (int i = 0; i < quadCount; i++) {
+            int index = indices != null ? indices[i] : i;
+            int subMeshStartIdx = sortByNormals ? QUAD_NORMAL_TO_NORMAL_ORDER[quads[(index + 1) * quadSize - 1]] : 0;
+            if(subMeshStart[subMeshStartIdx] == -1) {
+                subMeshStart[subMeshStartIdx] = i;
             }
+            Neodymium.util.writeMeshQuadToBuffer(quads, index * quadSize, out, stride);
         }
 
         
@@ -212,8 +210,8 @@ public class ChunkMesh extends Mesh {
     
     void destroy() {
         if(buffer != null) {
-            usedRAM -= buffer.limit();
-            instances--;
+            usedRAM.getAndAdd(-buffer.limit());
+            instances.getAndDecrement();
             buffer = null;
             
             if(gpuStatus == Mesh.GPUStatus.SENT) {
@@ -236,7 +234,7 @@ public class ChunkMesh extends Mesh {
         wr.chunkIndex = 0;
         wr.markDirty();
         wr.updateRenderer(Minecraft.getMinecraft().thePlayer);
-        return ((IWorldRenderer)wr).getChunkMeshes();
+        return ((NeodymiumWorldRenderer)wr).nd$getChunkMeshes();
     }
     
     @Override
@@ -297,10 +295,6 @@ public class ChunkMesh extends Mesh {
         
         return player.getDistanceSq(centerX, centerY, centerZ); 
     }
-    
-    public static void setCaptureTarget(ChunkMesh cm) {
-        meshCaptureTarget = cm;
-    }
 
     public static class Flags {
         public boolean hasTexture;
@@ -339,20 +333,64 @@ public class ChunkMesh extends Mesh {
             return flags;
         }
     }
-    
-    private static class MeshQuadRenderOrderComparator implements Comparator<MeshQuad> {
 
-        @Override
-        public int compare(MeshQuad a, MeshQuad b) {
-            if(!MeshQuad.isValid(b)) {
-                return -1;
-            } else if(!MeshQuad.isValid(a)) {
-                return 1;
-            } else {
-                return QUAD_NORMAL_TO_NORMAL_ORDER[a.normal.ordinal()] - QUAD_NORMAL_TO_NORMAL_ORDER[b.normal.ordinal()];
+    public static class QuadMeshBuffer {
+        public int[] data = new int[1024];
+        public int size = 0;
+
+        public void ensureCapacity(int maxNewAmount) {
+            int newSize = size + maxNewAmount;
+            if (newSize > data.length) {
+                data = Arrays.copyOf(data, newSize);
             }
         }
-        
+
+        public boolean isEmpty() {
+            return size == 0;
+        }
+
+        public void reset() {
+            size = 0;
+        }
+    }
+
+    public static class MeshQuadBucketSort {
+        private static final int bucketCount = NORMAL_ORDER_TO_QUAD_NORMAL.length;
+        private final TIntArrayList[] buckets;
+        private int[] resultBuffer;
+
+        public MeshQuadBucketSort() {
+            buckets = new TIntArrayList[bucketCount];
+            for (int i = 0; i < bucketCount; i++) {
+                buckets[i] = new TIntArrayList();
+            }
+        }
+
+        private static int bucket(int[] buffer, int quadSize, int index) {
+            return buffer[quadSize * (index + 1) - 1];
+        }
+
+        public int[] sort(int[] buffer, int quadSize, int quadCount) {
+            for (int i = 0; i < bucketCount; i++) {
+                buckets[i].resetQuick();
+            }
+            for (int i = 0; i < quadCount; i++) {
+                buckets[bucket(buffer, quadSize, i)].add(i);
+            }
+            if (resultBuffer == null || resultBuffer.length < quadCount) {
+                resultBuffer = new int[quadCount];
+            }
+            val result = resultBuffer;
+            int offset = 0;
+            for (int i = 0; i < bucketCount; i++) {
+                val bucket = buckets[NORMAL_ORDER_TO_QUAD_NORMAL[i]];
+                val size = bucket.size();
+                bucket.toArray(result, 0, offset, size);
+                offset += size;
+            }
+            assert offset == quadCount;
+            return result;
+        }
     }
 
 }

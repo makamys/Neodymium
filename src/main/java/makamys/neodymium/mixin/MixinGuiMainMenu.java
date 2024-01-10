@@ -11,7 +11,6 @@ import net.minecraft.client.gui.GuiMainMenu;
 
 @Mixin(GuiMainMenu.class)
 abstract class MixinGuiMainMenu {
-    
     @Shadow
     private String splashText;
     
@@ -21,5 +20,4 @@ abstract class MixinGuiMainMenu {
     private void postConstructor(CallbackInfo ci) {
         splashText = Neodymium.modifySplash(splashText);
     }
-    
 }

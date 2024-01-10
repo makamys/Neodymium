@@ -1,5 +1,6 @@
 package makamys.neodymium;
 
+import com.falsepattern.falsetweaks.api.ThreadedChunkUpdates;
 import com.falsepattern.triangulator.api.ToggleableTessellator;
 import cpw.mods.fml.common.Loader;
 import makamys.neodymium.config.Config;
@@ -8,9 +9,13 @@ import makamys.neodymium.util.virtualjar.VirtualJar;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.settings.GameSettings;
+import net.minecraft.launchwrapper.Launch;
+
 import org.lwjgl.opengl.GLContext;
+import shadersmod.client.Shaders;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
@@ -22,17 +27,18 @@ public class Compat {
     
     private static boolean wasAdvancedOpenGLEnabled;
     
-    private static int notEnoughVRAMAmountMB = -1;
-
     private static boolean IS_RPLE_PRESENT;
 
     private static boolean IS_FALSE_TWEAKS_PRESENT;
-    
+
     private static boolean IS_HODGEPODGE_SPEEDUP_ANIMATIONS_ENABLED;
     private static boolean IS_ANGELICA_SPEEDUP_ANIMATIONS_ENABLED;
 
+    private static boolean IS_SHADERS_MOD_PRESENT;
+
     private static boolean isShadersEnabled;
-    
+
+
     public static void init() {
         isGL33Supported = GLContext.getCapabilities().OpenGL33;
         
@@ -47,16 +53,25 @@ public class Compat {
         if (Loader.isModLoaded("falsetweaks")) {
             IS_FALSE_TWEAKS_PRESENT = true;
         }
-        
+
+        try {
+            if (Launch.classLoader.getClassBytes("shadersmod.client.Shaders") != null) {
+                IS_SHADERS_MOD_PRESENT = true;
+            }
+        } catch (IOException e) {
+            IS_SHADERS_MOD_PRESENT = false;
+        }
+
+
         IS_HODGEPODGE_SPEEDUP_ANIMATIONS_ENABLED = checkIfHodgepodgeSpeedupAnimationsIsEnabled();
         IS_ANGELICA_SPEEDUP_ANIMATIONS_ENABLED = checkIfAngelicaSpeedupAnimationsIsEnabled();
         LOGGER.debug("speedupAnimations compat fix will " + (isSpeedupAnimationsEnabled() ? "" : "not ") + "be enabled");
     }
-    
+
     public static boolean enableVanillaChunkMeshes() {
         return Config.enableVanillaChunkMeshes && !isFalseTweaksModPresent();
     }
-    
+
     public static boolean keepRenderListLogic() {
         return enableVanillaChunkMeshes() || Constants.KEEP_RENDER_LIST_LOGIC;
     }
@@ -94,7 +109,7 @@ public class Compat {
         }
         return result;
     }
-    
+
     private static boolean checkIfAngelicaSpeedupAnimationsIsEnabled() {
         Boolean result = null;
         if (Loader.isModLoaded("angelica")) {
@@ -125,7 +140,15 @@ public class Compat {
     public static boolean isFalseTweaksModPresent() {
         return IS_FALSE_TWEAKS_PRESENT;
     }
-    
+
+    public static Tessellator tessellator() {
+        if (IS_FALSE_TWEAKS_PRESENT) {
+            return FalseTweaksCompat.getThreadTessellator();
+        } else {
+            return Tessellator.instance;
+        }
+    }
+
     public static boolean isSpeedupAnimationsEnabled() {
         return IS_HODGEPODGE_SPEEDUP_ANIMATIONS_ENABLED || IS_ANGELICA_SPEEDUP_ANIMATIONS_ENABLED;
     }
@@ -135,22 +158,20 @@ public class Compat {
     }
 
     public static void updateOptiFineShadersState() {
-        try {
-            Class<?> shaders = Class.forName("shadersmod.client.Shaders");
-            try {
-                String shaderPack = (String)shaders.getMethod("getShaderPackName").invoke(null);
-                if(shaderPack != null) {
-                    isShadersEnabled = true;
-                    return;
-                }
-            } catch(Exception e) {
-                LOGGER.warn("Failed to get shader pack name");
-                e.printStackTrace();
-            }
-        } catch (ClassNotFoundException e) {
-
-        }
         isShadersEnabled = false;
+        if (!IS_SHADERS_MOD_PRESENT)
+            return;
+
+        if (Shaders.getShaderPackName() != null) {
+            isShadersEnabled = true;
+        }
+    }
+
+    public static boolean isShadersShadowPass() {
+        if (!IS_SHADERS_MOD_PRESENT)
+            return false;
+
+        return Shaders.isShadowPass;
     }
 
     private static void disableTriangulator() {
@@ -164,9 +185,6 @@ public class Compat {
         
         if(!isGL33Supported) {
             criticalWarns.add(new Warning("OpenGL 3.3 is not supported."));
-        }
-        if(detectedNotEnoughVRAM()) {
-            criticalWarns.add(new Warning("Not enough VRAM"));
         }
     }
 
@@ -182,18 +200,6 @@ public class Compat {
         return changed;
     }
     
-    public static void onNotEnoughVRAM(int amountMB) {
-        notEnoughVRAMAmountMB = amountMB;
-    }
-    
-    public static void reset() {
-        notEnoughVRAMAmountMB = -1;
-    }
-    
-    private static boolean detectedNotEnoughVRAM() {
-        return Config.VRAMSize == notEnoughVRAMAmountMB;
-    }
-
     public static void forceEnableOptiFineDetectionOfFastCraft() {
         if(Compat.class.getResource("/fastcraft/Tweaker.class") != null) {
             // If OptiFine is present, it's already on the class path at this point, so our virtual jar won't override it.
@@ -232,7 +238,19 @@ public class Compat {
         }
         
     }
-    
+
+    //This extra bit of indirection is needed to avoid accidentally trying to load ThreadedChunkUpdates when FalseTweaks
+    // is not installed.
+    private static class FalseTweaksCompat {
+        public static Tessellator getThreadTessellator() {
+            if (ThreadedChunkUpdates.isEnabled()) {
+                return ThreadedChunkUpdates.getThreadTessellator();
+            } else {
+                return Tessellator.instance;
+            }
+        }
+    }
+
     public static class Warning {
         public String text;
         public String chatAction;

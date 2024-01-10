@@ -46,6 +46,6 @@ public class OFUtil {
     }
 
     private static boolean getIsFogOff() {
-        return ((IMixinGameSettings_OptiFine)Minecraft.getMinecraft().gameSettings).getOfFogType() == 3;
+        return ((IMixinGameSettings_OptiFine)Minecraft.getMinecraft().gameSettings).nd$getOfFogType() == 3;
     }
 }

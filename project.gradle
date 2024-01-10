@@ -13,6 +13,9 @@ repositories {
     maven {
         url = "https://mvn.falsepattern.com/releases"
     }
+    maven {
+        url = "https://mvn.falsepattern.com/stripped"
+    }
 }
 
 dependencies {
@@ -20,6 +23,13 @@ dependencies {
 
     compileOnly("com.falsepattern:rple-mc1.7.10:1.0.0-rc8:api")
     compileOnly("com.falsepattern:falsetweaks-mc1.7.10:2.7.4:api")
+
+    compileOnly("optifine:shadersmod-stripped:1.7.10-hd_u7")
+
+    // LWJGL 2
+    implementation("org.lwjgl.lwjgl:lwjgl:2.9.4-nightly-20150209")
+    implementation("org.lwjgl.lwjgl:lwjgl_util:2.9.4-nightly-20150209")
+    implementation("org.lwjgl.lwjgl:lwjgl-platform:2.9.4-nightly-20150209")
 }
 
 runClient {

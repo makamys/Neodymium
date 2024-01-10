@@ -2,6 +2,7 @@ package makamys.neodymium.renderer.compat;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import lombok.val;
 import makamys.neodymium.config.Config;
 import makamys.neodymium.renderer.ChunkMesh;
 import makamys.neodymium.renderer.MeshQuad;
@@ -20,60 +21,66 @@ import static org.lwjgl.opengl.GL11.GL_UNSIGNED_SHORT;
 public class RenderUtilRPLE implements RenderUtil {
     public static final RenderUtilRPLE INSTANCE = new RenderUtilRPLE();
 
+    public static final int QUAD_OFFSET_U = 3;
+    public static final int QUAD_OFFSET_V = 4;
+    public static final int QUAD_OFFSET_C = 5;
+    public static final int QUAD_OFFSET_BR = 6;
+    public static final int QUAD_OFFSET_BG = 7;
+    public static final int QUAD_OFFSET_BB = 8;
+
     @Override
-    public void readMeshQuad(MeshQuad meshQuad, int[] rawBuffer, int tessellatorVertexSize, int offset, float offsetX, float offsetY, float offsetZ, int drawMode, ChunkMesh.Flags flags) {
+    public void readMeshQuad(int[] tessBuffer, int tessOffset, int[] quadBuffer, int quadOffset, float offsetX, float offsetY, float offsetZ, int drawMode, ChunkMesh.Flags flags) {
+        val tessVertexSize = vertexSizeInTessellator();
+        val quadVertexSize = vertexSizeInQuadBuffer();
+
         int vertices = drawMode == GL11.GL_TRIANGLES ? 3 : 4;
         for(int vi = 0; vi < vertices; vi++) {
-            int i = offset + vi * tessellatorVertexSize;
+            int tI = tessOffset + vi * tessVertexSize;
+            int qI = quadOffset + vi * quadVertexSize;
 
-            meshQuad.xs[vi] = Float.intBitsToFloat(rawBuffer[i]) + offsetX;
-            meshQuad.ys[vi] = Float.intBitsToFloat(rawBuffer[i + 1]) + offsetY;
-            meshQuad.zs[vi] = Float.intBitsToFloat(rawBuffer[i + 2]) + offsetZ;
+            quadBuffer[qI + QUAD_OFFSET_XPOS] = Float.floatToRawIntBits(Float.intBitsToFloat(tessBuffer[tI]) + offsetX);
+            quadBuffer[qI + QUAD_OFFSET_YPOS] = Float.floatToRawIntBits(Float.intBitsToFloat(tessBuffer[tI + 1]) + offsetY);
+            quadBuffer[qI + QUAD_OFFSET_ZPOS] = Float.floatToRawIntBits(Float.intBitsToFloat(tessBuffer[tI + 2]) + offsetZ);
 
-            meshQuad.us[vi] = Float.intBitsToFloat(rawBuffer[i + 3]);
-            meshQuad.vs[vi] = Float.intBitsToFloat(rawBuffer[i + 4]);
+            quadBuffer[qI + QUAD_OFFSET_U] = tessBuffer[tI + 3];
+            quadBuffer[qI + QUAD_OFFSET_V] = tessBuffer[tI + 4];
 
-            meshQuad.cs[vi] = flags.hasColor ? rawBuffer[i + 5] : DEFAULT_COLOR;
+            quadBuffer[qI + QUAD_OFFSET_C] = flags.hasColor ? tessBuffer[tI + 5] : DEFAULT_COLOR;
 
             // TODO normals?
 
             if (flags.hasBrightness) {
-                meshQuad.bs[vi] = rawBuffer[i + 7];
-                meshQuad.bsG[vi] = rawBuffer[i + 8];
-                meshQuad.bsB[vi] = rawBuffer[i + 9];
+                quadBuffer[qI + QUAD_OFFSET_BR] = tessBuffer[tI + 7];
+                quadBuffer[qI + QUAD_OFFSET_BG] = tessBuffer[tI + 8];
+                quadBuffer[qI + QUAD_OFFSET_BB] = tessBuffer[tI + 9];
             } else {
-                meshQuad.bs[vi] = DEFAULT_BRIGHTNESS;
-                meshQuad.bsG[vi] = DEFAULT_BRIGHTNESS;
-                meshQuad.bsB[vi] = DEFAULT_BRIGHTNESS;
+                quadBuffer[qI + QUAD_OFFSET_BR] = DEFAULT_BRIGHTNESS;
+                quadBuffer[qI + QUAD_OFFSET_BG] = DEFAULT_BRIGHTNESS;
+                quadBuffer[qI + QUAD_OFFSET_BB] = DEFAULT_BRIGHTNESS;
             }
         }
 
+
         if(vertices == 3) {
             // Quadrangulate!
-            meshQuad.xs[3] = meshQuad.xs[2];
-            meshQuad.ys[3] = meshQuad.ys[2];
-            meshQuad.zs[3] = meshQuad.zs[2];
+            int q2 = quadOffset + 2 * quadVertexSize;
+            int q3 = quadOffset + 3 * quadVertexSize;
 
-            meshQuad.us[3] = meshQuad.us[2];
-            meshQuad.vs[3] = meshQuad.vs[2];
-
-            meshQuad.cs[3] = meshQuad.cs[2];
-
-            meshQuad.bs[3] = meshQuad.bs[2];
-            meshQuad.bsG[3] = meshQuad.bsG[2];
-            meshQuad.bsB[3] = meshQuad.bsB[2];
+            System.arraycopy(quadBuffer, q2, quadBuffer, q3, quadVertexSize);
         }
     }
 
     @Override
-    public void writeMeshQuadToBuffer(MeshQuad meshQuad, BufferWriter out, int expectedStride) {
+    public void writeMeshQuadToBuffer(int[] meshQuadBuffer, int quadOffset, BufferWriter out, int expectedStride) {
+        val vertexSize = vertexSizeInQuadBuffer();
         for(int vi = 0; vi < 4; vi++) {
-            out.writeFloat(meshQuad.xs[vi]);
-            out.writeFloat(meshQuad.ys[vi]);
-            out.writeFloat(meshQuad.zs[vi]);
+            int offset = quadOffset + vi * vertexSize;
+            out.writeFloat(Float.intBitsToFloat(meshQuadBuffer[offset + QUAD_OFFSET_XPOS]));
+            out.writeFloat(Float.intBitsToFloat(meshQuadBuffer[offset + QUAD_OFFSET_YPOS]));
+            out.writeFloat(Float.intBitsToFloat(meshQuadBuffer[offset + QUAD_OFFSET_ZPOS]));
 
-            float u = meshQuad.us[vi];
-            float v = meshQuad.vs[vi];
+            float u = Float.intBitsToFloat(meshQuadBuffer[offset + QUAD_OFFSET_U]);
+            float v = Float.intBitsToFloat(meshQuadBuffer[offset + QUAD_OFFSET_V]);
 
             if(Config.shortUV) {
                 out.writeShort((short)(Math.round(u * 32768f)));
@@ -83,14 +90,26 @@ public class RenderUtilRPLE implements RenderUtil {
                 out.writeFloat(v);
             }
 
-            out.writeInt(meshQuad.cs[vi]);
+            out.writeInt(meshQuadBuffer[offset + QUAD_OFFSET_C]);
 
-            out.writeInt(meshQuad.bs[vi]);
-            out.writeInt(meshQuad.bsG[vi]);
-            out.writeInt(meshQuad.bsB[vi]);
+            out.writeInt(meshQuadBuffer[offset + QUAD_OFFSET_BR]);
+            out.writeInt(meshQuadBuffer[offset + QUAD_OFFSET_BG]);
+            out.writeInt(meshQuadBuffer[offset + QUAD_OFFSET_BB]);
 
             assert out.position() % expectedStride == 0;
         }
+    }
+
+    @Override
+    public int vertexSizeInTessellator() {
+        // pos + uv + color + normal + brightnessRGB + <VertexAPI wasted space>
+        return 3 + 2 + 1 + 1 + 3 + 2;
+    }
+
+    @Override
+    public int vertexSizeInQuadBuffer() {
+        // pos + uv + color + brightnessRGB
+        return 3 + 2 + 1 + 3;
     }
 
     @Override
