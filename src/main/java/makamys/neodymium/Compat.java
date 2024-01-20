@@ -66,7 +66,7 @@ public class Compat {
         } else {
             LOGGER.debug("Hodgepodge is missing, treating speedupAnimations as false");
         }
-        LOGGER.debug("Compat fix will " + (result ? "" : "not") + " be enabled");
+        LOGGER.debug("Compat fix will " + (result ? "" : "not ") + "be enabled");
         return result;
     }
 
