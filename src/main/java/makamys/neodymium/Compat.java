@@ -27,6 +27,8 @@ public class Compat {
     private static boolean IS_RPLE_PRESENT;
 
     private static boolean IS_FALSE_TWEAKS_PRESENT;
+    
+    private static boolean IS_HODGEPODGE_SPEEDUP_ANIMATIONS_ENABLED;
 
     private static boolean isShadersEnabled;
     
@@ -44,6 +46,28 @@ public class Compat {
         if (Loader.isModLoaded("falsetweaks")) {
             IS_FALSE_TWEAKS_PRESENT = true;
         }
+        
+        IS_HODGEPODGE_SPEEDUP_ANIMATIONS_ENABLED = checkIfHodgepodgeSpeedupAnimationsIsEnabled();
+    }
+
+    private static boolean checkIfHodgepodgeSpeedupAnimationsIsEnabled() {
+        boolean result = false;
+        if (Loader.isModLoaded("hodgepodge")) {
+            try {
+                Class<?> CommonCls = Class.forName("com.mitchej123.hodgepodge.Common");
+                Object config = CommonCls.getField("config").get(null);
+                Class<?> configCls = config.getClass();
+                boolean speedupAnimations = (Boolean)configCls.getField("speedupAnimations").get(config);
+                LOGGER.debug("Hodgepodge's speedupAnimations is set to " + speedupAnimations);
+                result = speedupAnimations;
+            } catch(Exception e) {
+                LOGGER.warn("Failed to determine if Hodgepodge's speedupAnimations is enabled, assuming false");
+            }
+        } else {
+            LOGGER.debug("Hodgepodge is missing, treating speedupAnimations as false");
+        }
+        LOGGER.debug("Compat fix will " + (result ? "" : "not") + " be enabled");
+        return result;
     }
 
     public static boolean isRPLEModPresent() {
@@ -53,7 +77,10 @@ public class Compat {
     public static boolean isFalseTweaksModPresent() {
         return IS_FALSE_TWEAKS_PRESENT;
     }
-
+    
+    public static boolean isHodgepodgeSpeedupAnimationsEnabled() {
+        return IS_HODGEPODGE_SPEEDUP_ANIMATIONS_ENABLED;
+    }
 
     public static boolean isOptiFineShadersEnabled() {
         return isShadersEnabled;

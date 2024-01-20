@@ -5,6 +5,7 @@ import com.falsepattern.rple.api.client.RPLELightMapUtil;
 import com.falsepattern.rple.api.client.RPLEShaderConstants;
 import lombok.val;
 import makamys.neodymium.Compat;
+import makamys.neodymium.Constants;
 import makamys.neodymium.Neodymium;
 import makamys.neodymium.config.Config;
 import makamys.neodymium.ducks.IWorldRenderer;
@@ -204,6 +205,10 @@ public class NeoRenderer {
                         renderedMeshes += meshes;
                         for (int j = piCount[i].position() - meshes; j < piCount[i].position(); j++) {
                             renderedQuads += piCount[i].get(j) / 4;
+                        }
+                        if(Compat.isHodgepodgeSpeedupAnimationsEnabled() && !Constants.KEEP_RENDER_LIST_LOGIC) {
+                            // Hodgepodge hooks this method to decide what animations to play, make sure it runs
+                            wr.getGLCallListForPass(i);
                         }
                     }
                 }
