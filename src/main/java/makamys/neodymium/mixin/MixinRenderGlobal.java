@@ -9,6 +9,7 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+import makamys.neodymium.Constants;
 import makamys.neodymium.Neodymium;
 import net.minecraft.client.renderer.RenderGlobal;
 import net.minecraft.client.renderer.WorldRenderer;
@@ -39,7 +40,10 @@ abstract class MixinRenderGlobal {
             require = 1)
     public void preRenderSortedRenderers(int startRenderer, int numRenderers, int renderPass, double partialTickTime, CallbackInfoReturnable<Integer> cir) {
         if(Neodymium.isActive()) {
-            cir.setReturnValue(Neodymium.renderer.preRenderSortedRenderers(renderPass, partialTickTime, sortedWorldRenderers));
+            int updated = Neodymium.renderer.preRenderSortedRenderers(renderPass, partialTickTime, sortedWorldRenderers);
+            if(!Constants.KEEP_RENDER_LIST_LOGIC) {
+                cir.setReturnValue(updated);
+            }
         }
     }
     

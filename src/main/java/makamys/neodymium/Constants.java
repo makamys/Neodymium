@@ -11,4 +11,6 @@ public class Constants {
     
     public static final String PROTOCOL = "neodymiumvirtualjar";
     
+    public static final boolean KEEP_RENDER_LIST_LOGIC = Boolean.parseBoolean(System.getProperty("neodymium.keepRenderListLogic", "false"));
+    
 }

@@ -2,6 +2,7 @@ package makamys.neodymium.mixin;
 
 import com.google.common.collect.Lists;
 import makamys.neodymium.Compat;
+import makamys.neodymium.Constants;
 import makamys.neodymium.Neodymium;
 import makamys.neodymium.ducks.ITessellator;
 import makamys.neodymium.ducks.IWorldRenderer;
@@ -109,7 +110,7 @@ abstract class MixinWorldRenderer implements IWorldRenderer {
                        target = "Lorg/lwjgl/opengl/GL11;glNewList(II)V"),
               require = 1)
     private void noNewList(int list, int mode) {
-        if (!Neodymium.isActive()) {
+        if (!Neodymium.isActive() || Constants.KEEP_RENDER_LIST_LOGIC) {
             GL11.glNewList(list, mode);
         }
     }
@@ -119,7 +120,7 @@ abstract class MixinWorldRenderer implements IWorldRenderer {
                        target = "Lorg/lwjgl/opengl/GL11;glEndList()V"),
               require = 1)
     private void noEndList() {
-        if (!Neodymium.isActive())
+        if (!Neodymium.isActive() || Constants.KEEP_RENDER_LIST_LOGIC)
             GL11.glEndList();
     }
     
