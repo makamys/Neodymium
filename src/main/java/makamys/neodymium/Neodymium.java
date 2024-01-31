@@ -46,7 +46,7 @@ import net.minecraftforge.event.world.WorldEvent;
 
 public class Neodymium implements Proxy {
     
-    @Mod(modid = MODID, version = VERSION, guiFactory = "makamys.neodymium.config.GuiFactory")
+    @Mod(modid = MODID, version = VERSION, guiFactory = "makamys.neodymium.config.GuiFactory", acceptableRemoteVersions = "*")
     public static class ModContainer {
         @SidedProxy(serverSide = "makamys.neodymium.util.Proxy$NullProxy", clientSide = "makamys.neodymium.Neodymium")
         private static Proxy proxy;
