@@ -14,6 +14,7 @@ import makamys.neodymium.renderer.attribs.AttributeSet;
 import makamys.neodymium.util.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.OpenGlHelper;
+import net.minecraft.client.renderer.RenderGlobal;
 import net.minecraft.client.renderer.WorldRenderer;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.EnumChatFormatting;
@@ -146,6 +147,10 @@ public class NeoRenderer {
                     sort(frameCount % 100 == 0, frameCount % Config.sortFrequency == 0);
 
                     initIndexBuffers();
+                    
+                    if(!Constants.KEEP_RENDER_LIST_LOGIC) {
+                        updateRenderGlobalStats();
+                    }
                 }
 
                 frameCount++;
@@ -206,7 +211,7 @@ public class NeoRenderer {
                         for (int j = piCount[i].position() - meshes; j < piCount[i].position(); j++) {
                             renderedQuads += piCount[i].get(j) / 4;
                         }
-                        if(Compat.isHodgepodgeSpeedupAnimationsEnabled() && !Constants.KEEP_RENDER_LIST_LOGIC) {
+                        if(Compat.isHodgepodgeSpeedupAnimationsEnabled() && !Constants.KEEP_RENDER_LIST_LOGIC) { 
                             // Hodgepodge hooks this method to decide what animations to play, make sure it runs
                             wr.getGLCallListForPass(i);
                         }
@@ -232,6 +237,26 @@ public class NeoRenderer {
             }
         }
         return false;
+    }
+    
+    private static void updateRenderGlobalStats() {
+        // Normally renderSortedRenderers does this, but we cancelled it
+        
+        RenderGlobal rg = Minecraft.getMinecraft().renderGlobal;
+        
+        for(WorldRenderer wr : rg.sortedWorldRenderers) {
+            ++rg.renderersLoaded;
+
+            if (wr.skipRenderPass[0]) {
+                ++rg.renderersSkippingRenderPass;
+            } else if (!wr.isInFrustum) {
+                ++rg.renderersBeingClipped;
+            } else if (rg.occlusionEnabled && !wr.isVisible) {
+                ++rg.renderersBeingOccluded;
+            } else {
+                ++rg.renderersBeingRendered;
+            }
+        }
     }
 
     private void mainLoop() {
