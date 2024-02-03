@@ -26,6 +26,7 @@ jobs:
         run: ./gradlew SetupCIWorkspace build
       - name: Build with Gradle
         run: ./gradlew cleanBuildAll
+        working-directory: publish
       - name: Upload a Build Artifact
         uses: actions/upload-artifact@v4.3.0
         with: 
