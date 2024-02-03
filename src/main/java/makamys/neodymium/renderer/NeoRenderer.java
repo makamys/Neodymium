@@ -245,16 +245,17 @@ public class NeoRenderer {
         RenderGlobal rg = Minecraft.getMinecraft().renderGlobal;
         
         for(WorldRenderer wr : rg.sortedWorldRenderers) {
-            ++rg.renderersLoaded;
-
-            if (wr.skipRenderPass[0]) {
-                ++rg.renderersSkippingRenderPass;
-            } else if (!wr.isInFrustum) {
-                ++rg.renderersBeingClipped;
-            } else if (rg.occlusionEnabled && !wr.isVisible) {
-                ++rg.renderersBeingOccluded;
-            } else {
-                ++rg.renderersBeingRendered;
+            if(wr != null) {
+                ++rg.renderersLoaded;
+                if (wr.skipRenderPass[0]) {
+                    ++rg.renderersSkippingRenderPass;
+                } else if (!wr.isInFrustum) {
+                    ++rg.renderersBeingClipped;
+                } else if (rg.occlusionEnabled && !wr.isVisible) {
+                    ++rg.renderersBeingOccluded;
+                } else {
+                    ++rg.renderersBeingRendered;
+                }
             }
         }
     }
