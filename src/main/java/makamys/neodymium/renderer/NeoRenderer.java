@@ -148,7 +148,7 @@ public class NeoRenderer {
 
                     initIndexBuffers();
                     
-                    if(!Constants.KEEP_RENDER_LIST_LOGIC) {
+                    if(!Constants.KEEP_RENDER_LIST_LOGIC && !Compat.isFalseTweaksModPresent()) {
                         updateRenderGlobalStats();
                     }
                 }
