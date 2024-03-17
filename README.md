@@ -53,11 +53,13 @@ There are also some additional optimizations:
 The mod increases memory usage, since the chunk meshes have to be stored somewhere. On Normal render distance in a vanilla world, it uses ~70-150 MB, both in RAM and VRAM.
 
 ## Incompatibilities
-* The mod performs poorly if Advanced OpenGL (occlusion culling) is turned on.
-* OptiFine's "Smooth" and "Multi-Core" chunk loading settings are not compatible.
-* OptiFine shaders **are** now compatible, but may have some minor issues. FalseTweaks allegedly fixes this.
-* CoFHTweaks is incompatible (https://github.com/makamys/Neodymium/issues/11)
-* Various coremods may be incompatible with Mixin. Use [Mixingasm](https://github.com/makamys/Mixingasm) to fix this.
+* The mod performs poorly if **Advanced OpenGL** (occlusion culling) is turned on.
+* **OptiFine**'s "Smooth" and "Multi-Core" chunk loading settings are not compatible.
+* **OptiFine** shaders **are** now compatible, but may have some minor issues. FalseTweaks allegedly fixes this.
+* **CoFHTweaks** is incompatible (https://github.com/makamys/Neodymium/issues/11)
+* **Gilded Game Utils**: the regular version is not compatible - use [the fork with threaded lighting removed](https://legacy.curseforge.com/minecraft/mc-mods/gilded-game-utils-fix) instead.
+* **Various coremods** may be incompatible with Mixin. Use [Mixingasm](https://github.com/makamys/Mixingasm) to fix this.
+* Also see: [issues labeled with `mod incompatibility`](https://github.com/makamys/Neodymium/issues?q=is%3Aissue+is%3Aopen+label%3A%22mod+incompatibility%22).
 
 ### About `nomixin` builds
 
