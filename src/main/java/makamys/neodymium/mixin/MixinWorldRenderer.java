@@ -17,6 +17,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.At.Shift;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -40,8 +41,9 @@ abstract class MixinWorldRenderer implements IWorldRenderer {
     
     private List<ChunkMesh> nd$chunkMeshes;
     
+    // Inject before first instruction inside if(needsUpdate) block
     @Inject(method = {"updateRenderer"},
-            at = @At(value = "HEAD"),
+            at = @At(value = "FIELD", target = "Lnet/minecraft/client/renderer/WorldRenderer;needsUpdate:Z", ordinal = 0),
             require = 1)
     private void preUpdateRenderer(CallbackInfo ci) {
         preUpdateRenderer(false);
@@ -67,8 +69,9 @@ abstract class MixinWorldRenderer implements IWorldRenderer {
         }
     }
     
+    // Inject after last instruction inside if(needsUpdate) block
     @Inject(method = {"updateRenderer"},
-            at = @At(value = "RETURN"),
+            at = @At(value = "FIELD", target = "Lnet/minecraft/client/renderer/WorldRenderer;isInitialized:Z", ordinal = 0, shift = Shift.AFTER),
             require = 1)
     private void postUpdateRenderer(CallbackInfo ci) {
         postUpdateRenderer(false);
