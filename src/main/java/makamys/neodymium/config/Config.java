@@ -81,7 +81,7 @@ public class Config {
     public static boolean showDebugInfo;
     @ConfigBoolean(cat="debug", def=false)
     public static boolean wireframe;
-    @ConfigBoolean(cat="debug", def=false, com="Enable building of vanilla chunk meshes. Makes it possible to switch to the vanilla renderer on the fly, at the cost of reducing chunk update performance.")
+    @ConfigBoolean(cat="debug", def=false, com="Enable building of vanilla chunk meshes. Makes it possible to switch to the vanilla renderer on the fly, at the cost of reducing chunk update performance. Also fixes compatibility with Factorization (see issue #49).\nCompatibility note: Not compatible with FalseTweaks, so enabling this will have no effect if FalseTweaks is present.")
     public static boolean enableVanillaChunkMeshes;
     
     private static Configuration config;

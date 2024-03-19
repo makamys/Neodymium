@@ -49,6 +49,14 @@ public class Compat {
         
         IS_HODGEPODGE_SPEEDUP_ANIMATIONS_ENABLED = checkIfHodgepodgeSpeedupAnimationsIsEnabled();
     }
+    
+    public static boolean enableVanillaChunkMeshes() {
+        return Config.enableVanillaChunkMeshes && !isFalseTweaksModPresent();
+    }
+    
+    public static boolean keepRenderListLogic() {
+        return enableVanillaChunkMeshes() || Constants.KEEP_RENDER_LIST_LOGIC;
+    }
 
     private static boolean checkIfHodgepodgeSpeedupAnimationsIsEnabled() {
         boolean result = false;
