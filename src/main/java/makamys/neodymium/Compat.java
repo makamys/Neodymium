@@ -50,6 +50,7 @@ public class Compat {
         
         IS_HODGEPODGE_SPEEDUP_ANIMATIONS_ENABLED = checkIfHodgepodgeSpeedupAnimationsIsEnabled();
         IS_ANGELICA_SPEEDUP_ANIMATIONS_ENABLED = checkIfAngelicaSpeedupAnimationsIsEnabled();
+        LOGGER.debug("speedupAnimations compat fix will " + (isSpeedupAnimationsEnabled() ? "" : "not ") + "be enabled");
     }
     
     public static boolean enableVanillaChunkMeshes() {
@@ -88,9 +89,9 @@ public class Compat {
                 result = false;
             }
         } else {
-            LOGGER.debug("Hodgepodge is missing, treating speedupAnimations as false");
+            LOGGER.debug("Hodgepodge is missing, treating its speedupAnimations as false");
+            result = false;
         }
-        LOGGER.debug("Compat fix will " + (result ? "" : "not ") + "be enabled");
         return result;
     }
     
@@ -111,9 +112,9 @@ public class Compat {
                 result = false;
             }
         } else {
-            LOGGER.debug("Angelica is missing, treating speedupAnimations as false");
+            LOGGER.debug("Angelica is missing, treating its speedupAnimations as false");
+            result = false;
         }
-        LOGGER.debug("Compat fix will " + (result ? "" : "not ") + "be enabled");
         return result;
     }
 
