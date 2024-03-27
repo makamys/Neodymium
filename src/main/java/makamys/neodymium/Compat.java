@@ -29,6 +29,7 @@ public class Compat {
     private static boolean IS_FALSE_TWEAKS_PRESENT;
     
     private static boolean IS_HODGEPODGE_SPEEDUP_ANIMATIONS_ENABLED;
+    private static boolean IS_ANGELICA_SPEEDUP_ANIMATIONS_ENABLED;
 
     private static boolean isShadersEnabled;
     
@@ -48,6 +49,7 @@ public class Compat {
         }
         
         IS_HODGEPODGE_SPEEDUP_ANIMATIONS_ENABLED = checkIfHodgepodgeSpeedupAnimationsIsEnabled();
+        IS_ANGELICA_SPEEDUP_ANIMATIONS_ENABLED = checkIfAngelicaSpeedupAnimationsIsEnabled();
     }
     
     public static boolean enableVanillaChunkMeshes() {
@@ -91,6 +93,29 @@ public class Compat {
         LOGGER.debug("Compat fix will " + (result ? "" : "not ") + "be enabled");
         return result;
     }
+    
+    private static boolean checkIfAngelicaSpeedupAnimationsIsEnabled() {
+        Boolean result = null;
+        if (Loader.isModLoaded("angelica")) {
+            try {
+                Class<?> AngelicaConfigCls = Class.forName("com.gtnewhorizons.angelica.config.AngelicaConfig");
+                Boolean speedupAnimations = (Boolean)AngelicaConfigCls.getField("speedupAnimations").get(null);
+                result = speedupAnimations;
+            } catch(Exception e) {
+                LOGGER.debug("Failed to determine if Angelica's speedupAnimations is enabled.", e);
+            }
+            if(result != null) {
+                LOGGER.debug("Angelica's speedupAnimations is set to " + result);
+            } else {
+                LOGGER.warn("Failed to determine if Angelica's speedupAnimations is enabled, assuming false");
+                result = false;
+            }
+        } else {
+            LOGGER.debug("Angelica is missing, treating speedupAnimations as false");
+        }
+        LOGGER.debug("Compat fix will " + (result ? "" : "not ") + "be enabled");
+        return result;
+    }
 
     public static boolean isRPLEModPresent() {
         return IS_RPLE_PRESENT;
@@ -100,8 +125,8 @@ public class Compat {
         return IS_FALSE_TWEAKS_PRESENT;
     }
     
-    public static boolean isHodgepodgeSpeedupAnimationsEnabled() {
-        return IS_HODGEPODGE_SPEEDUP_ANIMATIONS_ENABLED;
+    public static boolean isSpeedupAnimationsEnabled() {
+        return IS_HODGEPODGE_SPEEDUP_ANIMATIONS_ENABLED || IS_ANGELICA_SPEEDUP_ANIMATIONS_ENABLED;
     }
 
     public static boolean isOptiFineShadersEnabled() {

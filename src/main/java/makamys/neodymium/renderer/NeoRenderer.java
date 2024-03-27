@@ -210,7 +210,7 @@ public class NeoRenderer {
                         for (int j = piCount[i].position() - meshes; j < piCount[i].position(); j++) {
                             renderedQuads += piCount[i].get(j) / 4;
                         }
-                        if(Compat.isHodgepodgeSpeedupAnimationsEnabled() && !Compat.keepRenderListLogic()) { 
+                        if(Compat.isSpeedupAnimationsEnabled() && !Compat.keepRenderListLogic()) { 
                             // Hodgepodge hooks this method to decide what animations to play, make sure it runs
                             wr.getGLCallListForPass(i);
                         }
