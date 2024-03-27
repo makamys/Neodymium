@@ -59,17 +59,31 @@ public class Compat {
     }
 
     private static boolean checkIfHodgepodgeSpeedupAnimationsIsEnabled() {
-        boolean result = false;
+        Boolean result = null;
         if (Loader.isModLoaded("hodgepodge")) {
             try {
-                Class<?> CommonCls = Class.forName("com.mitchej123.hodgepodge.Common");
-                Object config = CommonCls.getField("config").get(null);
-                Class<?> configCls = config.getClass();
-                boolean speedupAnimations = (Boolean)configCls.getField("speedupAnimations").get(config);
-                LOGGER.debug("Hodgepodge's speedupAnimations is set to " + speedupAnimations);
+                Class<?> FixesConfigCls = Class.forName("com.mitchej123.hodgepodge.config.FixesConfig");
+                Boolean speedupAnimations = (Boolean)FixesConfigCls.getField("speedupAnimations").get(null);
                 result = speedupAnimations;
             } catch(Exception e) {
+                LOGGER.debug("Failed to determine if Hodgepodge's speedupAnimations is enabled using new config class, trying old one.", e);
+            }
+            if(result == null) {
+                try {
+                    Class<?> CommonCls = Class.forName("com.mitchej123.hodgepodge.Common");
+                    Object config = CommonCls.getField("config").get(null);
+                    Class<?> configCls = config.getClass();
+                    boolean speedupAnimations = (Boolean)configCls.getField("speedupAnimations").get(config);
+                    result = speedupAnimations;
+                } catch(Exception e) {
+                    LOGGER.debug("Failed to determine if Hodgepodge's speedupAnimations is enabled using old config class.", e);
+                }
+            }
+            if(result != null) {
+                LOGGER.debug("Hodgepodge's speedupAnimations is set to " + result);
+            } else {
                 LOGGER.warn("Failed to determine if Hodgepodge's speedupAnimations is enabled, assuming false");
+                result = false;
             }
         } else {
             LOGGER.debug("Hodgepodge is missing, treating speedupAnimations as false");
