@@ -70,12 +70,16 @@ public class Neodymium implements Proxy {
     private static World rendererWorld;
     
     public void construct(FMLConstructionEvent event) {
-        MCLib.init();
+        if (Config.updateChecker) {
+            MCLib.init();
+        }
         Compat.init();
     }
     
     public void preInit(FMLPreInitializationEvent event) {
-        MCLibModules.updateCheckAPI.submitModTask(MODID, "@UPDATE_URL@");
+        if (Config.updateChecker) {
+            MCLibModules.updateCheckAPI.submitModTask(MODID, "@UPDATE_URL@");
+        }
         
         if(VERSION.equals("@VERSION@")) {
             // Allow using config GUI in dev env

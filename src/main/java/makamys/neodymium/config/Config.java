@@ -45,6 +45,8 @@ public class Config {
     public static boolean enabled;
     @ConfigBoolean(cat="_general", def=false, com="Apply changes made in the config file immediately without having to manually reload the renderer. Off by default because it could potentially cause poor performance on certain platforms.")
     public static boolean hotswap;
+    @ConfigBoolean(cat="_general", def=true, com="Set this to false to disable update checking.")
+    public static boolean updateChecker;
 
     @ConfigBoolean(cat="render", def=true, com="Don't submit faces for rendering if they are facing away from the camera. Reduces GPU workload at the cost of increasing driver overhead. This will improve the framerate most of the time, but may reduce it if you are not fillrate-limited (such as when playing on a small resolution).")
     public static boolean cullFaces;
