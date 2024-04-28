@@ -28,7 +28,7 @@ if(project.enable_lombok.toBoolean()) {
     apply plugin: 'io.freefair.lombok'
     lombok {
         // the version of the lombok plugin we use would use 1.18.16 by default
-        version = '1.18.30'
+        version = '1.18.32'
     }
 }
 
