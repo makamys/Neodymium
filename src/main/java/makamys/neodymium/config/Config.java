@@ -64,7 +64,11 @@ public class Config {
     public static AutomatableBoolean renderFog;
     @ConfigInt(cat="render", def=Integer.MAX_VALUE, min=0, max=Integer.MAX_VALUE, com="Chunks further away than this distance (in chunks) will not have unaligned quads such as tall grass rendered.")
     public static int maxUnalignedQuadDistance;
-    
+    @ConfigInt(cat="render", def=256,min=16,max=1024,com = "The size of the allocation chunks for opaque geometry (in Megabytes). Requires game restart to apply.")
+    public static int bufferSizePass0;
+    @ConfigInt(cat="render", def=64,min=16,max=1024,com = "The size of the allocation chunks for transparent geometry (in Megabytes). Requires game restart to apply.")
+    public static int bufferSizePass1;
+
     @ConfigBoolean(cat="misc", def=true, com="Replace splash that says 'OpenGL 1.2!' with 'OpenGL 3.3!'. Just for fun.")
     public static boolean replaceOpenGLSplash;
     @ConfigBoolean(cat="misc", def=false, com="Don't warn about incompatibilities in chat, and activate renderer even in spite of critical ones.")

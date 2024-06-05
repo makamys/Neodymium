@@ -13,6 +13,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import static makamys.neodymium.config.Config.bufferSizePass0;
+import static makamys.neodymium.config.Config.bufferSizePass1;
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL15.*;
 import static org.lwjgl.opengl.GL30.*;
@@ -22,8 +24,8 @@ import static org.lwjgl.opengl.GL31.*;
 public class GPUMemoryManager {
     private static final long MEGABYTE = 1024 * 1024L;
     private static final long[] BUFFER_SIZE_BYTES = {
-            1024 * MEGABYTE,
-            512 * MEGABYTE
+            bufferSizePass0 * MEGABYTE,
+            bufferSizePass1 * MEGABYTE
     };
 
     private static final int INDEX_ALLOCATION_SIZE_BYTES = 512 * 4;
