@@ -6,18 +6,18 @@ ext.publishDir = project.multiproject_structure.toBoolean() ? "${projectDir}/../
 
 def getCommitVersion(){
 	try {
-		def commitHashProc = "python3 ${ext.publishDir}/get_version.py".execute()
+		def commitHashProc = "git describe --always --dirty".execute()
 		commitHashProc.waitFor()
 		if(commitHashProc.exitValue() == 0){
 			def commitHash = commitHashProc.text.trim()
-			
+
 			return commitHash
 		} else {
 			println commitHashProc.err.text
-			throw new Exception("get_version.py exited with non-zero return value")
+			throw new Exception("git describe exited with non-zero return value")
 		}
 	} catch(Exception e){
-		println "Failed to run get_version.py: " + e.getMessage()
+		println "Failed to get commit version: " + e.getMessage()
 	}
 	return "UNKNOWN" // fallback
 }

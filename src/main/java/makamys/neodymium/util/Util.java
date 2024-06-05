@@ -1,5 +1,14 @@
 package makamys.neodymium.util;
 
+import lombok.val;
+import net.minecraft.client.Minecraft;
+import net.minecraft.launchwrapper.Launch;
+import org.lwjgl.BufferUtils;
+import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL12;
+
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
@@ -11,12 +20,6 @@ import java.nio.IntBuffer;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
-
-import org.apache.commons.io.FileUtils;
-import org.lwjgl.BufferUtils;
-import org.lwjgl.opengl.GL11;
-
-import net.minecraft.launchwrapper.Launch;
 
 public class Util {
     
@@ -86,26 +89,36 @@ public class Util {
     }
     
     public static double distSq(double x1, double y1, double z1, double x2, double y2, double z2) {
-        return Math.pow(x1 - x2, 2) +
-                Math.pow(y1 - y2, 2) +
-                Math.pow(z1 - z2, 2);
+        val dX = x1 - x2;
+        val dY = y1 - y2;
+        val dZ = z1 - z2;
+        return dX * dX + dY * dY + dZ * dZ;
     }
-    
+
     public static void dumpTexture() {
-        int width = GL11.glGetTexLevelParameteri(GL11.GL_TEXTURE_2D, 0, GL11.GL_TEXTURE_WIDTH);
-        int height = GL11.glGetTexLevelParameteri(GL11.GL_TEXTURE_2D, 0, GL11.GL_TEXTURE_HEIGHT);
-        
-        System.out.println("Dumped " + width + "x" + height + " texture.");
-        
-        ByteBuffer buf = BufferUtils.createByteBuffer(4 * width * height);
-        GL11.glGetTexImage(GL11.GL_TEXTURE_2D, 0, GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, buf);
+        val mc = Minecraft.getMinecraft();
+        val workingPath = mc.mcDataDir.toPath();
+        val terrainFile = workingPath.resolve("terrain.png").toFile();
+
+        val width = GL11.glGetTexLevelParameteri(GL11.GL_TEXTURE_2D, 0, GL11.GL_TEXTURE_WIDTH);
+        val height = GL11.glGetTexLevelParameteri(GL11.GL_TEXTURE_2D, 0, GL11.GL_TEXTURE_HEIGHT);
+
+        val buf = BufferUtils.createByteBuffer(4 * width * height);
+        GL11.glGetTexImage(GL11.GL_TEXTURE_2D, 0, GL12.GL_BGRA, GL11.GL_UNSIGNED_BYTE, buf);
         try {
-            // to convert to png:
-            // magick -size 512x256 -depth 8 out.rgba out.png
-            FileUtils.writeByteArrayToFile(new File("out.rgba"), Util.byteBufferToArray(buf));
+            val img = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+            val intBuf = buf.asIntBuffer();
+            for (int y = 0; y < height; y++) {
+                for (int x = 0; x < width; x++) {
+                    img.setRGB(x, y, intBuf.get());
+                }
+            }
+            ImageIO.write(img, "png", terrainFile);
         } catch (IOException e) {
+            ChatUtil.showNeoChatMessage("Failed to dump terrain texture", ChatUtil.MessageVerbosity.ERROR);
             e.printStackTrace();
         }
+        ChatUtil.showChatMessage("Dumped terrain texture to: " + terrainFile.getAbsolutePath());
     }
     
     public static int createBrightness(int sky, int block) {

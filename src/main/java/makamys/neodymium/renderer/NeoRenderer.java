@@ -1,30 +1,24 @@
 package makamys.neodymium.renderer;
 
-import com.falsepattern.falsetweaks.api.triangulator.VertexAPI;
-import com.falsepattern.rple.api.client.RPLELightMapUtil;
-import com.falsepattern.rple.api.client.RPLEShaderConstants;
 import lombok.val;
+import lombok.var;
 import makamys.neodymium.Compat;
 import makamys.neodymium.Neodymium;
 import makamys.neodymium.config.Config;
-import makamys.neodymium.ducks.IWorldRenderer;
+import makamys.neodymium.ducks.NeodymiumWorldRenderer;
 import makamys.neodymium.renderer.Mesh.GPUStatus;
 import makamys.neodymium.renderer.attribs.AttributeSet;
 import makamys.neodymium.util.*;
+import makamys.neodymium.util.Util;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.RenderGlobal;
 import net.minecraft.client.renderer.WorldRenderer;
-import net.minecraft.entity.Entity;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.world.ChunkCoordIntPair;
 import net.minecraft.world.World;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.input.Keyboard;
-import org.lwjgl.opengl.ARBVertexShader;
-import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL13;
-import org.lwjgl.opengl.GL20;
+import org.lwjgl.opengl.*;
 import org.lwjgl.util.vector.Matrix4f;
 import org.lwjgl.util.vector.Vector4f;
 
@@ -32,15 +26,15 @@ import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static makamys.neodymium.Constants.VERSION;
-import static org.lwjgl.opengl.GL11.glGetInteger;
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL14.glMultiDrawArrays;
 import static org.lwjgl.opengl.GL15.GL_ARRAY_BUFFER;
 import static org.lwjgl.opengl.GL15.glBindBuffer;
 import static org.lwjgl.opengl.GL20.*;
-import static org.lwjgl.opengl.GL30.*;
+import static org.lwjgl.opengl.GL30.glBindVertexArray;
 
 /**
  * The main renderer class.
@@ -48,6 +42,7 @@ import static org.lwjgl.opengl.GL30.*;
 public class NeoRenderer {
 
     public boolean hasInited = false;
+    public boolean isFirstPass = true;
     public boolean destroyPending;
     public boolean reloadPending;
     public int rendererSpeedup;
@@ -63,14 +58,10 @@ public class NeoRenderer {
 
     private boolean fogEnabled;
 
-    private static int MAX_MESHES;
-
-    private int VAO;
     private int[] shaderProgramsFog = {0, 0};
     private int[] shaderProgramsNoFog = {0, 0};
-    private IntBuffer[] piFirst = new IntBuffer[2];
-    private IntBuffer[] piCount = new IntBuffer[2];
-    GPUMemoryManager mem;
+    private List<GPUMemoryManager> mems = new ArrayList<>();
+    private Map<Integer, List<GPUMemoryManager>> memMap = new HashMap<>();
     private AttributeSet attributes;
 
     private Map<ChunkCoordIntPair, NeoRegion> loadedRegionsMap = new HashMap<>();
@@ -93,7 +84,8 @@ public class NeoRenderer {
     int eyePosYTDiv;
     int eyePosZTDiv;
 
-    private int renderedMeshes, renderedQuads;
+    private int renderedMeshesRender, renderedQuadsRender;
+    private int renderedMeshesShadow, renderedQuadsShadow;
     private int frameCount;
 
     public NeoRenderer(World world) {
@@ -108,74 +100,99 @@ public class NeoRenderer {
 
     Vector4f transformedOrigin = new Vector4f();
 
+
+    private int gcCounter = 0;
     public int preRenderSortedRenderers(int renderPass, double alpha, WorldRenderer[] sortedWorldRenderers) {
-        int rendered = 0;
-        if (hasInited) {
-            if (renderPass == 0) {
-                renderedMeshes = 0;
-                renderedQuads = 0;
+        if (!hasInited)
+            return 0;
 
-                mainLoop();
-                if (Minecraft.getMinecraft().currentScreen == null) {
-                    handleKeyboard();
-                }
-                if (mem.getCoherenceRate() < 0.95f || frameCount % 4 == 0) {
-                    mem.runGC(false);
-                }
+        val mc = Minecraft.getMinecraft();
+        val opaquePass = renderPass == 0;
+        val isShadowPass = Compat.isShadersShadowPass();
+        val shouldRender = rendererActive && renderWorld;
 
-                if (rendererActive && renderWorld) {
-                    updateGLValues();
+        if (isFirstPass) {
+            renderedMeshesRender = 0;
+            renderedQuadsRender = 0;
+            renderedMeshesShadow = 0;
+            renderedQuadsShadow = 0;
 
-                    transformedOrigin.set(0, 0, 0, 1);
-                    Matrix4f.transform(modelViewMatrixInv, transformedOrigin, transformedOrigin);
-
-                    Entity rve = Minecraft.getMinecraft().renderViewEntity;
-
-                    eyePosX = rve.lastTickPosX + (rve.posX - rve.lastTickPosX) * alpha;
-                    eyePosY = rve.lastTickPosY + (rve.posY - rve.lastTickPosY) * alpha + rve.getEyeHeight();
-                    eyePosZ = rve.lastTickPosZ + (rve.posZ - rve.lastTickPosZ) * alpha;
-
-                    eyePosXT = eyePosX + transformedOrigin.x;
-                    eyePosYT = eyePosY + transformedOrigin.y;
-                    eyePosZT = eyePosZ + transformedOrigin.z;
-
-                    eyePosXTDiv = Math.floorDiv((int) Math.floor(eyePosXT), 16);
-                    eyePosYTDiv = Math.floorDiv((int) Math.floor(eyePosYT), 16);
-                    eyePosZTDiv = Math.floorDiv((int) Math.floor(eyePosZT), 16);
-
-                    sort(frameCount % 100 == 0, frameCount % Config.sortFrequency == 0);
-
-                    initIndexBuffers();
-                    
-                    if(!Compat.keepRenderListLogic() && !Compat.isFalseTweaksModPresent()) {
-                        updateRenderGlobalStats();
-                    }
-                }
-
-                frameCount++;
-            }
-
-            if (rendererActive && renderWorld) {
-                Minecraft.getMinecraft().entityRenderer.enableLightmap((double) alpha);
-
-                rendered += render(renderPass, alpha);
-
-                Minecraft.getMinecraft().entityRenderer.disableLightmap((double) alpha);
-            }
+            mainLoop();
+            if (mc.currentScreen == null)
+                handleKeyboard();
         }
+
+        var rendered = 0;
+        if (shouldRender) {
+            if (opaquePass) {
+                updateGLValues();
+                updateEyePos(alpha);
+
+                if (!isShadowPass)
+                    sortMeshes(frameCount % 100 == 0, frameCount % Config.sortFrequency == 0);
+
+                initIndexBuffers(isShadowPass);
+            }
+
+            if (isFirstPass && !Compat.keepRenderListLogic() && !Compat.isFalseTweaksModPresent())
+                updateRenderGlobalStats();
+
+            rendered = render(renderPass, alpha);
+        }
+
+        isFirstPass = false;
         return rendered;
+    }
+
+    private void updateEyePos(double alpha) {
+        transformedOrigin.set(0, 0, 0, 1);
+        Matrix4f.transform(modelViewMatrixInv, transformedOrigin, transformedOrigin);
+
+        val rve = Minecraft.getMinecraft().renderViewEntity;
+
+        eyePosX = rve.lastTickPosX + (rve.posX - rve.lastTickPosX) * alpha;
+        eyePosY = rve.lastTickPosY + (rve.posY - rve.lastTickPosY) * alpha + rve.getEyeHeight();
+        eyePosZ = rve.lastTickPosZ + (rve.posZ - rve.lastTickPosZ) * alpha;
+
+        eyePosXT = eyePosX + transformedOrigin.x;
+        eyePosYT = eyePosY + transformedOrigin.y;
+        eyePosZT = eyePosZ + transformedOrigin.z;
+
+        eyePosXTDiv = Math.floorDiv((int) Math.floor(eyePosXT), 16);
+        eyePosYTDiv = Math.floorDiv((int) Math.floor(eyePosYT), 16);
+        eyePosZTDiv = Math.floorDiv((int) Math.floor(eyePosZT), 16);
     }
 
     public void onRenderTickEnd() {
         if (Neodymium.isActive()) {
             if (reloadPending) {
                 Minecraft.getMinecraft().renderGlobal.loadRenderers();
+                return;
             }
-            if (showMemoryDebugger && mem != null) {
-                GuiHelper.begin();
-                mem.drawInfo();
-                GuiHelper.end();
+
+            if (gcCounter % 4 == 0) {
+                for (val mem : mems)
+                    mem.runGC(false);
             }
+            gcCounter++;
+
+            if (showMemoryDebugger) {
+                int yOff = 20;
+                boolean drawing = false;
+                for (val mem : mems) {
+                    if (mem != null) {
+                        if (!drawing) {
+                            drawing = true;
+                            GuiHelper.begin();
+                        }
+                        yOff = mem.drawDebugInfo(yOff) + 10;
+                    }
+                }
+                if (drawing)
+                    GuiHelper.end();
+            }
+
+            isFirstPass = true;
         } else if (destroyPending) {
             destroy();
             destroyPending = false;
@@ -184,47 +201,67 @@ public class NeoRenderer {
         }
     }
 
-    private void sort(boolean pass0, boolean pass1) {
-        for (NeoRegion r : loadedRegionsMap.values()) {
-            r.getRenderData().sort(eyePosX, eyePosY, eyePosZ, pass0, pass1);
+    private void sortMeshes(boolean pass0, boolean pass1) {
+        for (val mem: mems) {
+            for (NeoRegion r : loadedRegionsMap.values()) {
+                r.getRenderData(mem).sort(eyePosX, eyePosY, eyePosZ, pass0, pass1);
+            }
         }
     }
 
-    private void initIndexBuffers() {
+    private boolean isRendererVisible(WorldRenderer wr, boolean shadowPass) {
+        return shadowPass || wr.isVisible;
+    }
+
+    private void initIndexBuffers(boolean shadowPass) {
         loadedRegionsList.clear();
         loadedRegionsList.addAll(loadedRegionsMap.values());
         loadedRegionsList.sort(Comparators.REGION_DISTANCE_COMPARATOR.setOrigin(eyePosX, eyePosY, eyePosZ));
 
-        for (int i = 0; i < 2; i++) {
-            piFirst[i].limit(MAX_MESHES);
-            piCount[i].limit(MAX_MESHES);
-            int order = i == 0 ? 1 : -1;
+        for (val mem: mems) {
+            mem.piFirst.clear();
+            mem.piCount.clear();
+            int order = mem.pass == 0 ? 1 : -1;
             for (int regionI = order == 1 ? 0 : loadedRegionsList.size() - 1; regionI >= 0 && regionI < loadedRegionsList.size(); regionI += order) {
-                NeoRegion.RenderData region = loadedRegionsList.get(regionI).getRenderData();
-                region.batchFirst[i] = piFirst[i].position();
-                for (Mesh mesh : region.getSentMeshes(i)) {
+                NeoRegion.RenderData region = loadedRegionsList.get(regionI).getRenderData(mem);
+                region.batchFirst = mem.piFirst.position();
+                for (Mesh mesh : region.getSentMeshes()) {
                     WorldRenderer wr = ((ChunkMesh) mesh).wr;
-                    if (mesh.visible && wr.isVisible && shouldRenderMesh(mesh)) {
-                        int meshes = mesh.writeToIndexBuffer(piFirst[i], piCount[i], eyePosXTDiv, eyePosYTDiv, eyePosZTDiv, i);
-                        renderedMeshes += meshes;
-                        for (int j = piCount[i].position() - meshes; j < piCount[i].position(); j++) {
-                            renderedQuads += piCount[i].get(j) / 4;
+                    if ((shadowPass || wr.isInFrustum) && mesh.visible && isRendererVisible(wr, shadowPass) && shouldRenderMesh(mesh)) {
+                        if (mem.piFirst.position() >= mem.piFirst.limit() - 16) {
+                            mem.growIndexBuffers();
                         }
-                        if(Compat.isSpeedupAnimationsEnabled() && !Compat.keepRenderListLogic()) { 
-                            // Hodgepodge hooks this method to decide what animations to play, make sure it runs
-                            wr.getGLCallListForPass(i);
+                        int meshes = mesh.writeToIndexBuffer(mem.piFirst, mem.piCount, eyePosXTDiv, eyePosYTDiv, eyePosZTDiv, mem.pass);
+                        if (shadowPass) {
+                            renderedMeshesShadow += meshes;
+                        } else {
+                            renderedMeshesRender += meshes;
+                        }
+                        for (int j = mem.piCount.position() - meshes; j < mem.piCount.position(); j++) {
+                            val count = mem.piCount.get(j) / 4;
+                            if (shadowPass) {
+                                renderedQuadsShadow += count;
+                            } else {
+                                renderedQuadsRender += count;
+                            }
                         }
                     }
+                    if(Compat.isSpeedupAnimationsEnabled() && !Compat.keepRenderListLogic()) {
+                        // Hodgepodge hooks this method to decide what animations to play, make sure it runs
+                        wr.getGLCallListForPass(mem.pass);
+                    }
                 }
-                region.batchLimit[i] = piFirst[i].position();
+                region.batchLimit = mem.piFirst.position();
             }
-            piFirst[i].flip();
-            piCount[i].flip();
+            mem.piFirst.flip();
+            mem.piCount.flip();
         }
     }
 
     private boolean shouldRenderMesh(Mesh mesh) {
-        if ((Config.maxMeshesPerFrame == -1 || renderedMeshes < Config.maxMeshesPerFrame)) {
+        if (Compat.isShadersShadowPass())
+            return true;
+        if ((Config.maxMeshesPerFrame == -1 || renderedMeshesRender < Config.maxMeshesPerFrame)) {
             if ((!isFogEnabled() && !Config.fogOcclusionWithoutFog)
                 || Config.fogOcclusion == !Config.fogOcclusion
                 || mesh.distSq(
@@ -237,12 +274,39 @@ public class NeoRenderer {
         }
         return false;
     }
-    
+
+
+
+    private static class DelayedTask implements Comparable<DelayedTask> {
+        public final int timestamp;
+        public final Runnable task;
+        private final int idx;
+        private static final AtomicInteger IIDX = new AtomicInteger();
+        public DelayedTask(int timestamp, Runnable task) {
+            this.timestamp = timestamp;
+            this.task = task;
+            idx = IIDX.getAndIncrement();
+        }
+        @Override
+        public int compareTo(DelayedTask o) {
+            if (timestamp == o.timestamp) {
+                return Integer.compare(idx, o.idx);
+            }
+            return Integer.compare(timestamp, o.timestamp);
+        }
+    }
+    private static int frameCounter = 0;
+    private static final TreeSet<DelayedTask> tasks = new TreeSet<>();
+
+    public static void submitTask(Runnable task, int delayFrames) {
+        tasks.add(new DelayedTask(frameCounter + delayFrames, task));
+    }
+
     private static void updateRenderGlobalStats() {
         // Normally renderSortedRenderers does this, but we cancelled it
-        
+
         RenderGlobal rg = Minecraft.getMinecraft().renderGlobal;
-        
+
         for(WorldRenderer wr : rg.sortedWorldRenderers) {
             if(wr != null) {
                 ++rg.renderersLoaded;
@@ -260,6 +324,14 @@ public class NeoRenderer {
     }
 
     private void mainLoop() {
+        if (!tasks.isEmpty()) {
+            val task = tasks.first();
+            if (task.timestamp - frameCounter < 0) {
+                tasks.pollFirst();
+                task.task.run();
+            }
+        }
+        frameCounter++;
         if (Minecraft.getMinecraft().playerController.netClientHandler.doneLoadingTerrain) {
             for (Iterator<Entry<ChunkCoordIntPair, NeoRegion>> it = loadedRegionsMap.entrySet().iterator(); it.hasNext(); ) {
                 Entry<ChunkCoordIntPair, NeoRegion> kv = it.next();
@@ -321,6 +393,10 @@ public class NeoRenderer {
     Matrix4f projMatrix = new Matrix4f();
 
     private int render(int pass, double alpha) {
+        val mems = memMap.get(pass);
+        if (mems == null)
+            return 0;
+
         if (!Compat.isOptiFineShadersEnabled()) {
             int shader = getShaderProgram(pass);
 
@@ -328,8 +404,6 @@ public class NeoRenderer {
             glUseProgram(shader);
             updateUniforms(alpha, pass);
         }
-
-        glBindVertexArray(VAO);
 
         if (isWireframeEnabled()) {
             GL11.glPolygonMode(GL11.GL_FRONT_AND_BACK, GL11.GL_LINE);
@@ -340,36 +414,42 @@ public class NeoRenderer {
             u_renderOffset = glGetUniformLocation(getShaderProgram(pass), "renderOffset");
         }
 
-        int oldLimit = piFirst[pass].limit();
+        val er = Minecraft.getMinecraft().entityRenderer;
+        er.enableLightmap(alpha);
 
-        int rendered = 0;
-        int order = pass == 0 ? 1 : -1;
-        for (int regionI = order == 1 ? 0 : loadedRegionsList.size() - 1; regionI >= 0 && regionI < loadedRegionsList.size(); regionI += order) {
-            NeoRegion.RenderData region = loadedRegionsList.get(regionI).getRenderData();
-            rendered += region.batchLimit[pass] - region.batchFirst[pass];
-            Util.setPositionAndLimit(piFirst[pass], region.batchFirst[pass], region.batchLimit[pass]);
-            Util.setPositionAndLimit(piCount[pass], region.batchFirst[pass], region.batchLimit[pass]);
+        var rendered = 0;
+        for (val mem: mems) {
+            glBindVertexArray(mem.VAO);
+            int oldLimit = mem.piFirst.limit();
 
-            if (Compat.isOptiFineShadersEnabled()) {
-                GL11.glMatrixMode(GL_MODELVIEW);
+            int order = pass == 0 ? 1 : -1;
+            for (int regionI = order == 1 ? 0 : loadedRegionsList.size() - 1; regionI >= 0 && regionI < loadedRegionsList.size(); regionI += order) {
+                NeoRegion.RenderData region = loadedRegionsList.get(regionI).getRenderData(mem);
+                rendered += region.batchLimit - region.batchFirst;
+                Util.setPositionAndLimit(mem.piFirst, region.batchFirst, region.batchLimit);
+                Util.setPositionAndLimit(mem.piCount, region.batchFirst, region.batchLimit);
 
-                val offsetX = (float) (region.originX - eyePosX);
-                val offsetY = (float) ((region.originY - eyePosY) + 0.12);
-                val offsetZ = (float) (region.originZ - eyePosZ);
+                if (Compat.isOptiFineShadersEnabled()) {
+                    GL11.glMatrixMode(GL_MODELVIEW);
 
-                GL11.glPushMatrix();
-                GL11.glTranslatef(offsetX, offsetY, offsetZ);
-            } else {
-                glUniform3f(u_renderOffset, (float) (region.originX - eyePosX), (float) (region.originY - eyePosY), (float) (region.originZ - eyePosZ));
+                    val offsetX = (float) (region.originX - eyePosX);
+                    val offsetY = (float) ((region.originY - eyePosY) + 0.12);
+                    val offsetZ = (float) (region.originZ - eyePosZ);
+
+                    GL11.glPushMatrix();
+                    GL11.glTranslatef(offsetX, offsetY, offsetZ);
+                } else {
+                    glUniform3f(u_renderOffset, (float) (region.originX - eyePosX), (float) (region.originY - eyePosY), (float) (region.originZ - eyePosZ));
+                }
+
+                glMultiDrawArrays(GL_QUADS, mem.piFirst, mem.piCount);
+
+                if (Compat.isOptiFineShadersEnabled())
+                    GL11.glPopMatrix();
             }
-
-            glMultiDrawArrays(GL_QUADS, piFirst[pass], piCount[pass]);
-
-            if (Compat.isOptiFineShadersEnabled())
-                GL11.glPopMatrix();
+            Util.setPositionAndLimit(mem.piFirst, 0, oldLimit);
+            Util.setPositionAndLimit(mem.piCount, 0, oldLimit);
         }
-        Util.setPositionAndLimit(piFirst[pass], 0, oldLimit);
-        Util.setPositionAndLimit(piCount[pass], 0, oldLimit);
 
         if (isWireframeEnabled()) {
             GL11.glPolygonMode(GL11.GL_FRONT_AND_BACK, GL11.GL_FILL);
@@ -380,6 +460,8 @@ public class NeoRenderer {
         }
 
         glBindVertexArray(0);
+
+        er.disableLightmap(alpha);
         return rendered;
     }
 
@@ -466,10 +548,6 @@ public class NeoRenderer {
      * @implSpec The attributes here need to be kept in sync with {@link RenderUtil#writeMeshQuadToBuffer(MeshQuad, BufferWriter, int)}
      */
     public boolean init() {
-        // The average mesh is 60 KB. Let's be safe and assume 8 KB per mesh.
-        // This means 1 MB of index data per 512 MB of VRAM.
-        MAX_MESHES = Config.VRAMSize * 128;
-
         Compat.updateOptiFineShadersState();
 
         attributes = new AttributeSet();
@@ -477,111 +555,23 @@ public class NeoRenderer {
         Neodymium.util.initVertexAttributes(attributes);
 
         reloadShader();
-
-        VAO = glGenVertexArrays();
-        glBindVertexArray(VAO);
-
-        mem = new GPUMemoryManager();
-
-        glBindBuffer(GL_ARRAY_BUFFER, mem.VBO);
-
-        boolean optiFineShaders = Compat.isOptiFineShadersEnabled();
-        if (optiFineShaders) {
-            initOptiFineShadersVertexPointers();
-        } else {
-            attributes.enable();
-        }
-
-        for (int i = 0; i < 2; i++) {
-            piFirst[i] = BufferUtils.createIntBuffer(MAX_MESHES);
-            piFirst[i].flip();
-            piCount[i] = BufferUtils.createIntBuffer(MAX_MESHES);
-            piCount[i].flip();
-        }
-
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-        glBindVertexArray(0);
-
         return true;
     }
 
-    // TODO: This format is nice, we should have it in the docs too!
-    // position   3 floats 12 bytes offset 0
-    // texture    2 floats  8 bytes offset 12
-    // color      4 bytes   4 bytes offset 20
-    // brightness 2 shorts  4 bytes offset 24 (brightness_R with RPLE)
-    // entitydata 3 shorts  6 bytes offset 28
-    // <padding>  --------  2 bytes offset 34
-    // normal     3 floats 12 bytes offset 36
-    // tangent    4 floats 16 bytes offset 48
-    // midtexture 2 floats  8 bytes offset 64
+    private GPUMemoryManager initMemoryManager(int pass) throws Exception {
+        val mem = new GPUMemoryManager(mems.size(), pass);
+        mems.add(mem);
+        memMap.computeIfAbsent(pass, p -> new ArrayList<>()).add(mem);
 
-    // ---RPLE EXTRAS---
-    // brightness_G 2 shorts 4 bytes offset 72
-    // brightness_B 2 shorts 4 bytes offset 76
-    // edgeTex      2 floats 8 bytes offset 80
-    private static void initOptiFineShadersVertexPointers() {
-        int stride;
-        if (Compat.isFalseTweaksModPresent()) {
-            stride = VertexAPI.recomputeVertexInfo(18, 4);
-        } else {
-            stride = 72;
-        }
-        val entityAttrib = 10;
-        val midTexCoordAttrib = 11;
-        val tangentAttrib = 12;
+        glBindVertexArray(mem.VAO);
 
-        // position   3 floats 12 bytes offset 0
-        GL11.glVertexPointer(3, GL11.GL_FLOAT, stride, 0);
-        GL11.glEnableClientState(GL11.GL_VERTEX_ARRAY);
+        glBindBuffer(GL_ARRAY_BUFFER, mem.VBO);
 
-        // texture    2 floats  8 bytes offset 12
-        GL11.glTexCoordPointer(2, GL11.GL_FLOAT, stride, 12);
-        GL11.glEnableClientState(GL11.GL_TEXTURE_COORD_ARRAY);
+        Neodymium.util.applyVertexAttributes(attributes);
 
-        // color      4 bytes   4 bytes offset 20
-        GL11.glColorPointer(4, GL11.GL_UNSIGNED_BYTE, stride, 20);
-        GL11.glEnableClientState(GL11.GL_COLOR_ARRAY);
-
-        // brightness 2 shorts  4 bytes offset 24
-        if (!Compat.isRPLEModPresent()) { // RPLE sets this up in enableVertexPointersVBO
-            OpenGlHelper.setClientActiveTexture(OpenGlHelper.lightmapTexUnit);
-            GL11.glTexCoordPointer(2, GL11.GL_SHORT, stride, 24);
-            GL11.glEnableClientState(GL11.GL_TEXTURE_COORD_ARRAY);
-            OpenGlHelper.setClientActiveTexture(OpenGlHelper.defaultTexUnit);
-        }
-
-        // entitydata 3 shorts  6 bytes offset 28
-        GL20.glVertexAttribPointer(entityAttrib, 3, GL11.GL_SHORT, false, stride, 28);
-        GL20.glEnableVertexAttribArray(entityAttrib);
-
-        // normal     3 floats 12 bytes offset 36
-        GL11.glNormalPointer(GL11.GL_FLOAT, stride, 36);
-        GL11.glEnableClientState(GL11.GL_NORMAL_ARRAY);
-
-        // tangent    4 floats 16 bytes offset 48
-        GL20.glVertexAttribPointer(tangentAttrib, 4, GL11.GL_FLOAT, false, stride, 48);
-        GL20.glEnableVertexAttribArray(tangentAttrib);
-
-        // midtexture 2 floats  8 bytes offset 64
-        GL13.glClientActiveTexture(GL13.GL_TEXTURE3);
-        GL11.glTexCoordPointer(2, GL11.GL_FLOAT, stride, 64);
-        GL11.glEnableClientState(GL11.GL_TEXTURE_COORD_ARRAY);
-        OpenGlHelper.setClientActiveTexture(OpenGlHelper.defaultTexUnit);
-
-        ARBVertexShader.glVertexAttribPointerARB(midTexCoordAttrib, 2, GL11.GL_FLOAT, false, stride, 64);
-        ARBVertexShader.glEnableVertexAttribArrayARB(midTexCoordAttrib);
-
-        if (Compat.isRPLEModPresent()) {
-            RPLELightMapUtil.enableVertexPointersVBO();
-            ARBVertexShader.glVertexAttribPointerARB(RPLEShaderConstants.edgeTexCoordAttrib,
-                                                     2,
-                                                     GL_FLOAT,
-                                                     false,
-                                                     stride,
-                                                     80);
-            ARBVertexShader.glEnableVertexAttribArrayARB(RPLEShaderConstants.edgeTexCoordAttrib);
-        }
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glBindVertexArray(0);
+        return mem;
     }
 
     public int getStride() {
@@ -661,11 +651,13 @@ public class NeoRenderer {
         glDeleteProgram(shaderProgramsFog[1]);
         glDeleteProgram(shaderProgramsNoFog[0]);
         glDeleteProgram(shaderProgramsNoFog[1]);
-        glDeleteVertexArrays(VAO);
-        mem.destroy();
+        for (val mem: mems) {
+            mem.destroy();
+        }
 
-        ChunkMesh.instances = 0;
-        ChunkMesh.usedRAM = 0;
+        for (val region: loadedRegionsList) {
+            region.destroy();
+        }
     }
 
     public void onWorldRendererChanged(WorldRenderer wr, WorldRendererChange change) {
@@ -693,8 +685,8 @@ public class NeoRenderer {
 
         if (Minecraft.getMinecraft().theWorld.getChunkFromChunkCoords(x, z).isChunkLoaded) {
             NeoChunk neoChunk = getNeoChunk(x, z);
-            neoChunk.isSectionVisible[y] = ((IWorldRenderer) wr).isDrawn();
-            neoChunk.putChunkMeshes(y, ((IWorldRenderer) wr).getChunkMeshes(), sort);
+            neoChunk.isSectionVisible[y] = ((NeodymiumWorldRenderer) wr).nd$isDrawn();
+            neoChunk.putChunkMeshes(y, ((NeodymiumWorldRenderer) wr).nd$getChunkMeshes(), sort);
         }
     }
 
@@ -745,9 +737,41 @@ public class NeoRenderer {
                             setMeshVisible(cm, false);
                         }
                     }
+                    uploadMeshToGPU(cm);
                 }
             }
         }
+    }
+
+
+    protected void uploadMeshToGPU(Mesh mesh) {
+        if (mesh.gpuStatus != GPUStatus.UNSENT || mesh.buffer == null) {
+            return;
+        }
+        boolean sent = false;
+        GPUMemoryManager mem = null;
+        val memArr = memMap.get(mesh.pass);
+        if (memArr != null)
+            for (int i = 0; i < memArr.size(); i++) {
+                mem = memArr.get(i);
+                sent = mem.uploadMesh(mesh);
+                if (sent)
+                    break;
+            }
+        if (!sent) {
+            try {
+                mem = initMemoryManager(mesh.pass);
+            } catch (Exception e) {
+                ChatUtil.showNeoChatMessage("Could not allocate memory buffer: " + e.getMessage(), ChatUtil.MessageVerbosity.ERROR);
+                e.printStackTrace();
+                Neodymium.renderer.destroyPending = true;
+                return;
+            }
+            mem.uploadMesh(mesh);
+        }
+        NeoRegion region = getRegionContaining(mesh.x, mesh.z);
+        region.getRenderData(mem).getSentMeshes().add(mesh);
+        mesh.containingRegion = region;
     }
 
     protected void setMeshVisible(Mesh mesh, boolean visible) {
@@ -755,22 +779,18 @@ public class NeoRenderer {
 
         if (mesh.visible != visible) {
             mesh.visible = visible;
-
-            if (mesh.gpuStatus == GPUStatus.UNSENT) {
-                mem.sendMeshToGPU(mesh);
-                NeoRegion region = getRegionContaining(mesh.x, mesh.z);
-                region.getRenderData().getSentMeshes(mesh.pass).add(mesh);
-                mesh.containingRegion = region;
-            }
         }
     }
 
     public void removeMesh(Mesh mesh) {
         if (mesh == null) return;
 
-        mem.deleteMeshFromGPU(mesh);
-        if (mesh.containingRegion != null) {
-            mesh.containingRegion.getRenderData().getSentMeshes(mesh.pass).remove(mesh);
+        val mem = mesh.attachedManager;
+        if (mem != null) {
+            mesh.attachedManager.deleteMesh(mesh);
+            if (mesh.containingRegion != null) {
+                mesh.containingRegion.getRenderData(mem).getSentMeshes().remove(mesh);
+            }
         }
         setMeshVisible(mesh, false);
     }
@@ -782,11 +802,18 @@ public class NeoRenderer {
                 + (statusCommand ? EnumChatFormatting.LIGHT_PURPLE : "")
                 + "Neodymium " + VERSION
         );
-        text.addAll(mem.getDebugText());
         text.addAll(Arrays.asList(
-                "Meshes: " + ChunkMesh.instances + " (" + ChunkMesh.usedRAM / 1024 / 1024 + "MB)",
-                "Rendered: " + renderedMeshes + " (" + renderedQuads / 1000 + "KQ)"
-        ));
+                "Meshes: " + ChunkMesh.instances.get() + " (" + ChunkMesh.usedRAM.get() / 1024 / 1024 + "MB)",
+                "Rendered: " + renderedMeshesRender + " (" + renderedQuadsRender / 1000 + "KQ)"
+                                 ));
+        if (Compat.isOptiFineShadersEnabled()) {
+            text.add("Shadow Rendered: " + renderedMeshesShadow + " (" + renderedQuadsShadow / 1000 + "KQ)");
+        }
+        text.add("VRAM buffers:");
+        for (int i = 0; i < mems.size(); i++) {
+            val mem = mems.get(i);
+            text.addAll(mem.debugText());
+        }
         if (rendererSpeedup > 0) {
             text.add(EnumChatFormatting.YELLOW + "(!) Renderer speedup active");
         }

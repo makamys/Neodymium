@@ -45,6 +45,8 @@ public class Config {
     public static boolean enabled;
     @ConfigBoolean(cat="_general", def=false, com="Apply changes made in the config file immediately without having to manually reload the renderer. Off by default because it could potentially cause poor performance on certain platforms.")
     public static boolean hotswap;
+    @ConfigBoolean(cat="_general", def=true, com="Set this to false to disable update checking.")
+    public static boolean updateChecker;
 
     @ConfigBoolean(cat="render", def=true, com="Don't submit faces for rendering if they are facing away from the camera. Reduces GPU workload at the cost of increasing driver overhead. This will improve the framerate most of the time, but may reduce it if you are not fillrate-limited (such as when playing on a small resolution).")
     public static boolean cullFaces;
@@ -58,14 +60,15 @@ public class Config {
     @ConfigBoolean(cat="render", def=false, com="Do fog occlusion even if fog is disabled.")
     public static boolean fogOcclusionWithoutFog;
     
-    @NeedsReload
-    @ConfigInt(cat="render", def=512, min=1, max=Integer.MAX_VALUE, com="VRAM buffer size (MB). 512 seems to be a good value on Normal render distance. Increase this if you encounter warnings about the VRAM getting full. Does not affect RAM usage.")
-    public static int VRAMSize;
     @ConfigEnum(cat="render", def="auto", clazz=AutomatableBoolean.class, com="Render fog? Slightly reduces framerate. `auto` means the OpenGL setting will be respected (as set by mods like OptiFine).\nValid values: true, false, auto")
     public static AutomatableBoolean renderFog;
     @ConfigInt(cat="render", def=Integer.MAX_VALUE, min=0, max=Integer.MAX_VALUE, com="Chunks further away than this distance (in chunks) will not have unaligned quads such as tall grass rendered.")
     public static int maxUnalignedQuadDistance;
-    
+    @ConfigInt(cat="render", def=256,min=16,max=1024,com = "The size of the allocation chunks for opaque geometry (in Megabytes). Requires game restart to apply.")
+    public static int bufferSizePass0;
+    @ConfigInt(cat="render", def=64,min=16,max=1024,com = "The size of the allocation chunks for transparent geometry (in Megabytes). Requires game restart to apply.")
+    public static int bufferSizePass1;
+
     @ConfigBoolean(cat="misc", def=true, com="Replace splash that says 'OpenGL 1.2!' with 'OpenGL 3.3!'. Just for fun.")
     public static boolean replaceOpenGLSplash;
     @ConfigBoolean(cat="misc", def=false, com="Don't warn about incompatibilities in chat, and activate renderer even in spite of critical ones.")

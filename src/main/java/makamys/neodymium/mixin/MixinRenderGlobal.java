@@ -5,7 +5,6 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
@@ -17,13 +16,13 @@ import net.minecraft.entity.EntityLivingBase;
 
 /** Blocks vanilla chunk rendering while NeoRenderer is active. */
 @Mixin(RenderGlobal.class)
-abstract class MixinRenderGlobal { 
-    
+abstract class MixinRenderGlobal {
+    @Unique
+    private boolean nd$isInsideUpdateRenderers;
+
     @Shadow
     private WorldRenderer[] sortedWorldRenderers;
-    
-    private boolean nd$isInsideUpdateRenderers;
-    
+
     @Inject(method = "renderAllRenderLists",
             at = @At(value = "HEAD"),
             cancellable = true,

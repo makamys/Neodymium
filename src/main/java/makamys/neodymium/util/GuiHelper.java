@@ -1,5 +1,7 @@
 package makamys.neodymium.util;
 
+import lombok.val;
+import makamys.neodymium.Compat;
 import org.lwjgl.opengl.GL11;
 
 import net.minecraft.client.Minecraft;
@@ -22,39 +24,36 @@ public class GuiHelper {
         GL11.glTranslatef(0.0F, 0.0F, -2000.0F);
         //GL11.glLineWidth(1.0F);
         //GL11.glDisable(GL11.GL_TEXTURE_2D);
+        GL11.glEnable(GL11.GL_BLEND);
+        Tessellator tessellator = Compat.tessellator();
+        tessellator.startDrawingQuads();
     }
     
     public static void drawRectangle(int x, int y, int w, int h, int color) {
-        Tessellator tessellator = Tessellator.instance;
-        tessellator.startDrawingQuads();
+        val tessellator = Compat.tessellator();
         tessellator.setColorOpaque_I(color);
         tessellator.addVertex(x, y, 0);
         tessellator.addVertex(x, y+h, 0);
         tessellator.addVertex(x+w, y+h, 0);
         tessellator.addVertex(x+w, y, 0);
-        
-        tessellator.draw();
     }
+
     
     public static void drawRectangle(int x, int y, int w, int h, int color, int opacity) {
-        GL11.glEnable(GL11.GL_BLEND);
-        
-        Tessellator tessellator = Tessellator.instance;
-        tessellator.startDrawingQuads();
+        val tessellator = Compat.tessellator();
         tessellator.setColorRGBA_I(color, opacity);
         tessellator.addVertex(x, y, 0);
         tessellator.addVertex(x, y+h, 0);
         tessellator.addVertex(x+w, y+h, 0);
         tessellator.addVertex(x+w, y, 0);
-        
-        tessellator.draw();
-        
-        GL11.glDisable(GL11.GL_BLEND);
+
     }
     
     public static void end() {
-        //GL11.glDisable(GL11.GL_BLEND);
-        
+        val tessellator = Compat.tessellator();
+        tessellator.draw();
+        GL11.glDisable(GL11.GL_BLEND);
+
         //GL11.glEnable(GL11.GL_TEXTURE_2D);
     }
     

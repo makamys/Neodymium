@@ -13,19 +13,26 @@ public class NeoRegion {
 	
 	private NeoChunk[][] data = new NeoChunk[SIZE][SIZE];
 	@Getter
-	private RenderData renderData;
+	private List<RenderData> renderData = new ArrayList<>();
 	
 	int regionX, regionZ;
 	
 	public int meshes = 0;
 	
 	private int emptyTicks = 0;
+
+	public RenderData getRenderData(GPUMemoryManager manager) {
+		int index = manager.managerIndex;
+		while (renderData.size() <= index) {
+			renderData.add(new RenderData(regionX * SIZE * 16, 0, regionZ * SIZE * 16));
+		}
+		return renderData.get(index);
+	}
 	
 	public NeoRegion(int regionX, int regionZ) {
 		this.regionX = regionX;
 		this.regionZ = regionZ;
-		this.renderData = new RenderData(regionX * SIZE * 16, 0, regionZ * SIZE * 16);
-		
+
 		for(int i = 0; i < SIZE; i++) {
 			for(int j = 0; j < SIZE; j++) {
 				data[i][j] = new NeoChunk(regionX * SIZE + i, regionZ * SIZE + j, this);
@@ -106,21 +113,18 @@ public class NeoRegion {
     public static class RenderData {
         public final double originX, originY, originZ;
         
-        private List<Mesh>[] sentMeshes = (List<Mesh>[])new ArrayList[] {new ArrayList<Mesh>(), new ArrayList<Mesh>()};
-        public int[] batchLimit = new int[2];
-        public int[] batchFirst = new int[2];
+        @Getter
+		private final List<Mesh> sentMeshes = new ArrayList<Mesh>();
+        public int batchLimit;
+        public int batchFirst;
         
         public void sort(double eyePosX, double eyePosY, double eyePosZ, boolean pass0, boolean pass1) {
             if(pass0) {
-                sentMeshes[0].sort(Comparators.MESH_DISTANCE_COMPARATOR.setOrigin(eyePosX, eyePosY, eyePosZ).setInverted(false));
+                sentMeshes.sort(Comparators.MESH_DISTANCE_COMPARATOR.setOrigin(eyePosX, eyePosY, eyePosZ).setInverted(false));
             }
             if(pass1) {
-                sentMeshes[1].sort(Comparators.MESH_DISTANCE_COMPARATOR.setOrigin(eyePosX, eyePosY, eyePosZ).setInverted(true));
+                sentMeshes.sort(Comparators.MESH_DISTANCE_COMPARATOR.setOrigin(eyePosX, eyePosY, eyePosZ).setInverted(true));
             }
         }
-        
-        public List<Mesh> getSentMeshes(int i) {
-            return sentMeshes[i];
-        }
-    }
+	}
 }
